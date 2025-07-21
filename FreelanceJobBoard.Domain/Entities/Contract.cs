@@ -11,7 +11,8 @@ public class Contract : BaseEntity
 	public string? AgreedPaymentType { get; set; }
 	public decimal PaymentAmount { get; set; }
 	public DateTime? EndTime { get; set; }
-	public string Status { get; set; }
+    public int ContractStatusId { get; set; }
+    public ContractStatus ContractStatus { get; set; }
 
 	public Proposal Proposal { get; set; }
 	public Client Client { get; set; }
