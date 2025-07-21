@@ -21,9 +21,12 @@ public class ContractConfiguration : IEntityTypeConfiguration<Contract>
 
 		builder.Property(c => c.EndTime);
 
-		builder.Property(c => c.Status)
-			   .IsRequired()
-			   .HasMaxLength(100);
+		builder.Property(c => c.ContractStatusId).IsRequired();
+
+		builder.HasOne(c => c.ContractStatus)
+			.WithMany(s => s.Contracts)
+			.HasForeignKey(c => c.ContractStatusId)
+			.OnDelete(DeleteBehavior.Restrict);
 
 		builder.HasOne(c => c.Proposal)
 			   .WithMany()

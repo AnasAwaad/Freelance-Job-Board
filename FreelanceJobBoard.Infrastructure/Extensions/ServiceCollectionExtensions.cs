@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions
 {
 	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
 	{
-		var connectionString = configuration.GetConnectionString("DefaultConnection")
+		var connectionString = configuration.GetConnectionString("DefaultConnection_2")
 			?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
 
 		services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));

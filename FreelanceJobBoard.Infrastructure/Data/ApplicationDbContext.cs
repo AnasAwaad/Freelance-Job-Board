@@ -16,7 +16,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<JobView> JobViews => Set<JobView>();
 	public DbSet<Review> Reviews => Set<Review>();
 	public DbSet<Proposal> Proposals => Set<Proposal>();
-	public DbSet<Contract> Contracts => Set<Contract>();
+    public DbSet<Contract> Contracts => Set<Contract>();
+    public DbSet<ContractStatus> ContractStatuses => Set<ContractStatus>();
 	public DbSet<Attachment> Attachments => Set<Attachment>();
 	public DbSet<ProposalAttachment> ProposalAttachments => Set<ProposalAttachment>();
 	public DbSet<JobAttachment> JobAttachments => Set<JobAttachment>();
