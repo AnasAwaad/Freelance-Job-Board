@@ -4,6 +4,7 @@ using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FreelanceJobBoard.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250721194751_perm")]
+    partial class perm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,9 +194,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ContractStatusId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -218,11 +218,14 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
-
-                    b.HasIndex("ContractStatusId");
 
                     b.HasIndex("FreelancerId");
 
@@ -230,46 +233,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Contracts");
-                });
-
-            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ContractStatuses");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Pending"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Active"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Completed"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Cancelled"
-                        });
                 });
 
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Freelancer", b =>
@@ -426,6 +389,15 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Property<int>("AttachmentId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastUpdatedOn")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("JobId", "AttachmentId");
 
@@ -728,6 +700,15 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Property<int>("AttachmentId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastUpdatedOn")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("ProposalId", "AttachmentId");
 
@@ -1114,12 +1095,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("FreelanceJobBoard.Domain.Entities.ContractStatus", "ContractStatus")
-                        .WithMany("Contracts")
-                        .HasForeignKey("ContractStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Freelancer", "Freelancer")
                         .WithMany("Contracts")
                         .HasForeignKey("FreelancerId")
@@ -1133,8 +1108,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
-
-                    b.Navigation("ContractStatus");
 
                     b.Navigation("Freelancer");
 
@@ -1435,11 +1408,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Navigation("Jobs");
 
                     b.Navigation("Proposals");
-                });
-
-            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractStatus", b =>
-                {
-                    b.Navigation("Contracts");
                 });
 
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Freelancer", b =>
