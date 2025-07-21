@@ -26,7 +26,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Certification> Certifications => Set<Certification>();
 	public DbSet<Notification> Notifications => Set<Notification>();
 	public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
-
+	
+	public DbSet<Permission> Permissions => Set<Permission>();
+	public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
 	public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
