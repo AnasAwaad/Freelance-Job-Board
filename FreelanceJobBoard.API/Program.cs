@@ -1,5 +1,7 @@
 
-using Restaurants.Infrastructure.Extensions;
+using FreelanceJobBoard.API.Middlewares;
+using FreelanceJobBoard.Application.Extensions;
+using FreelanceJobBoard.Infrastructure.Extensions;
 
 namespace FreelanceJobBoard.API
 {
@@ -9,19 +11,29 @@ namespace FreelanceJobBoard.API
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
-			// Add services to the container.
+			#region Add services to the container.
+
+			builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
 			builder.Services
+				.AddApplication()
 				.AddInfrastructure(builder.Configuration);
+
 
 			builder.Services.AddControllers();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
+
+			#endregion
+
 			var app = builder.Build();
 
-			// Configure the HTTP request pipeline.
+			#region Configure the HTTP request pipeline.
+
+			app.UseMiddleware<ErrorHandlingMiddleware>();
+
 			if (app.Environment.IsDevelopment())
 			{
 				app.UseSwagger();
@@ -36,6 +48,7 @@ namespace FreelanceJobBoard.API
 			app.MapControllers();
 
 			app.Run();
+			#endregion
 		}
 	}
 }
