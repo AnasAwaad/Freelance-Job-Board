@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FreelanceJobBoard.Application.Features.Categories.DTOs;
 using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
@@ -12,7 +13,7 @@ public class GetCategoryByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
 		var category = await unitOfWork.Categories.GetByIdAsync(request.Id);
 
 		if (category is null)
-			throw new NotFoundException(nameof(category), request.Id.ToString());
+			throw new NotFoundException(nameof(Category), request.Id.ToString());
 
 		return mapper.Map<CategoryDto>(category);
 	}

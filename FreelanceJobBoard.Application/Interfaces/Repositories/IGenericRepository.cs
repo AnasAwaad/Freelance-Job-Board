@@ -2,7 +2,7 @@
 
 public interface IGenericRepository<T> where T : class
 {
-	void Create(T entity);
+	Task CreateAsync(T entity);
 	void Delete(string id);
 	Task<IEnumerable<T>> GetAllAsync();
 	Task<T?> GetByIdAsync(int id);

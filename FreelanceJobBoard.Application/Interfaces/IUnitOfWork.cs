@@ -4,4 +4,6 @@ namespace FreelanceJobBoard.Application.Interfaces;
 public interface IUnitOfWork
 {
 	public ICategoryRepository Categories { get; }
+	Task SaveChangesAsync();
+
 }
