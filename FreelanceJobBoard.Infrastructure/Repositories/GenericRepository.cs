@@ -12,13 +12,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 		_context = context;
 		_dbSet = _context.Set<T>();
 	}
-	public void Delete(string id)
+	public void Delete(T entity)
 	{
-		var entity = _dbSet.Find(id);
-		if (entity != null)
-		{
-			_dbSet.Remove(entity);
-		}
+		_dbSet.Remove(entity);
 	}
 
 	public async Task<IEnumerable<T>> GetAllAsync()

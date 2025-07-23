@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Features.Categories.Commands.CreateCategory;
+using FreelanceJobBoard.Application.Features.Categories.Commands.DeleteCategory;
 using FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
 using FreelanceJobBoard.Application.Features.Categories.Queries.GetAllCategories;
 using FreelanceJobBoard.Application.Features.Categories.Queries.GetCategoryById;
@@ -33,6 +34,14 @@ public class CategoriesController(IMediator mediator) : ControllerBase
 	{
 		command.Id = id;
 		await mediator.Send(command);
+
+		return NoContent();
+	}
+
+	[HttpDelete("{id}")]
+	public async Task<IActionResult> Delete([FromRoute] int id)
+	{
+		await mediator.Send(new DeleteCategoryCommand(id));
 
 		return NoContent();
 	}
