@@ -3,7 +3,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
 
 
-namespace Restaurants.Application.Extensions;
+namespace FreelanceJobBoard.Application.Extensions;
 public static class ServiceCollectionExtensions
 {
 	public static IServiceCollection AddApplication(this IServiceCollection services)

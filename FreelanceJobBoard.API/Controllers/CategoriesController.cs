@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Features.Categories.Queries.GetAllCategories;
+using FreelanceJobBoard.Application.Features.Categories.Queries.GetCategoryById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,5 +13,7 @@ public class CategoriesController(IMediator mediator) : ControllerBase
 		 Ok(await mediator.Send(new GetAllCategoriesQuery()));
 
 
-
+	[HttpGet("{id}")]
+	public async Task<IActionResult> GetById([FromRoute] int id) =>
+		Ok(await mediator.Send(new GetCategoryByIdQuery(id)));
 }

@@ -1,6 +1,7 @@
 
-using Restaurants.Application.Extensions;
-using Restaurants.Infrastructure.Extensions;
+using FreelanceJobBoard.API.Middlewares;
+using FreelanceJobBoard.Application.Extensions;
+using FreelanceJobBoard.Infrastructure.Extensions;
 
 namespace FreelanceJobBoard.API
 {
@@ -11,6 +12,8 @@ namespace FreelanceJobBoard.API
 			var builder = WebApplication.CreateBuilder(args);
 
 			#region Add services to the container.
+
+			builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
 			builder.Services
 				.AddApplication()
@@ -28,6 +31,9 @@ namespace FreelanceJobBoard.API
 			var app = builder.Build();
 
 			#region Configure the HTTP request pipeline.
+
+			app.UseMiddleware<ErrorHandlingMiddleware>();
+
 			if (app.Environment.IsDevelopment())
 			{
 				app.UseSwagger();
