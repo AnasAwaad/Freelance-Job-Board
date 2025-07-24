@@ -2,41 +2,29 @@
 
 ## Overview
 
-The `RequestResponseLoggingMiddleware` is a comprehensive ASP.NET Core middleware that provides structured logging for all incoming HTTP requests and outgoing HTTP responses using Serilog. It captures essential request/response information and provides enriched logging context for better observability.
+The `RequestResponseLoggingMiddleware` provides comprehensive structured logging for HTTP requests and responses in ASP.NET Core applications using Serilog. This middleware is designed for production environments with professional logging standards and minimal performance overhead.
 
 ## Features
 
-- **Structured Logging**: Uses Serilog.ForContext(...) for enriched structured logging
-- **Request Body Capture**: Logs request body for POST, PUT, and PATCH requests (JSON content only)
-- **Performance Monitoring**: Tracks total request processing time in milliseconds
-- **Context Enrichment**: Adds RequestId, RemoteIpAddress, UserAgent, and UserId to log context
-- **Exception Handling**: Gracefully handles and logs exceptions during request processing
-- **Configurable Body Logging**: Limits request body size to prevent excessive logging (4KB limit)
-- **Response Status Awareness**: Different log levels based on HTTP status codes (4xx/5xx = Warning, others = Information)
+- **Structured Logging**: Utilizes Serilog with contextual enrichment for detailed request tracking
+- **Request Body Capture**: Logs request payloads for POST, PUT, and PATCH operations with JSON content
+- **Performance Monitoring**: Tracks request processing time with millisecond precision
+- **Smart Filtering**: Automatically excludes static resources and infrastructure endpoints
+- **Error Context**: Provides detailed context for failed requests and exceptions
+- **Configurable Output**: Separate formatting for console and file outputs
 
-## Installation & Setup
+## Architecture
 
-### 1. Required Packages
-
-The following packages are required and should already be installed:
-<PackageReference Include="Serilog" Version="4.3.0" />
-<PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
-<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
-<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-<PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-### 2. Middleware Registration
-
-The middleware is already registered in your `Program.cs`:
-// Register the middleware in the DI container
-builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
-
-// Add to the middleware pipeline (should be early in the pipeline)
+### Middleware Pipeline Position
+The middleware should be positioned early in the request pipeline to capture all requests before they reach other middleware components.
 app.UseMiddleware<RequestResponseLoggingMiddleware>();
-### 3. Serilog Configuration
+app.UseMiddleware<ErrorHandlingMiddleware>();
+### Configuration
 
-Your application is configured to use Serilog with the following setup:
+#### Serilog Configuration
+The middleware leverages Serilog's structured logging capabilities with the following configuration:
 
-**appsettings.json:**{
+**Production Environment:**{
   "Serilog": {
     "MinimumLevel": {
       "Default": "Information",
@@ -51,179 +39,134 @@ Your application is configured to use Serilog with the following setup:
       {
         "Name": "Console",
         "Args": {
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
         }
       },
       {
         "Name": "File",
         "Args": {
-          "path": "logs/app-.log",
+          "path": "logs/application-.log",
           "rollingInterval": "Day",
-          "retainedFileCountLimit": 7,
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+          "retainedFileCountLimit": 30,
+          "outputTemplate": "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj} | RequestId: {RequestId} | UserId: {UserId} | RemoteIP: {RemoteIP}{NewLine}{Exception}"
         }
       }
-    ],
-    "Enrich": ["FromLogContext"],
-    "Properties": {
-      "ApplicationName": "FreelanceJobBoard.API"
-    }
+    ]
   }
 }
-## What Gets Logged
+## Logging Output
 
-### Request Information (Information Level)
+### Request Logging
+All incoming HTTP requests are logged with the following information:
+- HTTP method and path
+- Query string parameters (if present)
+- Request body (for POST/PUT/PATCH with JSON content)
+- Request correlation ID
+- User identity
+- Remote IP address
 
-- HTTP Method (GET, POST, PUT, DELETE, etc.)
-- Request Path and Query String
-- Content-Type and Content-Length headers
-- Request Body (for POST, PUT, PATCH with `application/json` content type only)
-- Unique Request ID for correlation
-- Remote IP Address
-- User Agent
-- User Identity (if authenticated, otherwise "Anonymous")
+### Response Logging
+All HTTP responses are logged with:
+- HTTP status code and category
+- Request processing time
+- Response metadata for errors or slow requests
 
-### Response Information (Information/Warning Level)
+### Sample Output
 
-- HTTP Status Code
-- Processing Time in milliseconds
-- Response Headers (debug level only)
-- Response Content-Type and Content-Length
-- Request/Response correlation via Request ID
-
-### Exception Information (Error Level)
-
-- Full exception details with stack trace
-- Request context when exception occurred
-- Processing time until exception
-- All enriched context properties
-
-## Sample Log Output
-
-### Successful POST Request2024-12-19 10:15:23.456 +00:00 [INF] Incoming POST request to /api/categories with Content-Type: application/json and Content-Length: 45 {"RequestId": "a1b2c3d4", "RemoteIpAddress": "127.0.0.1", "UserAgent": "Mozilla/5.0", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
-
-2024-12-19 10:15:23.457 +00:00 [INF] Request body: {"name":"Web Development","description":"Web development services"} {"RequestId": "a1b2c3d4", "RemoteIpAddress": "127.0.0.1", "UserAgent": "Mozilla/5.0", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
-
-2024-12-19 10:15:23.523 +00:00 [INF] Outgoing POST response for /api/categories returned 201 in 67ms {"RequestId": "a1b2c3d4", "RemoteIpAddress": "127.0.0.1", "UserAgent": "Mozilla/5.0", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
-### GET Request (No Body)2024-12-19 10:16:12.123 +00:00 [INF] Incoming GET request to /api/categories?page=1 with Content-Type: N/A and Content-Length: 0 {"RequestId": "b5c6d7e8", "RemoteIpAddress": "127.0.0.1", "UserAgent": "PostmanRuntime/7.32.3", "UserId": "john.doe", "ApplicationName": "FreelanceJobBoard.API"}
-
-2024-12-19 10:16:12.145 +00:00 [INF] Outgoing GET response for /api/categories returned 200 in 22ms {"RequestId": "b5c6d7e8", "RemoteIpAddress": "127.0.0.1", "UserAgent": "PostmanRuntime/7.32.3", "UserId": "john.doe", "ApplicationName": "FreelanceJobBoard.API"}
-### Error Response (404)2024-12-19 10:17:24.123 +00:00 [INF] Incoming GET request to /api/categories/9999 with Content-Type: N/A and Content-Length: 0 {"RequestId": "e5f6g7h8", "RemoteIpAddress": "127.0.0.1", "UserAgent": "PostmanRuntime/7.32.3", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
-
-2024-12-19 10:17:24.135 +00:00 [WAR] Outgoing GET response for /api/categories/9999 returned 404 in 12ms {"RequestId": "e5f6g7h8", "RemoteIpAddress": "127.0.0.1", "UserAgent": "PostmanRuntime/7.32.3", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
-### Exception Handling2024-12-19 10:18:25.789 +00:00 [INF] Incoming POST request to /api/categories with Content-Type: application/json and Content-Length: 45 {"RequestId": "i9j0k1l2", "RemoteIpAddress": "127.0.0.1", "UserAgent": "PostmanRuntime/7.32.3", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
-
-2024-12-19 10:18:25.834 +00:00 [ERR] Request processing failed for POST /api/categories after 45ms {"RequestId": "i9j0k1l2", "RemoteIpAddress": "127.0.0.1", "UserAgent": "PostmanRuntime/7.32.3", "UserId": "Anonymous", "ApplicationName": "FreelanceJobBoard.API"}
+**Successful Request:**[15:30:45 INF] HTTP GET request to /api/categories
+[15:30:45 INF] HTTP GET /api/categories completed with 200 SUCCESS in 23ms
+**Request with Body:**[15:31:12 INF] HTTP POST request to /api/categories
+[15:31:12 INF] Request body: {"name":"Web Development","description":"Professional web development services"}
+[15:31:12 INF] HTTP POST /api/categories completed with 201 SUCCESS in 67ms
+**Error Response:**[15:32:05 INF] HTTP GET request to /api/categories/999
+[15:32:05 WRN] HTTP GET /api/categories/999 completed with 404 CLIENT_ERROR in 12ms
+**Exception Handling:**[15:33:01 INF] HTTP POST request to /api/categories
+[15:33:01 INF] Request body: {"name":"Test Category"}
+[15:33:01 ERR] Request processing failed for POST /api/categories after 145ms
 System.InvalidOperationException: Database connection failed
    at FreelanceJobBoard.Infrastructure.Repositories.CategoryRepository.CreateAsync...
 ## Configuration Options
 
-### Body Capture Settings
+### Request Body Logging
+- **Methods**: POST, PUT, PATCH
+- **Content Type**: application/json
+- **Size Limit**: 2048 characters (configurable via `MaxBodyLength`)
+- **Truncation**: Bodies exceeding the limit are truncated with "[TRUNCATED]" indicator
 
-The middleware includes configurable constants in the source code:
-private static readonly string[] BodyCaptureMethods = ["POST", "PUT", "PATCH"];
-private const int MaxBodyLength = 4096; // 4KB limit for request body logging
-### Log Level Configuration
+### Filtered Endpoints
+The middleware automatically excludes the following from logging:
+- Static files (.css, .js, .ico, .png, .jpg, .jpeg, .gif, .svg, .woff, .woff2, .ttf)
+- Swagger UI endpoints (/swagger/)
+- Framework files (/_framework/)
+- Health check endpoints (/health)
+- Favicon requests (/favicon)
 
-You can adjust log levels in `appsettings.json`:
-{
-  "Serilog": {
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "FreelanceJobBoard.API.Middlewares.RequestResponseLoggingMiddleware": "Debug"
-      }
-    }
-  }
-}
-### Development vs Production
-
-- **Development**: Uses more detailed logging with shorter timestamps for console output
-- **Production**: Uses full timestamps and retains log files for 7 days
+### Status Categories
+HTTP responses are categorized as follows:
+- **SUCCESS**: 200-299
+- **REDIRECT**: 300-399
+- **CLIENT_ERROR**: 400-499
+- **SERVER_ERROR**: 500-599
+- **INFORMATIONAL**: 100-199
 
 ## Performance Considerations
 
-- **Selective Body Capture**: Only captures request bodies for POST/PUT/PATCH with JSON content
-- **Size Limits**: Request body logging is limited to 4KB to prevent memory issues
-- **Buffering**: Uses efficient stream buffering to read request bodies
-- **Async Processing**: All I/O operations are properly awaited
-- **Exception Safety**: Middleware handles all errors gracefully and continues processing
+### Optimizations
+- Asynchronous request body reading
+- Smart filtering to reduce log volume
+- Configurable body size limits
+- Efficient stream buffering
+- Minimal memory allocation
+
+### Monitoring
+- Response times over 1000ms trigger additional debug logging
+- Error responses include extended context information
+- Request correlation tracking for distributed systems
 
 ## Security Considerations
 
-?? **Important Security Notes:**
+### Data Protection
+- Request bodies are logged in plain text
+- Implement additional filtering for sensitive endpoints
+- Consider data masking for personally identifiable information
+- Ensure appropriate log file access controls
 
-1. **Sensitive Data**: Request bodies are logged in plain text. Avoid logging sensitive data like passwords, tokens, or PII
-2. **Log Access**: Ensure log files have appropriate access controls
-3. **Log Retention**: Configure appropriate retention policies for compliance
-4. **Data Masking**: Consider implementing custom logic to mask sensitive fields
+### Compliance
+- Configure log retention policies according to organizational requirements
+- Implement log rotation to manage storage usage
+- Consider encryption for log files in sensitive environments
 
-## Integration with Error Handling
+## Integration
 
-The middleware works seamlessly with your existing `ErrorHandlingMiddleware`:
+The middleware integrates seamlessly with existing ASP.NET Core applications and works alongside other middleware components. It provides structured logging data that can be consumed by log aggregation systems like ELK Stack, Splunk, or Azure Application Insights.
 
-1. **Request/Response Logging** ? Logs all requests and responses
-2. **Exception Occurs** ? Logged by RequestResponseLoggingMiddleware with context
-3. **Error Handling** ? Your ErrorHandlingMiddleware processes the exception
-4. **Final Response** ? Already logged with appropriate status code
+### Dependencies
+- Serilog.AspNetCore
+- Microsoft.AspNetCore.Http
+- System.Text.Json (for JSON content type detection)
 
-## Middleware Pipeline Order
-app.UseMiddleware<RequestResponseLoggingMiddleware>(); // First - logs everything
-app.UseMiddleware<ErrorHandlingMiddleware>();          // Second - handles errors
-// ... other middleware
 ## Troubleshooting
 
 ### Common Issues
 
-1. **No Logs Appearing**
-   - Verify Serilog configuration in appsettings.json
-   - Check minimum log level allows Information level
-   - Ensure logs directory exists and is writable
+**No Request Bodies Logged**
+- Verify Content-Type is application/json
+- Check that Content-Length is greater than 0
+- Confirm request method is POST, PUT, or PATCH
 
-2. **Request Body Not Logged**
-   - Verify request method is POST, PUT, or PATCH
-   - Check Content-Type is `application/json`
-   - Ensure request has content (Content-Length > 0)
+**High Log Volume**
+- Review filtered endpoints configuration
+- Adjust minimum log levels in appsettings.json
+- Consider implementing custom filtering logic
 
-3. **"Synchronous operations are disallowed" Error**
-   - ? **FIXED**: This error occurred in previous versions where request body was read synchronously
-   - The middleware now uses `ReadToEndAsync()` for proper async operations
-   - If you see this error, ensure you're using the latest version of the middleware
+**Performance Impact**
+- Monitor application performance metrics
+- Adjust MaxBodyLength if processing large request bodies
+- Consider disabling body logging for high-throughput endpoints
 
-4. **Performance Issues**
-   - Monitor log file sizes
-   - Adjust `MaxBodyLength` if needed
-   - Consider filtering out health check endpoints
+### Log File Management
+- Files are created in the logs/ directory
+- Daily rotation prevents excessive file sizes
+- Configurable retention policies manage storage usage
 
-5. **Missing Context Properties**
-   - Verify `Enrich.FromLogContext()` is configured
-   - Check middleware registration order
-
-6. **Request Body Shows "[FAILED TO READ BODY]"**
-   - Check the logs for the specific exception details
-   - Verify the request body is valid JSON
-   - Ensure the Content-Type header is set correctly
-
-### Log File Location
-
-Log files are created in: `logs/app-{date}.log`
-
-Example: `logs/app-20241219.log`
-
-### Expected Behavior After Fix
-
-After the async fix, you should see proper request body logging:2024-12-19 15:49:02.970 [INF] Incoming PUT request to /api/Categories/1 with Content-Type: application/json and Content-Length: 45 {"RequestId": "7d80a758", ...}
-2024-12-19 15:49:02.977 [INF] Request body: {"name":"Updated Category","description":"Updated description"} {"RequestId": "7d80a758", ...}
-Instead of the previous error:2024-12-19 15:49:02.945 [WRN] Failed to read request body
-System.InvalidOperationException: Synchronous operations are disallowed...
-2024-12-19 15:49:02.977 [INF] Request body: [FAILED TO READ BODY]## Testing the Middleware
-
-You can test the middleware by making requests to your API endpoints:
-# GET request (no body logged)
-curl -X GET "https://localhost:7000/api/categories"
-
-# POST request (body will be logged)
-curl -X POST "https://localhost:7000/api/categories" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test Category","description":"Test Description"}'
-Check the console output or log files to see the structured logging in action!
+This middleware provides enterprise-grade logging capabilities while maintaining optimal performance characteristics for production environments.
