@@ -12,8 +12,8 @@ public class Freelancer : BaseEntity
 	public decimal? AverageRating { get; set; }
 	public int? TotalReviews { get; set; }
 
-	public string UserId { get; set; }
-	public ApplicationUser User { get; set; }
+	public string? UserId { get; set; }
+	public ApplicationUser? User { get; set; }
 	public ICollection<Proposal> Proposals { get; set; }
 	public ICollection<FreelancerSkill> FreelancerSkills { get; set; }
 	public ICollection<Certification> Certifications { get; set; }
