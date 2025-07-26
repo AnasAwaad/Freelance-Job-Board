@@ -2,6 +2,7 @@
 using FreelanceJobBoard.Application.Features.Jobs.Commands.DeleteJob;
 using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetAllJobs;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,5 +44,11 @@ public class JobsController(IMediator mediator) : ControllerBase
 	{
 		var jobs = await mediator.Send(query);
 		return Ok(jobs);
+	}
+
+	[HttpGet("{id}")]
+	public async Task<IActionResult> GetById([FromRoute] int id)
+	{
+		return Ok(await mediator.Send(new GetJobByIdQuery(id)));
 	}
 }

@@ -58,7 +58,9 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 	{
 		return await _context.Jobs
 			.Include(j => j.Skills)
+				.ThenInclude(js => js.Skill)
 			.Include(j => j.Categories)
+				.ThenInclude(jc => jc.Category)
 			.FirstOrDefaultAsync(j => j.Id == id);
 	}
 }
