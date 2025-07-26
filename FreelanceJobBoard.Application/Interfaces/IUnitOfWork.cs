@@ -8,6 +8,7 @@ public interface IUnitOfWork
 	public IJobRepository Jobs { get; }
 	public IJobCategoryRepository JobCategories { get; }
 	public IJobSkillRepository JobSkills { get; }
+	public IProposalRepository Proposals { get; }
 	Task SaveChangesAsync();
 
 }
