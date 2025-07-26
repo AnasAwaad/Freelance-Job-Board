@@ -16,7 +16,7 @@ public class UpdateJobCommandValidator : AbstractValidator<UpdateJobCommand>
 
 
 		RuleFor(j => j.Status)
-			.Must(validStatus.Contains).WithMessage($"Invalid Status. Please choose from valid status {string.Join(', ', validStatus)}.");
+			.Must(validStatus.Contains).WithMessage($"Invalid Status. Please choose from valid status {string.Join(", ", validStatus)}.");
 
 		RuleFor(j => j.BudgetMin)
 			.GreaterThanOrEqualTo(0).WithMessage("{PropertyName} must be greater than or equal to 0.");
