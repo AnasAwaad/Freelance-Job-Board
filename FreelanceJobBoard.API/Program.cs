@@ -1,7 +1,7 @@
-
 using FreelanceJobBoard.API.Middlewares;
 using FreelanceJobBoard.Application.Extensions;
 using FreelanceJobBoard.Infrastructure.Extensions;
+using Serilog;
 
 namespace FreelanceJobBoard.API
 {
@@ -9,49 +9,80 @@ namespace FreelanceJobBoard.API
 	{
 		public static void Main(string[] args)
 		{
-			var builder = WebApplication.CreateBuilder(args);
+			var configuration = new ConfigurationBuilder()
+				.SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile("appsettings.json")
+				.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+				.Build();
 
-            #region Add services to the container.
+			Log.Logger = new LoggerConfiguration()
+				.ReadFrom.Configuration(configuration)
+				.Enrich.FromLogContext()
+				.CreateLogger();
 
-            builder.Services.AddScoped<ErrorHandlingMiddleware>();
-			builder.Services.AddDistributedMemoryCache();
-            //builder.Services.AddSingleton<RateLimitMiddleware>();
-
-			builder.Services
-				.AddApplication()
-				.AddInfrastructure(builder.Configuration);
-
-
-			builder.Services.AddControllers();
-			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
-
-
-			#endregion
-
-			var app = builder.Build();
-
-            #region Configure the HTTP request pipeline.
-
-            app.UseMiddleware<ErrorHandlingMiddleware>();
-            app.UseMiddleware<RateLimitMiddleware>();
-
-			if (app.Environment.IsDevelopment())
+			try
 			{
-				app.UseSwagger();
-				app.UseSwaggerUI();
+				Log.Information("Starting FreelanceJobBoard API");
+
+
+				var builder = WebApplication.CreateBuilder(args);
+
+				builder.Logging.ClearProviders();
+				builder.Logging.AddSerilog(Log.Logger);
+        
+        #region Add services to the container.
+
+			  builder.Services.AddDistributedMemoryCache();
+        //builder.Services.AddSingleton<RateLimitMiddleware>();
+				builder.Services.AddScoped<ErrorHandlingMiddleware>();
+				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
+
+				builder.Services
+					.AddApplication()
+					.AddInfrastructure(builder.Configuration);
+
+				builder.Services.AddControllers();
+				builder.Services.AddEndpointsApiExplorer();
+				builder.Services.AddSwaggerGen();
+
+				#endregion
+
+				var app = builder.Build();
+
+
+				#region Configure the HTTP request pipeline.
+
+				app.UseMiddleware<RequestResponseLoggingMiddleware>();
+				
+				app.UseMiddleware<ErrorHandlingMiddleware>();
+        app.UseMiddleware<RateLimitMiddleware>();
+
+
+				if (app.Environment.IsDevelopment())
+				{
+					app.UseSwagger();
+					app.UseSwaggerUI();
+				}
+
+				app.UseHttpsRedirection();
+
+				app.UseAuthorization();
+
+				app.MapControllers();
+
+				Log.Information("FreelanceJobBoard API started successfully");
+				app.Run();
+
+				#endregion
 			}
-
-			app.UseHttpsRedirection();
-
-			app.UseAuthorization();
-
-
-			app.MapControllers();
-
-			app.Run();
-			#endregion
+			catch (Exception ex)
+			{
+				Log.Fatal(ex, "Application terminated unexpectedly");
+			}
+			finally
+			{
+				Log.CloseAndFlush();
+			}
 		}
 	}
 }
