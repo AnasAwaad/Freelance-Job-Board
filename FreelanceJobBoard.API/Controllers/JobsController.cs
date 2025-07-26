@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
+using FreelanceJobBoard.Application.Features.Jobs.Commands.DeleteJob;
 using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,14 @@ public class JobsController(IMediator mediator) : ControllerBase
 	{
 		command.Id = id;
 		await mediator.Send(command);
+
+		return NoContent();
+	}
+
+	[HttpDelete("{id}")]
+	public async Task<IActionResult> Delete([FromRoute] int id)
+	{
+		await mediator.Send(new DeleteJobCommand(id));
 
 		return NoContent();
 	}
