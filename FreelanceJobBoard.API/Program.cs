@@ -27,13 +27,14 @@ namespace FreelanceJobBoard.API
 
 				var builder = WebApplication.CreateBuilder(args);
 
+
+
+				#region Add services to the container.
+
 				builder.Logging.ClearProviders();
 				builder.Logging.AddSerilog(Log.Logger);
-        
-        #region Add services to the container.
-
-			  builder.Services.AddDistributedMemoryCache();
-        //builder.Services.AddSingleton<RateLimitMiddleware>();
+				builder.Services.AddDistributedMemoryCache();
+				//builder.Services.AddSingleton<RateLimitMiddleware>();
 				builder.Services.AddScoped<ErrorHandlingMiddleware>();
 				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
 
@@ -53,13 +54,14 @@ namespace FreelanceJobBoard.API
 				#region Configure the HTTP request pipeline.
 
 				app.UseMiddleware<RequestResponseLoggingMiddleware>();
-				
+
 				app.UseMiddleware<ErrorHandlingMiddleware>();
-        app.UseMiddleware<RateLimitMiddleware>();
+				app.UseMiddleware<RateLimitMiddleware>();
 
 
 				if (app.Environment.IsDevelopment())
 				{
+					app.UseDeveloperExceptionPage();
 					app.UseSwagger();
 					app.UseSwaggerUI();
 				}

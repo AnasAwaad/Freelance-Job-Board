@@ -1,6 +1,9 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Infrastructure.Repositories;
+using FreelanceJobBoard.Infrastructure.Services;
+using FreelanceJobBoard.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +19,9 @@ public static class ServiceCollectionExtensions
 		services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
+		services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 
 		return services;
 	}
