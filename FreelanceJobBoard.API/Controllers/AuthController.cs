@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Features.Auth.Commands.ClientRegister;
+using FreelanceJobBoard.Application.Features.Auth.Commands.FreelancerRegister;
 using FreelanceJobBoard.Application.Features.Auth.Commands.Login;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,28 @@ namespace FreelanceJobBoard.API.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Register a new user (Client, Freelancer, or Admin)
-        /// </summary>
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] ClientRegisterCommand command)
+        [HttpPost("client-register")]
+        public async Task<IActionResult> ClientRegister([FromBody] ClientRegisterCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+                _logger.LogInformation("User registered successfully: {Email}", command.Email);
+                return Ok(new { success = true, message = "Registration successful" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Registration failed for {Email}: {Error}", command.Email, ex.Message);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Registration error for {Email}", command.Email);
+                return StatusCode(500, new { success = false, message = "An error occurred during registration" });
+            }
+        }
+        [HttpPost("Register")]
+        public async Task<IActionResult> FreelancerRegister([FromBody] FreelancerRegisterCommand command)
         {
             try
             {

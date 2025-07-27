@@ -20,8 +20,4 @@
     <ProjectReference Include="..\FreelanceJobBoard.Domain\FreelanceJobBoard.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Auth\Commands\FreelancerRegister\" />
-  </ItemGroup>
-
 </Project>
