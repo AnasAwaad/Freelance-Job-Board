@@ -1,88 +1,114 @@
 using FreelanceJobBoard.API.Middlewares;
 using FreelanceJobBoard.Application.Extensions;
 using FreelanceJobBoard.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 namespace FreelanceJobBoard.API
 {
-	public class Program
-	{
-		public static void Main(string[] args)
-		{
-			var configuration = new ConfigurationBuilder()
-				.SetBasePath(Directory.GetCurrentDirectory())
-				.AddJsonFile("appsettings.json")
-				.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-				.Build();
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+                .Build();
 
-			Log.Logger = new LoggerConfiguration()
-				.ReadFrom.Configuration(configuration)
-				.Enrich.FromLogContext()
-				.CreateLogger();
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .Enrich.FromLogContext()
+                .CreateLogger();
 
-			try
-			{
-				Log.Information("Starting FreelanceJobBoard API");
+            try
+            {
+                Log.Information("Starting FreelanceJobBoard API");
 
+                var builder = WebApplication.CreateBuilder(args);
 
-				var builder = WebApplication.CreateBuilder(args);
+                builder.Logging.ClearProviders();
+                builder.Logging.AddSerilog(Log.Logger);
 
-				builder.Logging.ClearProviders();
-				builder.Logging.AddSerilog(Log.Logger);
-        
-        #region Add services to the container.
+                #region Add services to the container
+                builder.Services.AddDistributedMemoryCache();
+                builder.Services.AddScoped<ErrorHandlingMiddleware>();
+                builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
 
-			  builder.Services.AddDistributedMemoryCache();
-        //builder.Services.AddSingleton<RateLimitMiddleware>();
-				builder.Services.AddScoped<ErrorHandlingMiddleware>();
-				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
+                builder.Services
+                    .AddApplication()
+                    .AddInfrastructure(builder.Configuration);
 
-				builder.Services
-					.AddApplication()
-					.AddInfrastructure(builder.Configuration);
+                // Read JwtSettings section
+                var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+                var secretKey = jwtSettings["SecretKey"];
 
-				builder.Services.AddControllers();
-				builder.Services.AddEndpointsApiExplorer();
-				builder.Services.AddSwaggerGen();
+                if (string.IsNullOrEmpty(secretKey))
+                {
+                    throw new Exception("JWT SecretKey is missing in configuration.");
+                }
 
-				#endregion
+                var key = Encoding.UTF8.GetBytes(secretKey);
 
-				var app = builder.Build();
+                builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
 
+                builder.Services.AddControllers();
+                builder.Services.AddEndpointsApiExplorer();
+                builder.Services.AddSwaggerGen();
+                #endregion
 
-				#region Configure the HTTP request pipeline.
+                var app = builder.Build();
 
-				app.UseMiddleware<RequestResponseLoggingMiddleware>();
-				
-				app.UseMiddleware<ErrorHandlingMiddleware>();
-        app.UseMiddleware<RateLimitMiddleware>();
+                #region Configure the HTTP request pipeline
+                app.UseMiddleware<RequestResponseLoggingMiddleware>();
+                app.UseMiddleware<ErrorHandlingMiddleware>();
+                app.UseMiddleware<RateLimitMiddleware>();
 
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
 
-				if (app.Environment.IsDevelopment())
-				{
-					app.UseSwagger();
-					app.UseSwaggerUI();
-				}
+                app.UseHttpsRedirection();
 
-				app.UseHttpsRedirection();
+                app.UseAuthentication();
+                app.UseAuthorization();
 
-				app.UseAuthorization();
+                app.MapControllers();
 
-				app.MapControllers();
-
-				Log.Information("FreelanceJobBoard API started successfully");
-				app.Run();
-
-				#endregion
-			}
-			catch (Exception ex)
-			{
-				Log.Fatal(ex, "Application terminated unexpectedly");
-			}
-			finally
-			{
-				Log.CloseAndFlush();
-			}
-		}
-	}
+                Log.Information("FreelanceJobBoard API started successfully");
+                app.Run();
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application terminated unexpectedly");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
+    }
 }

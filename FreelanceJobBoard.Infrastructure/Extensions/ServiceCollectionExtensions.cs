@@ -1,6 +1,10 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Repositories;
+using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Infrastructure.Repositories;
+using FreelanceJobBoard.Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,8 +19,13 @@ public static class ServiceCollectionExtensions
 
 		services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
-		services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
-		return services;
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
+
+        return services;
 	}
 }
