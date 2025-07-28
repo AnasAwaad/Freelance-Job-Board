@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Features.Admin.Commands.UpdateJobStatus;
+using FreelanceJobBoard.Application.Features.Admin.Queries.GetAllJobs;
 using FreelanceJobBoard.Application.Features.Admin.Queries.GetJobWithDetails;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
@@ -38,5 +39,16 @@ public class AdminController(IMediator mediator) : ControllerBase
 	{
 		var jobDetails = await mediator.Send(new GetJobDetailsWithHistoryQuery(jobId));
 		return Ok(jobDetails);
+	}
+
+	[HttpGet("jobs")]
+	public async Task<IActionResult> GetAllJobs([FromQuery] string? status)
+	{
+		JobStatus? parsedStatus = null;
+
+		if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<JobStatus>(status, true, out var result))
+			parsedStatus = result;
+
+		return Ok(await mediator.Send(new GetAllJobsWithStatusQuery(parsedStatus)));
 	}
 }

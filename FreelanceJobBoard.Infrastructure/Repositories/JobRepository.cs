@@ -54,6 +54,15 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 		return (totalCount, jobs);
 	}
 
+	public IQueryable<Job> GetAllWithClientQueryable(JobStatus? status)
+	{
+		return _context.Jobs
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
+			.Where(j => !status.HasValue || j.Status == status);
+
+	}
+
 	public async Task<Job?> GetJobWithCategoriesAndSkillsAsync(int id)
 	{
 		return await _context.Jobs
