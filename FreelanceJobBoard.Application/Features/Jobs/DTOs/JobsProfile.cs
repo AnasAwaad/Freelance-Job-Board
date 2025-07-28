@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FreelanceJobBoard.Application.Features.Admin.DTOs;
 using FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
 using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using FreelanceJobBoard.Application.Features.Jobs.DTOs;
@@ -29,6 +30,17 @@ internal class JobsProfile : Profile
 				Id = s.Skill.Id,
 				Name = s.Skill.Name
 			})));
+
+
+		CreateMap<Job, JobDetailsDto>()
+			.ForPath(dest => dest.Client.FullName,
+			opt => opt.MapFrom(src => src.Client.User.FullName));
+
+
+
+		CreateMap<Review, ReviewDto>();
+
+
 
 	}
 }

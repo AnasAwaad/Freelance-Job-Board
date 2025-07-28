@@ -24,6 +24,9 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
 		builder.Property(j => j.Tags)
 			   .HasMaxLength(500);
 
+		builder.Property(j => j.Status)
+			   .HasConversion<string>();
+
 		builder.Property(j => j.BudgetMin)
 			   .HasPrecision(18, 2);
 
