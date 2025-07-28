@@ -165,13 +165,13 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Clients");
                 });
@@ -310,13 +310,13 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Freelancers");
                 });
@@ -364,11 +364,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ClientId")
+                    b.Property<int?>("ClientId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
@@ -405,9 +402,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<string>("Title")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("ViewsCount")
                         .HasColumnType("int");
@@ -672,7 +666,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<string>("ClientFeedback")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ClientId")
+                    b.Property<int?>("ClientId")
                         .HasColumnType("int");
 
                     b.Property<string>("CoverLetter")
@@ -685,7 +679,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<int>("EstimatedTimelineDays")
                         .HasColumnType("int");
 
-                    b.Property<int>("FreelancerId")
+                    b.Property<int?>("FreelancerId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -706,9 +700,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<string>("Status")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("SubmittedAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -1069,8 +1060,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Identity.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("FreelanceJobBoard.Domain.Entities.Client", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.OwnsOne("FreelanceJobBoard.Domain.Entities.Company", "Company", b1 =>
                         {
@@ -1146,8 +1136,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Identity.ApplicationUser", "User")
                         .WithOne()
                         .HasForeignKey("FreelanceJobBoard.Domain.Entities.Freelancer", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("User");
                 });
@@ -1176,8 +1165,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Client", "Client")
                         .WithMany("Jobs")
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Client");
                 });
@@ -1282,14 +1270,12 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Client", "Client")
                         .WithMany("Proposals")
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Freelancer", "Freelancer")
                         .WithMany("Proposals")
                         .HasForeignKey("FreelancerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Job", "Job")
                         .WithMany("Proposals")
@@ -1483,8 +1469,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 {
                     b.Navigation("Attachments");
 
-                    b.Navigation("Contract")
-                        .IsRequired();
+                    b.Navigation("Contract");
                 });
 
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Skill", b =>
