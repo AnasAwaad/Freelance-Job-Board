@@ -9,18 +9,16 @@ public class CreateProposalCommand : IRequest
 {
 	[BindNever]
 	public int JobId { get; set; }
-	[BindNever]
-	public int FreelancerId { get; set; }
+	
 	[FromForm]
-
 	public string? CoverLetter { get; set; }
+	
 	[FromForm]
-
 	public decimal BidAmount { get; set; }
+	
 	[FromForm]
-
 	public int EstimatedTimelineDays { get; set; }
+	
 	[FromForm]
-
 	public List<IFormFile>? PortfolioFiles { get; set; }
 }

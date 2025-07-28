@@ -1,14 +1,25 @@
 ﻿using AutoMapper;
 using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Entities;
+using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
-internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateJobCommand>
+internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<CreateJobCommand>
 {
 	public async Task Handle(CreateJobCommand request, CancellationToken cancellationToken)
 	{
+		if (!currentUserService.IsAuthenticated)
+			throw new UnauthorizedAccessException("User must be authenticated to create a job");
+
+		var client = await unitOfWork.Clients.GetByUserIdAsync(currentUserService.UserId!);
+		if (client == null)
+			throw new NotFoundException("Client", currentUserService.UserId!);
+
 		var job = mapper.Map<Job>(request);
+		
+		job.ClientId = client.Id;
 
 		if (request.CategoryIds is not null && request.CategoryIds.Any())
 		{
@@ -19,7 +30,6 @@ internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) :
 				job.Categories.Add(new JobCategory { CategoryId = category.Id });
 			}
 		}
-
 
 		if (request.SkillIds is not null && request.SkillIds.Any())
 		{
@@ -33,7 +43,5 @@ internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) :
 
 		await unitOfWork.Jobs.CreateAsync(job);
 		await unitOfWork.SaveChangesAsync();
-
-
 	}
 }

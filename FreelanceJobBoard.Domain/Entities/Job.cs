@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Domain.Common;
+using FreelanceJobBoard.Domain.Constants;
 
 namespace FreelanceJobBoard.Domain.Entities;
 public class Job : BaseEntity
@@ -10,7 +11,7 @@ public class Job : BaseEntity
 	public decimal BudgetMin { get; set; }
 	public decimal BudgetMax { get; set; }
 	public DateTime Deadline { get; set; }
-	public string Status { get; set; }
+	public string Status { get; set; } = JobStatus.Open;
 	public string? RequiredSkills { get; set; }
 	public string? Tags { get; set; }
 	public int ViewsCount { get; set; }

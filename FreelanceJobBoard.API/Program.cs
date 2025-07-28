@@ -34,7 +34,9 @@ namespace FreelanceJobBoard.API
 				builder.Logging.ClearProviders();
 				builder.Logging.AddSerilog(Log.Logger);
 				builder.Services.AddDistributedMemoryCache();
-				//builder.Services.AddSingleton<RateLimitMiddleware>();
+				
+				builder.Services.AddHttpContextAccessor();
+				
 				builder.Services.AddScoped<ErrorHandlingMiddleware>();
 				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
 
