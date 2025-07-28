@@ -22,9 +22,6 @@ public class ProposalConfiguration : IEntityTypeConfiguration<Proposal>
 		builder.Property(p => p.Status)
 			   .HasMaxLength(100);
 
-		builder.Property(p => p.SubmittedAt)
-			   .IsRequired();
-
 		builder.HasOne(p => p.Job)
 			   .WithMany(j => j.Proposals)
 			   .HasForeignKey(p => p.JobId)

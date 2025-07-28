@@ -14,8 +14,6 @@ public class Job : BaseEntity
 	public string? RequiredSkills { get; set; }
 	public string? Tags { get; set; }
 	public int ViewsCount { get; set; }
-	public DateTime CreatedAt { get; set; }
-	public DateTime UpdatedAt { get; set; }
 	public bool IsApproved { get; set; }
 	public int? ApprovedBy { get; set; }
 	public Client? Client { get; set; }
