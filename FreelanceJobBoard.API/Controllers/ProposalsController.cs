@@ -1,5 +1,6 @@
 ﻿using FreelanceJobBoard.Application.Features.Proposals.Commands.CreateProposal;
 using FreelanceJobBoard.Application.Features.Proposals.DTOs;
+using FreelanceJobBoard.Application.Features.Proposals.Queries.GetFreelancerProposal;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,5 +28,15 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 
 		await mediator.Send(command);
 		return Created();
+	}
+
+	[HttpGet("freelancer")]
+	public async Task<IActionResult> GetAllProposalsForFreelancer()
+	{
+		//TODO: Replace this with the actual authenticated freelancer ID when auth is added
+		int freelancerId = 6;
+
+		var result = await mediator.Send(new GetProposalsForFreelancerQuery(freelancerId));
+		return Ok(result);
 	}
 }

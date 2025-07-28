@@ -1,6 +1,7 @@
 ﻿using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 internal class ProposalRepository : GenericRepository<Proposal>, IProposalRepository
@@ -9,4 +10,11 @@ internal class ProposalRepository : GenericRepository<Proposal>, IProposalReposi
 	{
 	}
 
+	public async Task<IEnumerable<Proposal>> GetAllByFreelancerIdAsync(int freelancerId)
+	{
+		return await _context.Proposals
+			.Include(p => p.Attachments)
+				.ThenInclude(a => a.Attachment)
+			.ToListAsync();
+	}
 }
