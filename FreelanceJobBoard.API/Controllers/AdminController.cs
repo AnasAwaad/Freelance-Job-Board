@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Features.Admin.Commands.UpdateJobStatus;
+using FreelanceJobBoard.Application.Features.Admin.Queries.GetJobWithDetails;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -30,5 +31,12 @@ public class AdminController(IMediator mediator) : ControllerBase
 
 
 		return Ok("Job rejected successfully.");
+	}
+
+	[HttpGet("jobs/{jobId}/details")]
+	public async Task<IActionResult> GetJobDetails(int jobId)
+	{
+		var jobDetails = await mediator.Send(new GetJobDetailsWithHistoryQuery(jobId));
+		return Ok(jobDetails);
 	}
 }

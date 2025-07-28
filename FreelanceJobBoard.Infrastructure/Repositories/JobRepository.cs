@@ -63,4 +63,17 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 				.ThenInclude(jc => jc.Category)
 			.FirstOrDefaultAsync(j => j.Id == id);
 	}
+
+	public IQueryable<Job> GetJobWithProposalsAndReviewQuery(int id)
+	{
+		return _context.Jobs
+			.Include(j => j.Proposals)
+				.ThenInclude(p => p.Attachments)
+					.ThenInclude(a => a.Attachment)
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
+			.Include(j => j.Review)
+			.Where(j => j.Id == id);
+
+	}
 }
