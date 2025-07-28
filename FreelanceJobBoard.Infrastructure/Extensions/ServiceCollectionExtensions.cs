@@ -1,9 +1,11 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Services;
+using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Infrastructure.Repositories;
 using FreelanceJobBoard.Infrastructure.Services;
 using FreelanceJobBoard.Infrastructure.Settings;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,10 @@ public static class ServiceCollectionExtensions
 
 		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 
-		return services;
+        services.AddIdentity<ApplicationUser, IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
+        return services;
 	}
 }
