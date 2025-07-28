@@ -5,9 +5,11 @@ using FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
 using FreelanceJobBoard.Application.Features.Categories.Queries.GetAllCategories;
 using FreelanceJobBoard.Application.Features.Categories.Queries.GetCategoryById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FreelanceJobBoard.API.Controllers;
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class CategoriesController(IMediator mediator) : ControllerBase

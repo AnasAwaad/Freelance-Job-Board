@@ -1,5 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using FreelanceJobBoard.Domain.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 
@@ -19,6 +21,7 @@ public static class ServiceCollectionExtensions
 			.AddFluentValidationAutoValidation();
 
 
-		return services;
+
+        return services;
 	}
 }
