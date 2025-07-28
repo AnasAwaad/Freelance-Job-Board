@@ -3,7 +3,6 @@
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
 public class CreateJobCommandValidator : AbstractValidator<CreateJobCommand>
 {
-	private readonly List<string> validStatus = ["Draft", "Published", "Closed"];
 	public CreateJobCommandValidator()
 	{
 		RuleFor(j => j.Title)
@@ -16,7 +15,7 @@ public class CreateJobCommandValidator : AbstractValidator<CreateJobCommand>
 
 
 		RuleFor(j => j.Status)
-			.Must(validStatus.Contains).WithMessage("Invalid {PropertyName}. Please choose from valid {PropertyName}.");
+			.IsInEnum().WithMessage("Invalid status. Must be one of: Pending, Approved, Rejected.");
 
 		RuleFor(j => j.BudgetMin)
 			.GreaterThanOrEqualTo(0).WithMessage("{PropertyName} must be greater than or equal to 0.");

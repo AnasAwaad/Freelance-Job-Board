@@ -12,6 +12,8 @@ internal class UnitOfWork : IUnitOfWork
 	public IJobCategoryRepository JobCategories { get; }
 	public IJobSkillRepository JobSkills { get; }
 	public IProposalRepository Proposals { get; }
+	public IClientRepository Clients { get; }
+	public IFreelancerRepository Freelancers { get; }
 
 
 	public UnitOfWork(ApplicationDbContext context)
@@ -23,6 +25,8 @@ internal class UnitOfWork : IUnitOfWork
 		JobCategories = new JobCategoryRepository(context);
 		JobSkills = new JobSkillRepository(context);
 		Proposals = new ProposalRepository(context);
+		Clients = new ClientRepository(context);
+		Freelancers = new FreelancerRepository(context);
 	}
 
 	public void Dispose()

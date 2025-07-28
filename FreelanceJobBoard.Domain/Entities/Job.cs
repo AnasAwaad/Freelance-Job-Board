@@ -5,7 +5,7 @@ namespace FreelanceJobBoard.Domain.Entities;
 public class Job : BaseEntity
 {
 	public int Id { get; set; }
-	public int? ClientId { get; set; }
+	public int ClientId { get; set; }
 	public string? Title { get; set; }
 	public string? Description { get; set; }
 	public decimal BudgetMin { get; set; }
@@ -16,7 +16,7 @@ public class Job : BaseEntity
 	public string? RequiredSkills { get; set; }
 	public string? Tags { get; set; }
 	public int ViewsCount { get; set; }
-	public Client? Client { get; set; }
+	public Client Client { get; set; }
 	public ICollection<JobCategory> Categories { get; set; } = new List<JobCategory>();
 	public ICollection<JobAttachment> Attachments { get; set; } = new List<JobAttachment>();
 	public ICollection<JobView> Views { get; set; } = new List<JobView>();

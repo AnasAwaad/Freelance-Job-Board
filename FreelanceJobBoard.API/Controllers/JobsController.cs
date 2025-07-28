@@ -3,21 +3,28 @@ using FreelanceJobBoard.Application.Features.Jobs.Commands.DeleteJob;
 using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetAllJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobById;
+using FreelanceJobBoard.Domain.Constants;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FreelanceJobBoard.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = AppRoles.Client)]
 public class JobsController(IMediator mediator) : ControllerBase
 {
 
 	[HttpPost]
 	public async Task<IActionResult> Create([FromBody] CreateJobCommand command)
 	{
-		await mediator.Send(command);
-		//return CreatedAtAction(nameof(GetById), new { id }, null);
-		return NoContent();
+		var userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+		command.UserId = userId;
+
+		var id = await mediator.Send(command);
+
+		return CreatedAtAction(nameof(GetById), new { id }, null);
 	}
 
 

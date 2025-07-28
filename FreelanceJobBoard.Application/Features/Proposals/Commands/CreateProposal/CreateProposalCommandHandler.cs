@@ -10,6 +10,12 @@ internal class CreateProposalCommandHandler(IUnitOfWork unitOfWork, IMapper mapp
 {
 	public async Task Handle(CreateProposalCommand request, CancellationToken cancellationToken)
 	{
+
+		var freelancer = await unitOfWork.Freelancers.GetByUserIdAsync(request.UserId);
+
+		if (freelancer is null)
+			throw new UnauthorizedAccessException();
+
 		var job = await unitOfWork.Jobs.GetByIdAsync(request.JobId);
 
 		if (job is null)
@@ -17,8 +23,8 @@ internal class CreateProposalCommandHandler(IUnitOfWork unitOfWork, IMapper mapp
 
 		var proposal = mapper.Map<Proposal>(request);
 
-		// TODO : Add client Id 
-		// proposal.ClientId = job.ClientId.Value;
+		proposal.ClientId = job.ClientId;
+		proposal.FreelancerId = freelancer.Id;
 
 
 		// upload attachement 

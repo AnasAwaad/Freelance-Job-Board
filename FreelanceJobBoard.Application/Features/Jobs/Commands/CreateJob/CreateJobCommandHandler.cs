@@ -4,11 +4,18 @@ using FreelanceJobBoard.Domain.Entities;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
-internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateJobCommand>
+internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateJobCommand, int>
 {
-	public async Task Handle(CreateJobCommand request, CancellationToken cancellationToken)
+	public async Task<int> Handle(CreateJobCommand request, CancellationToken cancellationToken)
 	{
+		var client = await unitOfWork.Clients.GetByUserIdAsync(request.UserId);
+
+		if (client is null)
+			throw new UnauthorizedAccessException();
+
+
 		var job = mapper.Map<Job>(request);
+		job.ClientId = client.Id;
 
 		if (request.CategoryIds is not null && request.CategoryIds.Any())
 		{
@@ -34,6 +41,6 @@ internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) :
 		await unitOfWork.Jobs.CreateAsync(job);
 		await unitOfWork.SaveChangesAsync();
 
-
+		return job.Id;
 	}
 }

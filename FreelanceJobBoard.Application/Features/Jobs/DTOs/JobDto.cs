@@ -10,7 +10,7 @@ public class JobDto
 	public decimal BudgetMin { get; set; }
 	public decimal BudgetMax { get; set; }
 	public DateTime Deadline { get; set; }
-	public string Status { get; set; }
+	public string Status { get; set; } = null!;
 	public string? RequiredSkills { get; set; }
 	public string? Tags { get; set; }
 	public int ViewsCount { get; set; }
