@@ -45,6 +45,6 @@ public class ProposalConfiguration : IEntityTypeConfiguration<Proposal>
 		builder.HasMany(p => p.Attachments)
 			   .WithOne(pa => pa.Proposal)
 			   .HasForeignKey(pa => pa.ProposalId)
-			   .OnDelete(DeleteBehavior.Restrict);
+			   .OnDelete(DeleteBehavior.Cascade);
 	}
 }

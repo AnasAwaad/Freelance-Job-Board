@@ -1,6 +1,8 @@
 ﻿using FreelanceJobBoard.Application.Features.Proposals.Commands.CreateProposal;
+using FreelanceJobBoard.Application.Features.Proposals.Commands.DeleteFreelancerProposal;
 using FreelanceJobBoard.Application.Features.Proposals.DTOs;
-using FreelanceJobBoard.Application.Features.Proposals.Queries.GetFreelancerProposal;
+using FreelanceJobBoard.Application.Features.Proposals.Queries.GetFreelancerProposals;
+using FreelanceJobBoard.Application.Features.Proposals.Queries.GetProposalById;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -35,10 +37,24 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	[HttpGet("freelancer")]
 	public async Task<IActionResult> GetAllProposalsForFreelancer()
 	{
-		//TODO: Replace this with the actual authenticated freelancer ID when auth is added
-		int freelancerId = 6;
+		var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
 
-		var result = await mediator.Send(new GetProposalsForFreelancerQuery(freelancerId));
+		var result = await mediator.Send(new GetProposalsForFreelancerQuery(userId));
 		return Ok(result);
+	}
+
+	[HttpGet("{proposalId}")]
+	public async Task<IActionResult> GetProposalById([FromRoute] int proposalId)
+	{
+		var result = await mediator.Send(new GetProposalWithDetailsByIdQuery(proposalId));
+		return Ok(result);
+	}
+
+	[HttpDelete("{proposalId}")]
+	public async Task<IActionResult> DeleteProposalForFreelancer([FromRoute] int proposalId)
+	{
+		await mediator.Send(new DeleteProposalForFreelancerCommand(proposalId));
+
+		return Ok();
 	}
 }

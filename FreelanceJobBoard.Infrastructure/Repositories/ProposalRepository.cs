@@ -17,4 +17,13 @@ internal class ProposalRepository : GenericRepository<Proposal>, IProposalReposi
 				.ThenInclude(a => a.Attachment)
 			.ToListAsync();
 	}
+
+	public IQueryable<Proposal> GetByIdWithDetailsQueryable(int proposalId)
+	{
+		return _context.Proposals
+			.Include(p => p.Client)
+				.ThenInclude(c => c.User)
+			.Include(p => p.Job)
+			.Where(p => p.Id == proposalId);
+	}
 }
