@@ -1,13 +1,11 @@
-﻿using FreelanceJobBoard.Domain.Constants;
-
-namespace FreelanceJobBoard.Application.Features.Proposals.DTOs;
+﻿namespace FreelanceJobBoard.Application.Features.Proposals.DTOs;
 public class ProposalWithDetailsDto
 {
 	public int Id { get; set; }
 	public string? JobTitle { get; set; }
 	public string? JobDescription { get; set; }
 	public DateTime JobDeadline { get; set; }
-	public JobStatus JobStatus { get; set; }
+	public string JobStatus { get; set; }
 	public string ClientName { get; set; } = null!;
 	public string? CompanyName { get; set; }
 	public string? CoverLetter { get; set; }

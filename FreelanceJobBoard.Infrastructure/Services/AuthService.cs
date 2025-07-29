@@ -1,5 +1,6 @@
 ﻿using FreelanceJobBoard.Application.DTOs;
 using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Domain.Identity;

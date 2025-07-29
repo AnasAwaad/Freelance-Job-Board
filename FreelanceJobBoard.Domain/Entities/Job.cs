@@ -11,8 +11,9 @@ public class Job : BaseEntity
 	public decimal BudgetMin { get; set; }
 	public decimal BudgetMax { get; set; }
 	public DateTime Deadline { get; set; }
-	public JobStatus Status { get; set; } = JobStatus.Pending;
-	public int? ApprovedBy { get; set; }
+	public string Status { get; set; } = JobStatus.Pending;
+	public string? ApprovedBy { get; set; }
+	public string? RejectedBy { get; set; }
 	public string? RequiredSkills { get; set; }
 	public string? Tags { get; set; }
 	public int ViewsCount { get; set; }

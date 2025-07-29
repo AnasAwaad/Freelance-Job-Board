@@ -22,8 +22,12 @@ public static class ServiceCollectionExtensions
 
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
 		services.AddScoped<ICloudinaryService, CloudinaryService>();
+		services.AddScoped<ICurrentUserService, CurrentUserService>();
+		services.AddScoped<IEmailService, EmailService>();
+		services.AddScoped<INotificationService, NotificationService>();
 
 		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
+		services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
         services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()

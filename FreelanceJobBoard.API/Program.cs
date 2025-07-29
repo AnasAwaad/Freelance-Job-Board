@@ -11,143 +11,150 @@ using System.Text;
 
 namespace FreelanceJobBoard.API
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-                .Build();
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			var configuration = new ConfigurationBuilder()
+				.SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile("appsettings.json")
+				.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+				.Build();
 
-            Log.Logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(configuration)
-                .Enrich.FromLogContext()
-                .CreateLogger();
+			Log.Logger = new LoggerConfiguration()
+				.ReadFrom.Configuration(configuration)
+				.Enrich.FromLogContext()
+				.CreateLogger();
 
-            try
-            {
-                Log.Information("Starting FreelanceJobBoard API");
+			try
+			{
+				Log.Information("Starting FreelanceJobBoard API");
 
-                var builder = WebApplication.CreateBuilder(args);
+				var builder = WebApplication.CreateBuilder(args);
 
-                builder.Logging.ClearProviders();
-                builder.Logging.AddSerilog(Log.Logger);
+				builder.Logging.ClearProviders();
+				builder.Logging.AddSerilog(Log.Logger);
 
-                #region Add services to the container
+				#region Add services to the container
 
-                builder.Services.AddDistributedMemoryCache();
-                builder.Services.AddScoped<ErrorHandlingMiddleware>();
-                builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
-                builder.Services.AddScoped<IAuthService, AuthService>();
-                builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-                builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+				builder.Logging.ClearProviders();
+				builder.Logging.AddSerilog(Log.Logger);
+				builder.Services.AddDistributedMemoryCache();
 
-                builder.Services
-                    .AddApplication()
-                    .AddInfrastructure(builder.Configuration);
+				builder.Services.AddHttpContextAccessor();
 
-                // JWT Authentication
-                var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-                var secretKey = jwtSettings["SecretKey"];
+				builder.Services.AddScoped<ErrorHandlingMiddleware>();
+				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
+				builder.Services.AddDistributedMemoryCache();
+				builder.Services.AddScoped<ErrorHandlingMiddleware>();
+				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
+				builder.Services.AddScoped<IAuthService, AuthService>();
+				builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
-                if (string.IsNullOrEmpty(secretKey))
-                    throw new Exception("JWT SecretKey is missing in configuration.");
+				builder.Services
+					.AddApplication()
+					.AddInfrastructure(builder.Configuration);
 
-                var key = Encoding.UTF8.GetBytes(secretKey);
+				// JWT Authentication
+				var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+				var secretKey = jwtSettings["SecretKey"];
 
-                builder.Services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtSettings["Issuer"],
-                        ValidAudience = jwtSettings["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ClockSkew = TimeSpan.Zero
-                    };
-                });
+				if (string.IsNullOrEmpty(secretKey))
+					throw new Exception("JWT SecretKey is missing in configuration.");
 
-                builder.Services.AddControllers();
-                builder.Services.AddEndpointsApiExplorer();
+				var key = Encoding.UTF8.GetBytes(secretKey);
 
-                // Swagger with JWT Support
-                builder.Services.AddSwaggerGen(options =>
-                {
-                    options.SwaggerDoc("v1", new OpenApiInfo { Title = "FreelanceJobBoard API", Version = "v1" });
+				builder.Services.AddAuthentication(options =>
+				{
+					options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+					options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+				})
+				.AddJwtBearer(options =>
+				{
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = true,
+						ValidateAudience = true,
+						ValidateLifetime = true,
+						ValidateIssuerSigningKey = true,
+						ValidIssuer = jwtSettings["Issuer"],
+						ValidAudience = jwtSettings["Audience"],
+						IssuerSigningKey = new SymmetricSecurityKey(key),
+						ClockSkew = TimeSpan.Zero
+					};
+				});
 
-                    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                    {
-                        Name = "Authorization",
-                        Type = SecuritySchemeType.ApiKey,
-                        Scheme = "Bearer",
-                        BearerFormat = "JWT",
-                        In = ParameterLocation.Header,
-                        Description = "Enter 'Bearer' followed by your JWT token.\n\nExample: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                    });
+				builder.Services.AddControllers();
+				builder.Services.AddEndpointsApiExplorer();
 
-                    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-                    {
-                        {
-                            new OpenApiSecurityScheme
-                            {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "Bearer"
-                                }
-                            },
-                            Array.Empty<string>()
-                        }
-                    });
-                });
+				// Swagger with JWT Support
+				builder.Services.AddSwaggerGen(options =>
+				{
+					options.SwaggerDoc("v1", new OpenApiInfo { Title = "FreelanceJobBoard API", Version = "v1" });
 
-                #endregion
+					options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+					{
+						Name = "Authorization",
+						Type = SecuritySchemeType.ApiKey,
+						Scheme = "Bearer",
+						BearerFormat = "JWT",
+						In = ParameterLocation.Header,
+						Description = "Enter 'Bearer' followed by your JWT token.\n\nExample: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+					});
 
-                var app = builder.Build();
+					options.AddSecurityRequirement(new OpenApiSecurityRequirement
+					{
+						{
+							new OpenApiSecurityScheme
+							{
+								Reference = new OpenApiReference
+								{
+									Type = ReferenceType.SecurityScheme,
+									Id = "Bearer"
+								}
+							},
+							Array.Empty<string>()
+						}
+					});
+				});
 
-                #region Configure the HTTP request pipeline
+				#endregion
 
-                app.UseMiddleware<RequestResponseLoggingMiddleware>();
-                app.UseMiddleware<ErrorHandlingMiddleware>();
-                app.UseMiddleware<RateLimitMiddleware>();
+				var app = builder.Build();
 
-                if (app.Environment.IsDevelopment())
-                {
-                    app.UseDeveloperExceptionPage();
-                    app.UseSwagger();
-                    app.UseSwaggerUI();
-                }
+				#region Configure the HTTP request pipeline
 
-                app.UseHttpsRedirection();
+				app.UseMiddleware<RequestResponseLoggingMiddleware>();
+				app.UseMiddleware<ErrorHandlingMiddleware>();
+				app.UseMiddleware<RateLimitMiddleware>();
 
-                app.UseAuthentication();
-                app.UseAuthorization();
+				if (app.Environment.IsDevelopment())
+				{
+					app.UseDeveloperExceptionPage();
+					app.UseSwagger();
+					app.UseSwaggerUI();
+				}
 
-                app.MapControllers();
+				app.UseHttpsRedirection();
 
-                Log.Information("FreelanceJobBoard API started successfully");
-                app.Run();
+				app.UseAuthentication();
+				app.UseAuthorization();
 
-                #endregion
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Application terminated unexpectedly");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
-        }
-    }
+				app.MapControllers();
+
+				Log.Information("FreelanceJobBoard API started successfully");
+				app.Run();
+
+				#endregion
+			}
+			catch (Exception ex)
+			{
+				Log.Fatal(ex, "Application terminated unexpectedly");
+			}
+			finally
+			{
+				Log.CloseAndFlush();
+			}
+		}
+	}
 }

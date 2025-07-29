@@ -353,8 +353,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ApprovedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("ApprovedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("BudgetMax")
                         .HasPrecision(18, 2)
@@ -382,6 +382,9 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Property<DateTime?>("LastUpdatedOn")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequiredSkills")
                         .HasMaxLength(1000)

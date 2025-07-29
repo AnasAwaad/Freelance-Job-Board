@@ -1,5 +1,4 @@
-﻿using FreelanceJobBoard.Domain.Constants;
-using MediatR;
+﻿using MediatR;
 using System.Text.Json.Serialization;
 
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
@@ -13,7 +12,6 @@ public class CreateJobCommand : IRequest<int>
 	public decimal BudgetMax { get; set; }
 	public DateTime Deadline { get; set; }
 	public string? Tags { get; set; }
-	public JobStatus Status { get; }
 	public IEnumerable<int> SkillIds { get; set; }
 	public IEnumerable<int> CategoryIds { get; set; }
 

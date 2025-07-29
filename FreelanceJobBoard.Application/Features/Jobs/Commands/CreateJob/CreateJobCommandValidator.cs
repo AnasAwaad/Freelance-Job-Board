@@ -13,10 +13,6 @@ public class CreateJobCommandValidator : AbstractValidator<CreateJobCommand>
 			.NotEmpty().WithMessage("{PropertyName} is required!")
 			.MaximumLength(2000).WithMessage("{PropertyName} must not exceed {MaxLength} characters.");
 
-
-		RuleFor(j => j.Status)
-			.IsInEnum().WithMessage("Invalid status. Must be one of: Pending, Approved, Rejected.");
-
 		RuleFor(j => j.BudgetMin)
 			.GreaterThanOrEqualTo(0).WithMessage("{PropertyName} must be greater than or equal to 0.");
 

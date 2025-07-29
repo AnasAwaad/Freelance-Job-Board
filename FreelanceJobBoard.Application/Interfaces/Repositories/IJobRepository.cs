@@ -8,5 +8,6 @@ public interface IJobRepository : IGenericRepository<Job>
 	Task<(int, IEnumerable<Job>)> GetAllMatchingAsync(int pageNumber, int pageSize, string? search, string? sortBy, SortDirection sortDirection);
 
 	IQueryable<Job> GetJobWithProposalsAndReviewQuery(int id);
-	IQueryable<Job> GetAllWithClientQueryable(JobStatus? status);
+	IQueryable<Job> GetAllWithClientQueryable(string? status);
+	Task<IEnumerable<Job>> GetJobsByClientIdAsync(int clientId);
 }

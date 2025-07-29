@@ -1,9 +1,8 @@
 ﻿using FreelanceJobBoard.Application.Features.Admin.DTOs;
-using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Admin.Queries.GetAllJobs;
-public class GetAllJobsWithStatusQuery(JobStatus? status) : IRequest<IEnumerable<JobListDto>>
+public class GetAllJobsWithStatusQuery(string? status) : IRequest<IEnumerable<JobListDto>>
 {
-	public JobStatus? Status { get; } = status;
+	public string? Status { get; } = status;
 }
