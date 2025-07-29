@@ -16,7 +16,7 @@ internal class UnitOfWork : IUnitOfWork
 	public IFreelancerRepository Freelancers { get; }
 
 
-	public UnitOfWork(ApplicationDbContext context)
+    public UnitOfWork(ApplicationDbContext context)
 	{
 		_context = context;
 		Categories = new CategoryRepository(context);
@@ -27,7 +27,8 @@ internal class UnitOfWork : IUnitOfWork
 		Proposals = new ProposalRepository(context);
 		Clients = new ClientRepository(context);
 		Freelancers = new FreelancerRepository(context);
-	}
+
+    }
 
 	public void Dispose()
 	{

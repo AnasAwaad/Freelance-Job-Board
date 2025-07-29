@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
@@ -23,7 +24,8 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
 		services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
+
+        services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 
         services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()

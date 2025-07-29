@@ -17,4 +17,11 @@ public class SkillRepository : GenericRepository<Skill>, ISkillRepository
 			.Where(s => skillIds.Contains(s.Id))
 			.ToListAsync();
 	}
+
+    public async Task<List<Skill>> GetSkillsByNamesAsync(List<string> skillNames)
+    {
+        return await _context.Skills
+            .Where(s => skillNames.Contains(s.Name))
+            .ToListAsync();
+    }
 }

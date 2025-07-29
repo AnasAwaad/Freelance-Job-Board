@@ -16,4 +16,13 @@ public class FreelancerRepository : GenericRepository<Freelancer>, IFreelancerRe
 			.Where(c => c.UserId == userId)
 			.FirstOrDefaultAsync();
 	}
+    public async Task<Freelancer?> GetByUserIdWithDetailsAsync(string userId)
+    {
+        return await _context.Freelancers
+            .Include(f => f.FreelancerSkills)
+                .ThenInclude(fs => fs.Skill)
+            .Include(f => f.Certifications)
+            .Where(f => f.UserId == userId)
+            .FirstOrDefaultAsync();
+    }
 }

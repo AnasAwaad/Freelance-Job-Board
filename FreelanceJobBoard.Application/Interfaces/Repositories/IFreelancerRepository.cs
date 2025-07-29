@@ -4,4 +4,5 @@ namespace FreelanceJobBoard.Application.Interfaces.Repositories;
 public interface IFreelancerRepository : IGenericRepository<Freelancer>
 {
 	Task<Freelancer?> GetByUserIdAsync(string userId);
+    Task<Freelancer?> GetByUserIdWithDetailsAsync(string userId);
 }

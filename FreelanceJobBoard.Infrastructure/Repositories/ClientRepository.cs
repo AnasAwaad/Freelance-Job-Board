@@ -16,4 +16,11 @@ public class ClientRepository : GenericRepository<Client>, IClientRepository
 			.Where(c => c.UserId == userId)
 			.FirstOrDefaultAsync();
 	}
+    public async Task<Client?> GetByUserIdWithDetailsAsync(string userId)
+    {
+        return await _context.Clients
+            .Include(c => c.Company)
+            .Where(c => c.UserId == userId)
+            .FirstOrDefaultAsync();
+    }
 }

@@ -11,6 +11,7 @@ public interface IUnitOfWork
 	public IProposalRepository Proposals { get; }
 	public IClientRepository Clients { get; }
 	public IFreelancerRepository Freelancers { get; }
-	Task SaveChangesAsync();
+
+    Task SaveChangesAsync();
 
 }
