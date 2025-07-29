@@ -86,7 +86,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.ToListAsync();
 	}
 
-	public IQueryable<Job> GetJobWithProposalsAndReviewQuery(int id)
+	public IQueryable<Job> GetJobWithDetailsQuery(int id)
 	{
 		return _context.Jobs
 			.Include(j => j.Proposals)

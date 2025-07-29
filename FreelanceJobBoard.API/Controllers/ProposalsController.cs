@@ -14,10 +14,10 @@ using System.Security.Claims;
 namespace FreelanceJobBoard.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = AppRoles.Freelancer)]
 public class ProposalsController(IMediator mediator) : ControllerBase
 {
 	[HttpPost("{jobId}")]
+	[Authorize(Roles = AppRoles.Freelancer)]
 	public async Task<IActionResult> SubmitProposal(int jobId, [FromForm] SubmitProposalDto dto)
 	{
 
@@ -36,6 +36,8 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("job/{jobId}")]
+	[Authorize(Roles = AppRoles.Client)]
+
 	public async Task<IActionResult> GetProposalsForJob(int jobId, [FromQuery] string? status = null)
 	{
 		var query = new GetProposalsForJobQuery
@@ -49,6 +51,8 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpPut("{proposalId}/status")]
+	[Authorize(Roles = AppRoles.Client)]
+
 	public async Task<IActionResult> UpdateProposalStatus(int proposalId, [FromBody] UpdateProposalStatusCommand command)
 	{
 		command.ProposalId = proposalId;
@@ -57,6 +61,8 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("freelancer")]
+	[Authorize(Roles = AppRoles.Freelancer)]
+
 	public async Task<IActionResult> GetAllProposalsForFreelancer()
 	{
 		var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
@@ -66,6 +72,7 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("{proposalId}")]
+	[Authorize(Roles = AppRoles.Freelancer)]
 	public async Task<IActionResult> GetProposalById([FromRoute] int proposalId)
 	{
 		var result = await mediator.Send(new GetProposalWithDetailsByIdQuery(proposalId));
@@ -73,6 +80,7 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpDelete("{proposalId}")]
+	[Authorize(Roles = AppRoles.Freelancer)]
 	public async Task<IActionResult> DeleteProposalForFreelancer([FromRoute] int proposalId)
 	{
 		await mediator.Send(new DeleteProposalForFreelancerCommand(proposalId));

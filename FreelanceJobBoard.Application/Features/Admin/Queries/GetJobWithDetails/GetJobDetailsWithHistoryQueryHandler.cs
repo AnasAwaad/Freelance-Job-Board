@@ -11,7 +11,7 @@ internal class GetJobDetailsWithHistoryQueryHandler(IUnitOfWork unitOfWork, IMap
 {
 	public async Task<JobDetailsDto> Handle(GetJobDetailsWithHistoryQuery request, CancellationToken cancellationToken)
 	{
-		var jobQuery = unitOfWork.Jobs.GetJobWithProposalsAndReviewQuery(request.Id);
+		var jobQuery = unitOfWork.Jobs.GetJobWithDetailsQuery(request.Id);
 
 		var job = await mapper.ProjectTo<JobDetailsDto>(jobQuery).FirstOrDefaultAsync();
 
