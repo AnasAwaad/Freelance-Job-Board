@@ -5,7 +5,6 @@ namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
 public class CreateJobCommand : IRequest<int>
 {
 	[JsonIgnore]
-	public string? UserId { get; set; }
 	public string? Title { get; set; }
 	public string? Description { get; set; }
 	public decimal BudgetMin { get; set; }

@@ -6,16 +6,15 @@ using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
-internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<CreateJobCommand, int>
+public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<CreateJobCommand, int>
 {
 	public async Task<int> Handle(CreateJobCommand request, CancellationToken cancellationToken)
 	{
-		if (!currentUserService.IsAuthenticated)
-			throw new UnauthorizedAccessException("User must be authenticated to create a job");
 
 		var client = await unitOfWork.Clients.GetByUserIdAsync(currentUserService.UserId!);
+
 		if (client == null)
-			throw new NotFoundException("Client", currentUserService.UserId!);
+			throw new NotFoundException(nameof(Client), currentUserService.UserId!);
 
 		var job = mapper.Map<Job>(request);
 
