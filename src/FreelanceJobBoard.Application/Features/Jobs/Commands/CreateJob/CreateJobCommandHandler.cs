@@ -1,21 +1,21 @@
 ﻿using AutoMapper;
 using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Services;
+using FreelanceJobBoard.Application.Tests.Jobs.Commands.CreateJob;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
-internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<CreateJobCommand, int>
+public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<CreateJobCommand, int>
 {
 	public async Task<int> Handle(CreateJobCommand request, CancellationToken cancellationToken)
 	{
-		if (!currentUserService.IsAuthenticated)
-			throw new UnauthorizedAccessException("User must be authenticated to create a job");
 
 		var client = await unitOfWork.Clients.GetByUserIdAsync(currentUserService.UserId!);
+
 		if (client == null)
-			throw new NotFoundException("Client", currentUserService.UserId!);
+			throw new NotFoundException(nameof(Client), currentUserService.UserId!);
 
 		var job = mapper.Map<Job>(request);
 
@@ -24,6 +24,11 @@ internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, I
 		if (request.CategoryIds is not null && request.CategoryIds.Any())
 		{
 			var categories = await unitOfWork.Categories.GetCategoriesByIdsAsync(request.CategoryIds);
+
+
+			if (categories.Count != request.CategoryIds.Count())
+				throw new MissingCategoriesException("Some selected categories could not be found.");
+
 
 			foreach (var category in categories)
 			{
@@ -34,6 +39,11 @@ internal class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, I
 		if (request.SkillIds is not null && request.SkillIds.Any())
 		{
 			var skills = await unitOfWork.Skills.GetSkillsByIdsAsync(request.SkillIds);
+
+
+			if (skills.Count != request.SkillIds.Count())
+				throw new MissingSkillsException("Some selected skills could not be found.");
+
 
 			foreach (var skill in skills)
 			{

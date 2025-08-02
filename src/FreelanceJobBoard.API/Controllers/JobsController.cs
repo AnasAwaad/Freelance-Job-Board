@@ -8,7 +8,6 @@ using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace FreelanceJobBoard.API.Controllers;
 [Route("api/[controller]")]
@@ -19,9 +18,6 @@ public class JobsController(IMediator mediator) : ControllerBase
 	[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> Create([FromBody] CreateJobCommand command)
 	{
-		var userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-		command.UserId = userId;
-
 		var id = await mediator.Send(command);
 
 		return CreatedAtAction(nameof(GetById), new { id }, null);

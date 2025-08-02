@@ -12,7 +12,6 @@ public class UpdateJobCommand : IRequest
 	public decimal BudgetMax { get; set; }
 	public DateTime Deadline { get; set; }
 	public string? Tags { get; set; }
-	public string Status { get; set; }
 	public IEnumerable<int> SkillIds { get; set; }
 	public IEnumerable<int> CategoryIds { get; set; }
 }

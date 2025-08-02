@@ -3,7 +3,6 @@
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 public class UpdateJobCommandValidator : AbstractValidator<UpdateJobCommand>
 {
-	private readonly List<string> validStatus = ["Draft", "Published", "Closed"];
 	public UpdateJobCommandValidator()
 	{
 		RuleFor(j => j.Title)
@@ -13,10 +12,6 @@ public class UpdateJobCommandValidator : AbstractValidator<UpdateJobCommand>
 		RuleFor(j => j.Description)
 			.NotEmpty().WithMessage("{PropertyName} is required!")
 			.MaximumLength(2000).WithMessage("{PropertyName} must not exceed {MaxLength} characters.");
-
-
-		RuleFor(j => j.Status)
-			.Must(validStatus.Contains).WithMessage($"Invalid Status. Please choose from valid status {string.Join(", ", validStatus)}.");
 
 		RuleFor(j => j.BudgetMin)
 			.GreaterThanOrEqualTo(0).WithMessage("{PropertyName} must be greater than or equal to 0.");
