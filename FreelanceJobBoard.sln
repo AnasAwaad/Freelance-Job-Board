@@ -1,15 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36221.1 d17.14
+VisualStudioVersion = 17.14.36221.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.API", "FreelanceJobBoard.API\FreelanceJobBoard.API.csproj", "{A6C27693-BE9F-40A8-95D3-F53C1E289D58}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Application", "FreelanceJobBoard.Application\FreelanceJobBoard.Application.csproj", "{99E96664-18BD-4B1A-8C80-E8A9BF250488}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B51D9E01-AC26-4681-8DFB-9BA4490E3B16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Domain", "FreelanceJobBoard.Domain\FreelanceJobBoard.Domain.csproj", "{2C958C00-FB4D-4B01-B0F2-4BBF7481CA18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.API", "src\FreelanceJobBoard.API\FreelanceJobBoard.API.csproj", "{72F508FA-591D-C43D-87DD-32351E8F8CE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Infrastructure", "FreelanceJobBoard.Infrastructure\FreelanceJobBoard.Infrastructure.csproj", "{FE1178DD-1C07-4E2C-A9D2-CA6285555E59}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Application", "src\FreelanceJobBoard.Application\FreelanceJobBoard.Application.csproj", "{D0933BA2-40CD-AF69-D329-7B70F049940A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Domain", "src\FreelanceJobBoard.Domain\FreelanceJobBoard.Domain.csproj", "{643EB9D3-EE79-210C-F0EF-396551B31328}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Infrastructure", "src\FreelanceJobBoard.Infrastructure\FreelanceJobBoard.Infrastructure.csproj", "{F87A3806-176E-97B0-95C1-3AB3C165A0A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Application.Tests", "tests\FreelanceJobBoard.Application.Tests\FreelanceJobBoard.Application.Tests.csproj", "{C17FEA6D-09E7-498A-8657-89CD8F8D928C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,25 +23,36 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A6C27693-BE9F-40A8-95D3-F53C1E289D58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6C27693-BE9F-40A8-95D3-F53C1E289D58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6C27693-BE9F-40A8-95D3-F53C1E289D58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6C27693-BE9F-40A8-95D3-F53C1E289D58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{99E96664-18BD-4B1A-8C80-E8A9BF250488}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99E96664-18BD-4B1A-8C80-E8A9BF250488}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{99E96664-18BD-4B1A-8C80-E8A9BF250488}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{99E96664-18BD-4B1A-8C80-E8A9BF250488}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2C958C00-FB4D-4B01-B0F2-4BBF7481CA18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C958C00-FB4D-4B01-B0F2-4BBF7481CA18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2C958C00-FB4D-4B01-B0F2-4BBF7481CA18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2C958C00-FB4D-4B01-B0F2-4BBF7481CA18}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FE1178DD-1C07-4E2C-A9D2-CA6285555E59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FE1178DD-1C07-4E2C-A9D2-CA6285555E59}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FE1178DD-1C07-4E2C-A9D2-CA6285555E59}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FE1178DD-1C07-4E2C-A9D2-CA6285555E59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72F508FA-591D-C43D-87DD-32351E8F8CE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72F508FA-591D-C43D-87DD-32351E8F8CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72F508FA-591D-C43D-87DD-32351E8F8CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72F508FA-591D-C43D-87DD-32351E8F8CE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0933BA2-40CD-AF69-D329-7B70F049940A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0933BA2-40CD-AF69-D329-7B70F049940A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0933BA2-40CD-AF69-D329-7B70F049940A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0933BA2-40CD-AF69-D329-7B70F049940A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{643EB9D3-EE79-210C-F0EF-396551B31328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{643EB9D3-EE79-210C-F0EF-396551B31328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{643EB9D3-EE79-210C-F0EF-396551B31328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{643EB9D3-EE79-210C-F0EF-396551B31328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F87A3806-176E-97B0-95C1-3AB3C165A0A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F87A3806-176E-97B0-95C1-3AB3C165A0A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F87A3806-176E-97B0-95C1-3AB3C165A0A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F87A3806-176E-97B0-95C1-3AB3C165A0A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{72F508FA-591D-C43D-87DD-32351E8F8CE7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{D0933BA2-40CD-AF69-D329-7B70F049940A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{643EB9D3-EE79-210C-F0EF-396551B31328} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F87A3806-176E-97B0-95C1-3AB3C165A0A6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{C17FEA6D-09E7-498A-8657-89CD8F8D928C} = {B51D9E01-AC26-4681-8DFB-9BA4490E3B16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F48E597C-661C-43B5-9919-6BFD8EB17A87}

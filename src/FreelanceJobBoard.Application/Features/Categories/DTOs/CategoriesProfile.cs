@@ -4,7 +4,7 @@ using FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
 using FreelanceJobBoard.Domain.Entities;
 
 namespace FreelanceJobBoard.Application.Features.Categories.DTOs;
-internal class CategoriesProfile : Profile
+public class CategoriesProfile : Profile
 {
 	public CategoriesProfile()
 	{

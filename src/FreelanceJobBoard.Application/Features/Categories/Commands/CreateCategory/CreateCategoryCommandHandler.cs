@@ -4,7 +4,7 @@ using FreelanceJobBoard.Domain.Entities;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Categories.Commands.CreateCategory;
-internal class CreateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateCategoryCommand, int>
+public class CreateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateCategoryCommand, int>
 {
 	public async Task<int> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
 	{
