@@ -6,6 +6,7 @@ using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Entities;
+using FreelanceJobBoard.Domain.Exceptions;
 using Moq;
 
 namespace FreelanceJobBoard.Application.Tests.Jobs.Commands.CreateJob;
@@ -94,6 +95,112 @@ public class CreateJobCommandHandlerTests
 		_unitOfWorkMock.Verify(u => u.Categories.GetCategoriesByIdsAsync(command.CategoryIds), Times.Once);
 		_unitOfWorkMock.Verify(u => u.Skills.GetSkillsByIdsAsync(command.SkillIds), Times.Once);
 		_unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+
+	}
+
+	[Fact]
+	public async Task Handle_WhenClientNotFound_ShouldThrowNotFoundException()
+	{
+		// arrange
+		var userId = "user-id";
+
+		_unitOfWorkMock.Setup(u => u.Clients.GetByUserIdAsync(userId))
+			.ReturnsAsync((Client?)null);
+
+		_currentUserServiceMock.Setup(c => c.UserId)
+			.Returns(userId);
+
+		var command = new CreateJobCommand();
+		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
+			_mapper,
+			_currentUserServiceMock.Object);
+		// Act
+
+		var act = async () => await handler.Handle(command, CancellationToken.None);
+
+		// Assert
+
+		await Assert.ThrowsAsync<NotFoundException>(act);
+
+	}
+
+	[Fact]
+	public async Task Handle_WhenSomeCategoriesIdsNotFound_ShouldThrowMissingCategoriesException()
+	{
+		// Arrange
+		var userId = "user-id";
+		var clientId = 1;
+
+		var command = new CreateJobCommand
+		{
+			Title = "test",
+			CategoryIds = [1, 2, 3]
+		};
+		var client = new Client()
+		{
+			Id = clientId
+		};
+
+		_unitOfWorkMock.Setup(u => u.Clients.GetByUserIdAsync(userId))
+			.ReturnsAsync(client);
+
+		_currentUserServiceMock.Setup(c => c.UserId)
+			.Returns(userId);
+
+		_unitOfWorkMock.Setup(u => u.Categories.GetCategoriesByIdsAsync(It.IsAny<IEnumerable<int>>()))
+			.ReturnsAsync(new List<Category> { new Category { Id = 1 }, new Category { Id = 2 } });
+
+		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
+			_mapper,
+			_currentUserServiceMock.Object);
+
+		// Act
+
+		var act = async () => await handler.Handle(command, CancellationToken.None);
+
+		// Assert
+		await Assert.ThrowsAsync<MissingCategoriesException>(act);
+
+
+	}
+
+	[Fact]
+	public async Task Handle_WhenSomeSkillsIdsNotFound_ShouldThrowMissingSkillsException()
+	{
+		// Arrange
+		var userId = "user-id";
+		var clientId = 1;
+
+		var command = new CreateJobCommand
+		{
+			Title = "test",
+			SkillIds = [1, 2, 3]
+		};
+		var client = new Client()
+		{
+			Id = clientId
+		};
+
+		_unitOfWorkMock.Setup(u => u.Clients.GetByUserIdAsync(userId))
+			.ReturnsAsync(client);
+
+		_currentUserServiceMock.Setup(c => c.UserId)
+			.Returns(userId);
+
+		_unitOfWorkMock.Setup(u => u.Skills.GetSkillsByIdsAsync(It.IsAny<IEnumerable<int>>()))
+			.ReturnsAsync(new List<Skill> { new Skill { Id = 1 }, new Skill { Id = 2 } });
+
+		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
+			_mapper,
+			_currentUserServiceMock.Object);
+
+		// Act
+
+		var act = async () => await handler.Handle(command, CancellationToken.None);
+
+		// Assert
+		await Assert.ThrowsAsync<MissingSkillsException>(act);
+
 
 	}
 

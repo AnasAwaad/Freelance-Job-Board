@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Services;
+using FreelanceJobBoard.Application.Tests.Jobs.Commands.CreateJob;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
@@ -24,6 +25,11 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 		{
 			var categories = await unitOfWork.Categories.GetCategoriesByIdsAsync(request.CategoryIds);
 
+
+			if (categories.Count != request.CategoryIds.Count())
+				throw new MissingCategoriesException("Some selected categories could not be found.");
+
+
 			foreach (var category in categories)
 			{
 				job.Categories.Add(new JobCategory { CategoryId = category.Id });
@@ -33,6 +39,11 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 		if (request.SkillIds is not null && request.SkillIds.Any())
 		{
 			var skills = await unitOfWork.Skills.GetSkillsByIdsAsync(request.SkillIds);
+
+
+			if (skills.Count != request.SkillIds.Count())
+				throw new MissingSkillsException("Some selected skills could not be found.");
+
 
 			foreach (var skill in skills)
 			{
