@@ -86,7 +86,7 @@ public class CreateJobCommandHandlerTests
 		// Assert
 
 		result.Should().Be(jobId);
-		resultJob.ClientId.Should().Be(client.Id);
+		resultJob!.ClientId.Should().Be(client.Id);
 		resultJob.Categories.Should().HaveCount(3);
 		resultJob.Skills.Should().HaveCount(3);
 

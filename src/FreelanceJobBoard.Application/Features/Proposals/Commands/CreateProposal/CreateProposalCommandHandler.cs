@@ -8,7 +8,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Application.Features.Proposals.Commands.CreateProposal;
-internal class CreateProposalCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService, ICurrentUserService currentUserService, INotificationService notificationService, ILogger<CreateProposalCommandHandler> logger) : IRequestHandler<CreateProposalCommand>
+public class CreateProposalCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService, ICurrentUserService currentUserService, INotificationService notificationService, ILogger<CreateProposalCommandHandler> logger) : IRequestHandler<CreateProposalCommand>
 {
 	public async Task Handle(CreateProposalCommand request, CancellationToken cancellationToken)
 	{

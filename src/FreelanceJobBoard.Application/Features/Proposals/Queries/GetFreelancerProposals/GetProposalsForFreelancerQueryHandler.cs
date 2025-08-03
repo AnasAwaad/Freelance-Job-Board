@@ -4,7 +4,7 @@ using FreelanceJobBoard.Application.Interfaces;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Proposals.Queries.GetFreelancerProposals;
-internal class GetProposalsForFreelancerQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+public class GetProposalsForFreelancerQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
 	: IRequestHandler<GetProposalsForFreelancerQuery, IEnumerable<ProposalDto>>
 {
 	public async Task<IEnumerable<ProposalDto>> Handle(GetProposalsForFreelancerQuery request, CancellationToken cancellationToken)

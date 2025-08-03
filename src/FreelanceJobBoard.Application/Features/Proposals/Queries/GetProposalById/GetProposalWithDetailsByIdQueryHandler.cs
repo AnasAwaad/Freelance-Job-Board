@@ -7,7 +7,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FreelanceJobBoard.Application.Features.Proposals.Queries.GetProposalById;
-internal class GetProposalWithDetailsByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+public class GetProposalWithDetailsByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
 	: IRequestHandler<GetProposalWithDetailsByIdQuery, ProposalWithDetailsDto>
 {
 	public async Task<ProposalWithDetailsDto> Handle(GetProposalWithDetailsByIdQuery request, CancellationToken cancellationToken)
