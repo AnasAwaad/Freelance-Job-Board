@@ -10,9 +10,7 @@ using FreelanceJobBoard.Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
-
 namespace FreelanceJobBoard.Application.Tests.Proposals.Commands.CreateProposal;
-
 public class CreateProposalCommandHandlerTests
 {
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;

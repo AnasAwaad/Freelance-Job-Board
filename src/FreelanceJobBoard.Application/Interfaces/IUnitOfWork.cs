@@ -13,6 +13,7 @@ public interface IUnitOfWork
 	public IFreelancerRepository Freelancers { get; }
 	public IFreelancerSkillRepository FreelancerSkills { get; }
 	public INotificationRepository Notifications { get; }
+	public IReviewRepository Reviews { get; }
 	Task SaveChangesAsync();
 
 }
