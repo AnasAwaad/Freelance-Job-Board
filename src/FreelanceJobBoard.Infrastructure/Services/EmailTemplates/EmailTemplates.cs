@@ -146,4 +146,59 @@ public static class EmailTemplates
     </div>
 </body>
 </html>";
+
+    public static string ReviewNotificationTemplate => @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>New Review Received</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #ff9500; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .review-details { background: white; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ff9500; }
+        .rating { font-size: 24px; color: #ff9500; margin: 10px 0; }
+        .stars { color: #ffd700; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>You've Received a New Review!</h1>
+        </div>
+        <div class='content'>
+            <h2>Hello {{RevieweeName}},</h2>
+            <p>Great news! You've received a new review for the completed job:</p>
+            <h3>{{JobTitle}}</h3>
+            <div class='review-details'>
+                <h4>Review Details:</h4>
+                <div class='rating'>
+                    <span class='stars'>{{StarRating}}</span> ({{Rating}}/5)
+                </div>
+                <p><strong>From:</strong> {{ReviewerName}}</p>
+                <p><strong>Comment:</strong></p>
+                <p style='font-style: italic; background: #f8f9fa; padding: 10px; border-radius: 3px;'>{{Comment}}</p>
+            </div>
+            <p>This review will help build your reputation on our platform and attract more clients!</p>
+            <a href='#' class='btn'>View Your Profile</a>
+            <p>Best regards,<br>FreelanceJobBoard Team</p>
+        </div>
+        <div class='footer'>
+            <p>&copy; 2024 FreelanceJobBoard. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
 }

@@ -16,6 +16,7 @@ internal class UnitOfWork : IUnitOfWork
 	public IFreelancerRepository Freelancers { get; }
 	public IFreelancerSkillRepository FreelancerSkills { get; }
 	public INotificationRepository Notifications { get; }
+	public IReviewRepository Reviews { get; }
 
 	public UnitOfWork(ApplicationDbContext context)
 	{
@@ -30,6 +31,7 @@ internal class UnitOfWork : IUnitOfWork
 		Freelancers = new FreelancerRepository(context);
 		FreelancerSkills = new FreelancerSkillRepository(context);
 		Notifications = new NotificationRepository(context);
+		Reviews = new ReviewRepository(context);
 	}
 
 	public void Dispose()

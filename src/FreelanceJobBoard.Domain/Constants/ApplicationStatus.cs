@@ -18,3 +18,9 @@ public static class ProposalStatus
 	public const string Rejected = "Rejected";
 	public const string Pending = "Pending";
 }
+
+public static class ReviewType
+{
+	public const string ClientToFreelancer = "ClientToFreelancer";
+	public const string FreelancerToClient = "FreelancerToClient";
+}
