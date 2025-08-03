@@ -6,7 +6,7 @@ using FreelanceJobBoard.Domain.Entities;
 
 namespace FreelanceJobBoard.Application.Features.Skills.DTOs;
 
-internal class SkillsProfile : Profile
+public class SkillsProfile : Profile
 {
     public SkillsProfile()
     {

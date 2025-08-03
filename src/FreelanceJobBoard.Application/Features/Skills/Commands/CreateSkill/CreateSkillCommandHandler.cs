@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Skills.Commands.CreateSkill;
 
-internal class CreateSkillCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateSkillCommand, int>
+public class CreateSkillCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<CreateSkillCommand, int>
 {
     public async Task<int> Handle(CreateSkillCommand request, CancellationToken cancellationToken)
     {

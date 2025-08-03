@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Application.Features.Proposals.Commands.UpdateProposalStatus;
 
-internal class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, INotificationService notificationService, ILogger<UpdateProposalStatusCommandHandler> logger) : IRequestHandler<UpdateProposalStatusCommand>
+public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, INotificationService notificationService, ILogger<UpdateProposalStatusCommandHandler> logger) : IRequestHandler<UpdateProposalStatusCommand>
 {
     public async Task Handle(UpdateProposalStatusCommand request, CancellationToken cancellationToken)
     {
