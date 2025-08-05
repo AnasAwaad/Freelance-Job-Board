@@ -73,6 +73,17 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.FirstOrDefaultAsync(j => j.Id == id);
 	}
 
+	public async Task<Job?> GetJobWithDetailsAsync(int id)
+	{
+		return await _context.Jobs
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
+			.Include(j => j.Proposals)
+				.ThenInclude(p => p.Freelancer)
+					.ThenInclude(f => f.User)
+			.FirstOrDefaultAsync(j => j.Id == id);
+	}
+
 	public async Task<IEnumerable<Job>> GetJobsByClientIdAsync(int clientId)
 	{
 		return await _context.Jobs

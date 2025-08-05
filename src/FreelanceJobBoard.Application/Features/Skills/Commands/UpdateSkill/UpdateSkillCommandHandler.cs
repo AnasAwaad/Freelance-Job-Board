@@ -6,7 +6,7 @@ using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Skills.Commands.UpdateSkill;
 
-internal class UpdateSkillCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<UpdateSkillCommand>
+public class UpdateSkillCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<UpdateSkillCommand>
 {
     public async Task Handle(UpdateSkillCommand request, CancellationToken cancellationToken)
     {

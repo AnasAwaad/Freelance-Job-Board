@@ -3,8 +3,8 @@ using FreelanceJobBoard.Application.Features.Proposals.Commands.CreateProposal;
 using FreelanceJobBoard.Application.Features.Proposals.DTOs;
 using FreelanceJobBoard.Domain.Entities;
 
-namespace FreelanceJobBoard.Application.Features.Categories.DTOs;
-internal class ProposalsProfile : Profile
+namespace FreelanceJobBoard.Application.Features.Proposals.DTOs;
+public class ProposalsProfile : Profile
 {
 	public ProposalsProfile()
 	{
@@ -39,6 +39,5 @@ internal class ProposalsProfile : Profile
 					FileName = pa.Attachment.FileName,
 					FilePath = pa.Attachment.FilePath
 				})));
-
 	}
 }

@@ -5,7 +5,7 @@ using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
-internal class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<UpdateCategoryCommand>
+public class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<UpdateCategoryCommand>
 {
 	public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
 	{
