@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Application.Tests", "tests\FreelanceJobBoard.Application.Tests\FreelanceJobBoard.Application.Tests.csproj", "{C17FEA6D-09E7-498A-8657-89CD8F8D928C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Presentation", "FreelanceJobBoard.Presentation\FreelanceJobBoard.Presentation.csproj", "{7460C72C-299B-4624-98A5-EA0D3A5B9EBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C17FEA6D-09E7-498A-8657-89CD8F8D928C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7460C72C-299B-4624-98A5-EA0D3A5B9EBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7460C72C-299B-4624-98A5-EA0D3A5B9EBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7460C72C-299B-4624-98A5-EA0D3A5B9EBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7460C72C-299B-4624-98A5-EA0D3A5B9EBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,6 +59,7 @@ Global
 		{643EB9D3-EE79-210C-F0EF-396551B31328} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{F87A3806-176E-97B0-95C1-3AB3C165A0A6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{C17FEA6D-09E7-498A-8657-89CD8F8D928C} = {B51D9E01-AC26-4681-8DFB-9BA4490E3B16}
+		{7460C72C-299B-4624-98A5-EA0D3A5B9EBD} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F48E597C-661C-43B5-9919-6BFD8EB17A87}
