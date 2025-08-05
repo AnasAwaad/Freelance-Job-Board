@@ -9,6 +9,11 @@
   <ItemGroup>
     <Folder Include="Models\Response\" />
     <Folder Include="Models\Request\" />
+    <Folder Include="Services\" />
+    <Folder Include="Resources\Request\" />
+    <Folder Include="Resources\Response\" />
+    <Folder Include="Models\Response\" />
+    <Folder Include="Models\Request\" />
     <Folder Include="Resources\" />
     <Folder Include="Services\" />
   </ItemGroup>

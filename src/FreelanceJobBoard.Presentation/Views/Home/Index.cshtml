@@ -1,8 +1,330 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
+<link href="~/css/datatables.bundle.css" rel="stylesheet" type="text/css" />
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!--begin::Wrapper-->
+<div id="kt_content_container"
+     class="wrapper d-flex flex-column flex-row-fluid mt-5 mt-lg-10 container-xxl"
+     id="kt_wrapper">
+    <!--begin::Content-->
+    <div class="content flex-column-fluid" id="kt_content">
+        <!--begin::Toolbar-->
+        <div class="toolbar d-flex flex-stack flex-wrap mb-5 mb-lg-7"
+             id="kt_toolbar">
+            <!--begin::Page title-->
+            <div class="page-title d-flex flex-column py-1">
+                <!--begin::Title-->
+                <h1 class="d-flex align-items-center my-1">
+                    <span class="text-dark fw-bold fs-1">Jobs</span>
+                </h1>
+                <!--end::Title-->
+            </div>
+            <!--end::Page title-->
+        </div>
+        <!--end::Toolbar-->
+        <!--begin::Post-->
+        <div class="post" id="kt_post">
+            <!--begin::Stats-->
+            <div class="row gx-6 gx-xl-9">
+                <div class="col-lg-6 col-xxl-4">
+                    <!--begin::Card-->
+                    <div class="card h-100">
+                        <!--begin::Card body-->
+                        <div class="card-body p-9">
+                            <!--begin::Heading-->
+                            <div class="fs-2hx fw-bold">237</div>
+                            <div class="fs-4 fw-semibold text-gray-400 mb-7">
+                                Current Jobs
+                            </div>
+                            <!--end::Heading-->
+                            <!--begin::Wrapper-->
+                            <div class="d-flex flex-wrap">
+                                <!--begin::Chart-->
+                                <div class="d-flex flex-center h-100px w-100px me-9 mb-5">
+                                    <canvas id="kt_project_list_chart"></canvas>
+                                </div>
+                                <!--end::Chart-->
+                                <!--begin::Labels-->
+                                <div class="d-flex flex-column justify-content-center flex-row-fluid pe-11 mb-5">
+                                    <!--begin::Label-->
+                                    <div class="d-flex fs-6 fw-semibold align-items-center mb-3">
+                                        <div class="bullet bg-primary me-3"></div>
+                                        <div class="text-gray-400">Active</div>
+                                        <div class="ms-auto fw-bold text-gray-700">30</div>
+                                    </div>
+                                    <!--end::Label-->
+                                    <!--begin::Label-->
+                                    <div class="d-flex fs-6 fw-semibold align-items-center mb-3">
+                                        <div class="bullet bg-success me-3"></div>
+                                        <div class="text-gray-400">Completed</div>
+                                        <div class="ms-auto fw-bold text-gray-700">45</div>
+                                    </div>
+                                    <!--end::Label-->
+                                </div>
+                                <!--end::Labels-->
+                            </div>
+                            <!--end::Wrapper-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Card-->
+                </div>
+                <div class="col-lg-6 col-xxl-4">
+                    <!--begin::Budget-->
+                    <div class="card h-100">
+                        <div class="card-body p-9">
+                            <div class="fs-2hx fw-bold">$3,290.00</div>
+                            <div class="fs-4 fw-semibold text-gray-400 mb-7">
+                                Current Job Market
+                            </div>
+                            <div class="fs-6 d-flex justify-content-between mb-4">
+                                <div class="fw-semibold">Avg. Job Budget</div>
+                                <div class="d-flex fw-bold">
+                                    <i class="ki-duotone ki-arrow-up-right fs-3 me-1 text-success">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>$6,570
+                                </div>
+                            </div>
+                            <div class="separator separator-dashed"></div>
+                            <div class="fs-6 d-flex justify-content-between my-4">
+                                <div class="fw-semibold">Lowest Job Budget</div>
+                                <div class="d-flex fw-bold">
+                                    <i class="ki-duotone ki-arrow-down-left fs-3 me-1 text-danger">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>$408
+                                </div>
+                            </div>
+                            <div class="separator separator-dashed"></div>
+                            <div class="fs-6 d-flex justify-content-between my-4">
+                                <div class="fw-semibold">Highest Job Budget</div>
+                                <div class="d-flex fw-bold">
+                                    <i class="ki-duotone ki-arrow-down-left fs-3 me-1 text-danger">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>$408
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Budget-->
+                </div>
+                <div class="col-lg-6 col-xxl-4">
+                    <!--begin::Clients-->
+                    <div class="card h-100">
+                        <div class="card-body p-9">
+                            <!--begin::Heading-->
+                            <div class="fs-2hx fw-bold">49</div>
+                            <div class="fs-4 fw-semibold text-gray-400 mb-7">
+                                Our Clients
+                            </div>
+                            <!--end::Heading-->
+                            <!--begin::Users group-->
+                            <div class="symbol-group symbol-hover mb-9">
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Alan Warden">
+                                    <span class="symbol-label bg-warning text-inverse-warning fw-bold">A</span>
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Michael Eberon">
+                                    <img alt="Pic"
+                                         src="assets/media/avatars/300-11.jpg" />
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Michelle Swanston">
+                                    <img alt="Pic" src="assets/media/avatars/300-7.jpg" />
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Francis Mitcham">
+                                    <img alt="Pic"
+                                         src="assets/media/avatars/300-20.jpg" />
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Susan Redwood">
+                                    <span class="symbol-label bg-primary text-inverse-primary fw-bold">S</span>
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Melody Macy">
+                                    <img alt="Pic" src="assets/media/avatars/300-2.jpg" />
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Perry Matthew">
+                                    <span class="symbol-label bg-info text-inverse-info fw-bold">P</span>
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle"
+                                     data-bs-toggle="tooltip"
+                                     title="Barry Walter">
+                                    <img alt="Pic"
+                                         src="assets/media/avatars/300-12.jpg" />
+                                </div>
+                                <a href="#"
+                                   class="symbol symbol-35px symbol-circle"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#kt_modal_view_users">
+                                    <span class="symbol-label bg-dark text-gray-300 fs-8 fw-bold">+42</span>
+                                </a>
+                            </div>
+                            <!--end::Users group-->
+                        </div>
+                    </div>
+                    <!--end::Clients-->
+                </div>
+            </div>
+            <!--end::Stats-->
+            <!--begin::Toolbar-->
+            <div class="d-flex flex-wrap flex-stack my-5">
+                <!--begin::Heading-->
+                <h2 class="fs-2 fw-semibold my-2">Current Jobs</h2>
+                <!--end::Heading-->
+                <!--begin::Controls-->
+                <div class="d-flex flex-wrap my-1">
+                    <!--begin::Select wrapper-->
+                    <div class="m-0">
+                        Filters
+                        <!--end::Select-->
+                    </div>
+                    <!--end::Select wrapper-->
+                </div>
+                <!--end::Controls-->
+            </div>
+            <!--end::Toolbar-->
+            <!--begin::Row-->
+            <div class="row g-6 g-xl-9">
+                <!--begin::Col-->
+                <div class="col-md-6 col-xl-4">
+                    <!--begin::Card-->
+                    <a href="/#JobLink" class="card border-hover-primary">
+                        <!--begin::Card header-->
+                        <div class="card-header border-0 pt-9">
+                            <!--begin::Card Title-->
+                            <div class="card-title m-0">
+                                <!--begin::Avatar-->
+                                <div class="symbol symbol-50px w-50px bg-light">
+                                    <img src="assets/media/svg/brand-logos/plurk.svg"
+                                         alt="image"
+                                         class="p-3" />
+                                </div>
+                                <!--end::Avatar-->
+                            </div>
+                            <!--end::Car Title-->
+                            <!--begin::Card toolbar-->
+                            <div class="card-toolbar">
+                                <span class="badge badge-light-primary fw-bold me-auto px-4 py-3">Few Days Ago</span>
+                            </div>
+                            <!--end::Card toolbar-->
+                        </div>
+                        <!--end:: Card header-->
+                        <!--begin:: Card body-->
+                        <div class="card-body p-9">
+                            <!--begin::Name-->
+                            <div class="fs-3 fw-bold text-dark">Fitnes App</div>
+                            <!--end::Name-->
+                            <!--begin::Description-->
+                            <p class="text-gray-400 fw-semibold fs-5 mt-1 mb-7">
+                                CRM App application to HR efficiency
+                            </p>
+                            <!--end::Description-->
+                            <!--begin::Info-->
+                            <div class="d-flex flex-wrap mb-5">
+                                <!--begin::Due-->
+                                <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-7 mb-3">
+                                    <div class="fs-6 text-gray-800 fw-bold">
+                                        Oct 25, 2023
+                                    </div>
+                                    <div class="fw-semibold text-gray-400">Due Date</div>
+                                </div>
+                                <!--end::Due-->
+                                <!--begin::Max Budget-->
+                                <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 mb-3">
+                                    <div class="fs-6 text-gray-800 fw-bold">
+                                        $284,900.00
+                                    </div>
+                                    <div class="fw-semibold text-gray-400">
+                                        Max Budget
+                                    </div>
+                                </div>
+                                <!--end::Max Budget-->
+                                <!--begin::Min Budget-->
+                                <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 mb-3">
+                                    <div class="fs-6 text-gray-800 fw-bold">
+                                        $284,900.00
+                                    </div>
+                                    <div class="fw-semibold text-gray-400">
+                                        Min Budget
+                                    </div>
+                                </div>
+                                <!--end::Min Budget-->
+                            </div>
+                            <!--end::Info-->
+                        </div>
+                        <!--end:: Card body-->
+                    </a>
+                    <!--end::Card-->
+                </div>
+                <!--end::Col-->
+            </div>
+            <!--end::Row-->
+            <!--begin::Pagination-->
+            <div class="d-flex flex-stack flex-wrap pt-10">
+                <div class="fs-6 fw-semibold text-gray-700">
+                    Showing 1 to 10 of 50 entries
+                </div>
+                <!--begin::Pages-->
+                <ul class="pagination">
+                    <li class="page-item previous">
+                        <a href="#" class="page-link">
+                            <i class="previous"></i>
+                        </a>
+                    </li>
+                    <li class="page-item active">
+                        <a href="#" class="page-link">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">3</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">4</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">5</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">6</a>
+                    </li>
+                    <li class="page-item next">
+                        <a href="#" class="page-link">
+                            <i class="next"></i>
+                        </a>
+                    </li>
+                </ul>
+                <!--end::Pages-->
+            </div>
+            <!--end::Pagination-->
+        </div>
+        <!--end::Post-->
+    </div>
 </div>
+<!--end::Wrapper-->
+<!--begin::Vendors Javascript(used for this page only)-->
+<script src="~/js/datatables.bundle.js"></script>
+<!--end::Vendors Javascript-->
+<!--begin::Custom Javascript(used for this page only)-->
+<script src="~/js/list.js"></script>
+@* <script src="assets/js/widgets.bundle.js"></script>
+<script src="assets/js/custom/widgets.js"></script>
+<script src="assets/js/custom/apps/chat/chat.js"></script>
+<script src="assets/js/custom/utilities/modals/upgrade-plan.js"></script>
+<script src="assets/js/custom/utilities/modals/create-campaign.js"></script>
+ <script src="assets/js/custom/utilities/modals/users-search.js"></script>*@
