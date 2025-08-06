@@ -1,0 +1,46 @@
+﻿@page
+@{
+}
+
+<link href="~/css/datatables.bundle.css" rel="stylesheet" type="text/css" />
+<link href="~/css/plugins.bundle.css" rel="stylesheet" />
+<link href="~/css/style.bundle.css" rel="stylesheet" />
+
+<div id="kt_header" class="header align-items-stretch">
+    <div class="container-xxl d-flex align-items-stretch justify-content-between">
+        <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0 w-lg-225px me-5">
+            Logo
+        </div>
+        <div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1">
+            <div class="d-flex align-items-stretch" id="kt_header_nav"></div>
+            <div class="d-flex align-items-stretch flex-shrink-0">
+                <partial name="Header/_Notifications" />
+                <partial name="Header/_ThemeMode" />
+                <partial name ="Header/_UserProfile" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@* For the Chart*@
+<script>
+    const ctx = document.getElementById('kt_project_list_chart').getContext('2d');
+    const projectChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Completed'],
+            datasets: [{
+                data: [30, 45], // Make sure to match the numbers above
+                backgroundColor: ['#3699FF', '#1BC5BD'], // Blue, Green
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: '75%',
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>

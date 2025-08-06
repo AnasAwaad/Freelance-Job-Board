@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Infrastru
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Application.Tests", "tests\FreelanceJobBoard.Application.Tests\FreelanceJobBoard.Application.Tests.csproj", "{C17FEA6D-09E7-498A-8657-89CD8F8D928C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Presentation", "src\FreelanceJobBoard.Presentation\FreelanceJobBoard.Presentation.csproj", "{D7E17F13-331D-DFF6-3798-B39D51EEF654}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Presentation", "src\FreelanceJobBoard.Presentation\FreelanceJobBoard.Presentation.csproj", "{D7E17F13-331D-DFF6-3798-B39D51EEF654}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

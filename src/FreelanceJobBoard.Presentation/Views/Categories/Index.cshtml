@@ -1,0 +1,167 @@
+﻿@model IEnumerable<CategoryViewModel>
+
+@{
+	ViewData["Title"] = "Create Category";
+}
+
+<div class="d-flex flex-column flex-column-fluid" style="margin-top:30px;">
+
+	<!--begin::Content-->
+	<div id="kt_app_content" class="app-content  flex-column-fluid ">
+		<!--begin::Content container-->
+		<div id="kt_app_content_container">
+			<div class="page-title d-flex flex-column justify-content-center flex-wrap me-3 mb-4 ">
+				<!--begin::Title-->
+				<h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">
+					Categories
+				</h1>
+				<!--end::Title-->
+				<!--begin::Breadcrumb-->
+				<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+					<!--begin::Item-->
+					<li class="breadcrumb-item text-muted">
+						<a href="/" class="text-muted text-hover-primary">
+							Home
+						</a>
+					</li>
+					<!--end::Item-->
+					<!--begin::Item-->
+					<li class="breadcrumb-item">
+						<span class="bullet bg-gray-500 w-5px h-2px"></span>
+					</li>
+					<!--end::Item-->
+					<!--begin::Item-->
+					<li class="breadcrumb-item text-muted">
+						Categories
+					</li>
+
+				</ul>
+				<!--end::Breadcrumb-->
+			</div>
+			<!--begin::Category-->
+			<div class="card card-flush">
+				<!--begin::Card header-->
+				<div class="card-header d-flex align-items-center py-5 gap-2 gap-md-5">
+					<div class="card-title">
+						<!--begin::Search-->
+						<div class="d-flex align-items-center position-relative my-1">
+							<i class="ki-duotone ki-magnifier fs-1 position-absolute ms-4"><span class="path1"></span><span class="path2"></span></i>
+							<input type="text" data-kt-filter="search" class="form-control form-control-solid w-250px ps-14" placeholder="Search Category" />
+						</div>
+						<!--end::Search-->
+						<!--begin::Export buttons-->
+						<div id="kt_datatable_example_1_export" class="d-none"></div>
+						<!--end::Export buttons-->
+					</div>
+					<div class="card-toolbar flex-row-fluid justify-content-end gap-5">
+
+						<!--begin::Export dropdown-->
+						<button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+							<i class="ki-duotone ki-exit-down fs-2"><span class="path1"></span><span class="path2"></span></i>
+							Export
+						</button>
+						<!--begin::Menu-->
+						<div id="kt_datatable_example_export_menu" class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">
+							<!--begin::Menu item-->
+							<div class="menu-item px-3">
+								<a href="#" class="menu-link px-3" data-kt-export="copy">
+									Copy to clipboard
+								</a>
+							</div>
+							<!--end::Menu item-->
+							<!--begin::Menu item-->
+							<div class="menu-item px-3">
+								<a href="#" class="menu-link px-3" data-kt-export="excel">
+									Export as Excel
+								</a>
+							</div>
+							<!--end::Menu item-->
+							<!--begin::Menu item-->
+							<div class="menu-item px-3">
+								<a href="#" class="menu-link px-3" data-kt-export="csv">
+									Export as CSV
+								</a>
+							</div>
+							<!--end::Menu item-->
+							<!--begin::Menu item-->
+							<div class="menu-item px-3">
+								<a href="#" class="menu-link px-3" data-kt-export="pdf">
+									Export as PDF
+								</a>
+							</div>
+							<!--end::Menu item-->
+						</div>
+						<!--end::Menu-->
+						<!--end::Export dropdown-->
+						<a href="javascript:;" data-url="/Admin/Categories/Create" data-title="Create New Category" class="btn btn-primary js-render-modal">
+							Add Category
+						</a>
+						<!--begin::Hide default export buttons-->
+						<div id="kt_datatable_example_buttons" class="d-none"></div>
+						<!--end::Hide default export buttons->
+
+								</div>
+							</div>
+
+
+						</div>
+
+						<!--end::Category-->
+					</div>
+				</div>
+				<!--begin::Card body-->
+				<div class="card-body pt-0">
+
+
+					<!--begin::Table-->
+					<div class="table-responsive">
+						<table id="datatable" data-title="Category - Report" class="table align-middle border rounded table-row-dashed fs-6 g-5">
+							<thead>
+								<tr class="fw-bold fs-6 text-gray-800">
+									<th class="text-center">Name</th>
+									<th>Description</th>
+									@* <th>Creation Date</th> *@
+									@* <th>Last Updated on</th> *@
+									@* <th>Status</th> *@
+									<th class="text-center">Actions</th>
+								</tr>
+							</thead>
+							<tbody class="js-tbody">
+								@foreach (var category in Model)
+								{
+									<partial name="_CategoryRow" model="category" />
+								}
+
+
+							</tbody>
+						</table>
+					</div>
+					<!--end::Table-->
+				</div>
+				<!--end::Card body-->
+				<!--end::Content container-->
+			</div>
+			<!--end::Content-->
+		</div>
+	</div>
+
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+	<link href="~/css/datatables.bundle.css" rel="stylesheet" />
+}
+@section Plugins {
+	<script src="~/js/datatables.bundle.js"></script>
+}
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+
+	<script>
+		$(document).ready(function () {
+			$('.table').DataTable();
+		})
+	</script>
+}

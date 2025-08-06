@@ -1,0 +1,78 @@
+﻿@page
+@{
+}
+
+
+
+<div class="d-flex align-items-center ms-1 ms-lg-2">
+    <!--begin::Menu wrapper-->
+    <div class="btn btn-icon btn-active-light btn-active-color-primary position-relative w-30px h-30px w-md-40px h-md-40px"
+         data-kt-menu-trigger="click"
+         data-kt-menu-attach="parent"
+         data-kt-menu-placement="bottom-end">
+        <i class=" ki-duotone ki-abstract-36 fs-1">
+            <span class="path1"></span>
+            <span class="path2"></span>
+        </i>
+        <!-- Notification Count Badge -->
+        <span class="badge badge-dot badge-danger position-absolute top-0 end-0 notification-count">1</span>
+    </div>
+
+    <!--begin::Menu-->
+    <div class="menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px"
+         data-kt-menu="true"
+         id="kt_menu_notifications">
+        <!--begin::Heading-->
+        <div class="d-flex flex-column bgi-no-repeat rounded-top"
+             style="
+                        background-image: url('assets/media/misc/menu-header-bg.jpg');
+                      ">
+            <h3 class="text-white fw-semibold px-9 mt-10 mb-6">
+                Notifications
+                <span class="fs-8 opacity-75 ps-3 notification-total">1 Notification</span>
+            </h3>
+        </div>
+        <!--end::Heading-->
+        <!--begin::Notification List-->
+        <div id="notifications-container"
+             class="scroll-y mh-325px my-5 px-8">
+            <!--begin::Notification Item-->
+            <div class="d-flex flex-stack py-4 notification-item"
+                 data-id="alice-project">
+                <!--begin::Section-->
+                <div class="d-flex align-items-center">
+                    <!--begin::Details-->
+                    <div class="mb-0 me-2">
+                        <a href="#"
+                           class="fs-6 text-gray-800 text-hover-primary fw-bold">
+                            Project Alice
+                        </a>
+                        <div class="text-gray-400 fs-7">
+                            Phase 1 development has been completed.
+                        </div>
+                    </div>
+                    <!--end::Details-->
+                </div>
+                <!--end::Section-->
+                <!--begin::Timestamp-->
+                <span class="badge badge-light fs-8">1 hr ago</span>
+                <!--end::Timestamp-->
+            </div>
+            <!--end::Notification Item-->
+        </div>
+        <!--end::Notification List-->
+        <!--begin::View more-->
+        <div class="py-3 text-center border-top">
+            <a href="/Notifications/All"
+               class="btn btn-color-gray-600 btn-active-color-primary">
+                View All
+                <i class="ki-duotone ki-arrow-right fs-5">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                </i>
+            </a>
+        </div>
+        <!--end::View more-->
+    </div>
+    <!--end::Menu-->
+</div>

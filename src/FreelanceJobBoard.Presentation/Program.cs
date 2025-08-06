@@ -1,5 +1,9 @@
+using FreelanceJobBoard.Domain.Identity;
+using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Presentation.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace FreelanceJobBoard.Presentation;
 
@@ -12,7 +16,16 @@ public class Program
 		// Add services to the container.
 		builder.Services.AddControllersWithViews();
 		builder.Services.AddHttpClient<AuthService>();
+		builder.Services.AddHttpClient<CategoryService>();
 
+		builder.Services.AddDbContext<ApplicationDbContext>(options =>
+			options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+		builder.Services.AddHttpContextAccessor();
+
+
+		builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+		.AddEntityFrameworkStores<ApplicationDbContext>()
+		.AddDefaultTokenProviders();
 		builder.Services.AddAuthentication(options =>
 		{
 			options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;

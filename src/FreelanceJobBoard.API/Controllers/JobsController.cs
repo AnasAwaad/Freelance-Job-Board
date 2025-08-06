@@ -15,7 +15,7 @@ namespace FreelanceJobBoard.API.Controllers;
 public class JobsController(IMediator mediator) : ControllerBase
 {
 	[HttpPost]
-	[Authorize(Roles = AppRoles.Client)]
+	//[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> Create([FromBody] CreateJobCommand command)
 	{
 		var id = await mediator.Send(command);
@@ -24,7 +24,7 @@ public class JobsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpPut("{id}")]
-	[Authorize(Roles = AppRoles.Client)]
+	//[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> Update([FromRoute] int id, UpdateJobCommand command)
 	{
 		command.Id = id;
@@ -41,7 +41,7 @@ public class JobsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet]
-	[Authorize(Roles = AppRoles.Admin)]
+	//[Authorize(Roles = AppRoles.Admin)]
 	public async Task<IActionResult> GetAll([FromQuery] GetAllJobsQuery query)
 	{
 		var jobs = await mediator.Send(query);
@@ -49,7 +49,7 @@ public class JobsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("my-jobs")]
-	[Authorize(Roles = AppRoles.Client)]
+	//[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> GetMyJobs([FromQuery] GetJobsByCurrentClientQuery query)
 	{
 		var jobs = await mediator.Send(query);
@@ -57,7 +57,7 @@ public class JobsController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("{id}")]
-	[Authorize(Roles = AppRoles.Client)]
+	//[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> GetById([FromRoute] int id)
 	{
 		return Ok(await mediator.Send(new GetJobByIdQuery(id)));

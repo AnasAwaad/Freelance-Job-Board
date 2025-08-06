@@ -1,0 +1,40 @@
+﻿@model CategoryViewModel
+
+<tr>
+    <td class="text-center">@Model.Name</td>
+    <td>@(Model.Description.Length > 30 ? $"{Model.Description.Substring(0, 30)}..." : Model.Description)</td>
+    <td class="text-center">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-light shadow-sm rounded-circle" type="button" id="dropdownMenuButton1"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots-vertical fs-5 text-dark"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm animate__animated animate__fadeIn"
+                aria-labelledby="dropdownMenuButton1">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center js-render-modal"
+                       href="javascript:;"
+                       data-url="/Admin/Categories/Update/@Model.Id"
+                       data-title="Update Department"
+                       data-update="true">
+                        <i class="ki-duotone ki-notepad-edit fs-5 text-success me-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        <span>Update</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center js-change-status text-danger"
+                       data-status="true"
+                       data-url="/Admin/Categories/ChangeDepartmentStatus/@Model.Id"
+                       href="javascript:;">
+                        <i class="bi bi-x-circle fs-5 me-2"></i>
+                        <span>Change Status</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </td>
+
+</tr>
