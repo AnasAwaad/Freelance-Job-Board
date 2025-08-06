@@ -27,7 +27,7 @@ public class DeleteCategoryCommandHandlerTests
 	public async Task Handle_ForExistingCategory_ShouldDeleteCategory()
 	{
 		// Arrange
-		var command = new DeleteCategoryCommand(100);
+		var command = new ChangeCategoryStatusCommand(100);
 
 		var category = new Category
 		{
@@ -44,7 +44,7 @@ public class DeleteCategoryCommandHandlerTests
 		_unitOfWorkMock.Setup(u => u.SaveChangesAsync())
 			.Returns(Task.CompletedTask);
 
-		var handler = new DeleteCategoryCommandHandler(_unitOfWorkMock.Object);
+		var handler = new ChangeCategoryStatusCommandHandler(_unitOfWorkMock.Object);
 
 		// Act
 
@@ -62,7 +62,7 @@ public class DeleteCategoryCommandHandlerTests
 	public async Task Handle_ForNotExistingCategory_ShouldThrowNotFoundException()
 	{
 		// Arrange
-		var command = new DeleteCategoryCommand(100);
+		var command = new ChangeCategoryStatusCommand(100);
 
 		var category = new Category
 		{
@@ -76,7 +76,7 @@ public class DeleteCategoryCommandHandlerTests
 		_categoryRepositoryMock.Setup(c => c.GetByIdAsync(command.Id))
 			.ReturnsAsync((Category?)null);
 
-		var handler = new DeleteCategoryCommandHandler(_unitOfWorkMock.Object);
+		var handler = new ChangeCategoryStatusCommandHandler(_unitOfWorkMock.Object);
 
 		// Act
 

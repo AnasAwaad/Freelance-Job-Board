@@ -28,8 +28,8 @@ public class CategoriesController(IMediator mediator) : ControllerBase
 	[HttpPost]
 	public async Task<IActionResult> Create([FromBody] CreateCategoryCommand command)
 	{
-		var id = await mediator.Send(command);
-		return CreatedAtAction(nameof(GetById), new { id }, null);
+		var category = await mediator.Send(command);
+		return CreatedAtAction(nameof(GetById), new { category.Id }, category);
 	}
 
 
@@ -37,17 +37,18 @@ public class CategoriesController(IMediator mediator) : ControllerBase
 	public async Task<IActionResult> Update([FromRoute] int id, UpdateCategoryCommand command)
 	{
 		command.Id = id;
-		await mediator.Send(command);
+		var category = await mediator.Send(command);
 
-		return NoContent();
+		return Ok(category);
 	}
 
-	[HttpDelete("{id}")]
-	public async Task<IActionResult> Delete([FromRoute] int id)
-	{
-		await mediator.Send(new DeleteCategoryCommand(id));
 
-		return NoContent();
+	[HttpPost("{id}/ChangeStatus")]
+	public async Task<IActionResult> ChangeStatus([FromRoute] int id)
+	{
+		var result = await mediator.Send(new ChangeCategoryStatusCommand(id));
+
+		return Ok(result);
 	}
 
 }

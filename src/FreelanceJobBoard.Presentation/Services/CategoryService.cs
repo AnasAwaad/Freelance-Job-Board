@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Presentation.Models.ViewModels;
+﻿using FreelanceJobBoard.Presentation.Models.DTOs;
+using FreelanceJobBoard.Presentation.Models.ViewModels;
 
 public class CategoryService
 {
@@ -17,15 +18,56 @@ public class CategoryService
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 	}
 
-	public async Task<List<CategoryViewModel>> GetAllCategoriesAsync()
+	public async Task<IEnumerable<CategoryViewModel>?> GetAllCategoriesAsync()
 	{
 		var response = await _httpClient.GetAsync("");
 
 		if (response.IsSuccessStatusCode)
 		{
-			return await response.Content.ReadFromJsonAsync<List<CategoryViewModel>>();
+			return await response.Content.ReadFromJsonAsync<IEnumerable<CategoryViewModel>>();
 		}
 
-		return null;
+		return null!;
+	}
+
+
+	public async Task<CategoryViewModel?> CreateCategoryAsync(CategoryFormViewModel viewModel)
+	{
+		var response = await _httpClient.PostAsJsonAsync("", viewModel);
+		if (response.IsSuccessStatusCode)
+		{
+			return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+		}
+		return null!;
+	}
+
+	public async Task<CategoryFormViewModel?> GetCategoryByIdAsync(int id)
+	{
+		var response = await _httpClient.GetAsync($"{id}");
+		if (response.IsSuccessStatusCode)
+		{
+			return await response.Content.ReadFromJsonAsync<CategoryFormViewModel>();
+		}
+		return null!;
+	}
+
+	public async Task<CategoryViewModel?> UpdateCategoryAsync(CategoryFormViewModel viewModel)
+	{
+		var response = await _httpClient.PutAsJsonAsync($"{viewModel.Id}", viewModel);
+		if (response.IsSuccessStatusCode)
+		{
+			return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+		}
+		return null!;
+	}
+
+	public async Task<ChangeCategoryStatusResultDto?> ChangeCategoryStatusAsync(int id)
+	{
+		var response = await _httpClient.PostAsync($"{id}/ChangeStatus", null);
+		if (response.IsSuccessStatusCode)
+		{
+			return await response.Content.ReadFromJsonAsync<ChangeCategoryStatusResultDto>();
+		}
+		throw new Exception("Failed to change category status");
 	}
 }

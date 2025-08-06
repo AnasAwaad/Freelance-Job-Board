@@ -26,17 +26,20 @@ public class Program
 		builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 		.AddEntityFrameworkStores<ApplicationDbContext>()
 		.AddDefaultTokenProviders();
+
+
 		builder.Services.AddAuthentication(options =>
 		{
 			options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-		}).AddCookie(options =>
+		})
+		.AddCookie("Cookies", options =>
 		{
+			options.LoginPath = "/Auth/Login";
+			options.AccessDeniedPath = "/Auth/AccessDenied";
 			options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 			options.SlidingExpiration = true;
-
-			options.LoginPath = "/Auth/Login";
-			options.AccessDeniedPath = "/";
 		});
+
 
 		builder.Services.AddAuthorization();
 

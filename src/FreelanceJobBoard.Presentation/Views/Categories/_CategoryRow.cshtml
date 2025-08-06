@@ -3,6 +3,9 @@
 <tr>
     <td class="text-center">@Model.Name</td>
     <td>@(Model.Description.Length > 30 ? $"{Model.Description.Substring(0, 30)}..." : Model.Description)</td>
+    <td class="js-status">
+        <span class="badge badge-@(!Model.IsActive ? "warning" : "success")">@(!Model.IsActive ? "Inactive" : "Active")</span>
+    </td>
     <td class="text-center">
         <div class="dropdown">
             <button class="btn btn-sm btn-light shadow-sm rounded-circle" type="button" id="dropdownMenuButton1"
@@ -14,7 +17,7 @@
                 <li>
                     <a class="dropdown-item d-flex align-items-center js-render-modal"
                        href="javascript:;"
-                       data-url="/Admin/Categories/Update/@Model.Id"
+                       data-url="/Categories/Update/@Model.Id"
                        data-title="Update Department"
                        data-update="true">
                         <i class="ki-duotone ki-notepad-edit fs-5 text-success me-2">
@@ -27,7 +30,7 @@
                 <li>
                     <a class="dropdown-item d-flex align-items-center js-change-status text-danger"
                        data-status="true"
-                       data-url="/Admin/Categories/ChangeDepartmentStatus/@Model.Id"
+                       data-url="/Categories/ChangeDepartmentStatus/@Model.Id"
                        href="javascript:;">
                         <i class="bi bi-x-circle fs-5 me-2"></i>
                         <span>Change Status</span>

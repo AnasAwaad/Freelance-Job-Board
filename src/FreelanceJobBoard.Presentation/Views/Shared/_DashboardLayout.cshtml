@@ -18,6 +18,7 @@
 	<link href="~/css/plugins.bundle.css" rel="stylesheet" />
 	<link href="~/css/style.bundle.css" rel="stylesheet" type="text/css" />
 	<!--end::Global Stylesheets Bundle-->
+
 	@await RenderSectionAsync("Styles", required: false)
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -80,6 +81,9 @@
 	</div>
 
 	<!--end::Scrolltop-->
+	<!--begin::Modal-->
+	<partial name="_Modal" />
+	<!--end::Modal-->
 	<!--begin::Javascript-->
 	<script>var hostUrl = "assets/";</script>
 	<!--begin::Javascript-->
@@ -87,6 +91,9 @@
 	<script src="~/js/plugins.bundle.js"></script>
 	<script src="~/js/scripts.bundle.js"></script>
 	<!--end::Global Javascript Bundle-->
+	<!--begin::Bootbox-->
+	<script src="~/lib/bootbox.js/bootbox.min.js"></script>
+	<!--end::Bootbox-->
 	@await RenderSectionAsync("Plugins", required: false)
 	<script src="~/js/site.js" asp-append-version="true"></script>
 	@await RenderSectionAsync("Scripts", required: false)
