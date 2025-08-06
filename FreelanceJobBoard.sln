@@ -7,17 +7,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B51D9E01-AC26-4681-8DFB-9BA4490E3B16}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.API", "src\FreelanceJobBoard.API\FreelanceJobBoard.API.csproj", "{72F508FA-591D-C43D-87DD-32351E8F8CE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.API", "src\FreelanceJobBoard.API\FreelanceJobBoard.API.csproj", "{72F508FA-591D-C43D-87DD-32351E8F8CE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Application", "src\FreelanceJobBoard.Application\FreelanceJobBoard.Application.csproj", "{D0933BA2-40CD-AF69-D329-7B70F049940A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Application", "src\FreelanceJobBoard.Application\FreelanceJobBoard.Application.csproj", "{D0933BA2-40CD-AF69-D329-7B70F049940A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Domain", "src\FreelanceJobBoard.Domain\FreelanceJobBoard.Domain.csproj", "{643EB9D3-EE79-210C-F0EF-396551B31328}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Domain", "src\FreelanceJobBoard.Domain\FreelanceJobBoard.Domain.csproj", "{643EB9D3-EE79-210C-F0EF-396551B31328}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Infrastructure", "src\FreelanceJobBoard.Infrastructure\FreelanceJobBoard.Infrastructure.csproj", "{F87A3806-176E-97B0-95C1-3AB3C165A0A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Infrastructure", "src\FreelanceJobBoard.Infrastructure\FreelanceJobBoard.Infrastructure.csproj", "{F87A3806-176E-97B0-95C1-3AB3C165A0A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Application.Tests", "tests\FreelanceJobBoard.Application.Tests\FreelanceJobBoard.Application.Tests.csproj", "{C17FEA6D-09E7-498A-8657-89CD8F8D928C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Application.Tests", "tests\FreelanceJobBoard.Application.Tests\FreelanceJobBoard.Application.Tests.csproj", "{C17FEA6D-09E7-498A-8657-89CD8F8D928C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FreelanceJobBoard.Presentation", "src\FreelanceJobBoard.Presentation\FreelanceJobBoard.Presentation.csproj", "{D7E17F13-331D-DFF6-3798-B39D51EEF654}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FreelanceJobBoard.Presentation", "src\FreelanceJobBoard.Presentation\FreelanceJobBoard.Presentation.csproj", "{D7E17F13-331D-DFF6-3798-B39D51EEF654}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
