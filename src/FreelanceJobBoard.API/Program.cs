@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Security.Claims;
 using System.Text;
 
 namespace FreelanceJobBoard.API
@@ -80,7 +81,9 @@ namespace FreelanceJobBoard.API
 						ValidIssuer = jwtSettings["Issuer"],
 						ValidAudience = jwtSettings["Audience"],
 						IssuerSigningKey = new SymmetricSecurityKey(key),
-						ClockSkew = TimeSpan.Zero
+						ClockSkew = TimeSpan.Zero,
+						RoleClaimType = ClaimTypes.Role
+
 					};
 				});
 

@@ -1,0 +1,17 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+</head>
+<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled">
+
+    <main class="d-flex flex-column flex-root">
+        <section class="page d-flex flex-column flex-column-fluid">
+			@RenderBody()
+        </section>
+    </main>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

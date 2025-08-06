@@ -1,0 +1,36 @@
+﻿@model CategoryFormViewModel
+
+<form 
+    id="ModalForm"
+    asp-action="@(Model?.Id > 0 ?"Update":"Create")"
+    data-ajax-method="post"
+    data-ajax="true"
+    data-ajax-success="onModalFormSuccess"
+    data-ajax-failure="onModalFormFailure">
+
+    @if (Model?.Id > 0)
+    {
+        <input type="hidden" asp-for="Id" />
+    }
+    <!--begin::Input group-->
+    <div>
+        <div class="form-floating mb-2">
+            <input asp-for="Name" type="text" class="form-control form-control-solid" placeholder="Name" />
+            <label asp-for="Name"></label>
+            <span asp-validation-for="Name" class="text-danger"></span>
+
+        </div>
+
+    </div>
+    <!--end::Input group-->
+    <!--begin::Input group-->
+    <div>
+        <div class="form-floating mb-2">
+            <input asp-for="Description " type="text" class="form-control form-control-solid" placeholder="Description" />
+            <label asp-for="Description"></label>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+    </div>
+
+</form>

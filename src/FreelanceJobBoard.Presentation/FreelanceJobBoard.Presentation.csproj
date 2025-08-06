@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\Request\**" />
+    <Compile Remove="Models\Response\**" />
+    <Content Remove="Models\Request\**" />
+    <Content Remove="Models\Response\**" />
+    <EmbeddedResource Remove="Models\Request\**" />
+    <EmbeddedResource Remove="Models\Response\**" />
+    <None Remove="Models\Request\**" />
+    <None Remove="Models\Response\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Request\" />
+    <Folder Include="Resources\Response\" />
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FreelanceJobBoard.Domain\FreelanceJobBoard.Domain.csproj" />
+    <ProjectReference Include="..\FreelanceJobBoard.Infrastructure\FreelanceJobBoard.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

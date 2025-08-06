@@ -80,7 +80,7 @@ public class UpdateCategoryCommandHandlerTests
 			.Returns(_categoryRepositoryMock.Object);
 
 		_categoryRepositoryMock.Setup(c => c.GetByIdAsync(command.Id))
-			.ReturnsAsync((Category)null);
+			.ReturnsAsync((Category?)null);
 
 		var handler = new UpdateCategoryCommandHandler(_unitOfWorkMock.Object, _mapper);
 

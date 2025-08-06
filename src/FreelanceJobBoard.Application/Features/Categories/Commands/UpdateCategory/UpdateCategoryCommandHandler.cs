@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
+using FreelanceJobBoard.Application.Features.Categories.DTOs;
 using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
-public class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<UpdateCategoryCommand>
+public class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper) : IRequestHandler<UpdateCategoryCommand, CategoryDto>
 {
-	public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+	public async Task<CategoryDto> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
 	{
 		var category = await unitOfWork.Categories.GetByIdAsync(request.Id);
 
@@ -17,5 +18,7 @@ public class UpdateCategoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper
 		mapper.Map(request, category);
 
 		await unitOfWork.SaveChangesAsync();
+
+		return mapper.Map<CategoryDto>(category);
 	}
 }
