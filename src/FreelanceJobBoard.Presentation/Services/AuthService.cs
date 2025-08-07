@@ -51,6 +51,26 @@ public class AuthService
 	{
 		try
 		{
+			// 1. Upload profile photo if exists
+			string? profilePhotoUrl = string.Empty;
+
+			if (viewModel.ProfilePhoto != null)
+			{
+				using var formData = new MultipartFormDataContent();
+				var streamContent = new StreamContent(viewModel.ProfilePhoto.OpenReadStream());
+				streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(viewModel.ProfilePhoto.ContentType);
+				formData.Add(streamContent, "ImageFile", viewModel.ProfilePhoto.FileName);
+
+				var uploadResponse = await _httpClient.PostAsync("upload-image-profile", formData);
+
+				if (uploadResponse.IsSuccessStatusCode)
+				{
+					profilePhotoUrl = await uploadResponse.Content.ReadAsStringAsync();
+					// remove extra quotes if string is returned as JSON string
+					profilePhotoUrl = profilePhotoUrl.Trim('"');
+				}
+			}
+
 			// Handle Register user based on role
 			HttpResponseMessage? response = null;
 
@@ -61,7 +81,7 @@ public class AuthService
 					Email = viewModel.Email,
 					FullName = viewModel.FullName,
 					Password = viewModel.Password,
-					ProfilePhotoUrl = "",
+					ProfilePhotoUrl = profilePhotoUrl,
 					CompanyName = viewModel.CompanyName,
 					CompanyWebsite = viewModel.CompanyWebsite,
 					Industry = viewModel.Industry
@@ -77,7 +97,7 @@ public class AuthService
 					Email = viewModel.Email,
 					FullName = viewModel.FullName,
 					Password = viewModel.Password,
-					ProfilePhotoUrl = "",
+					ProfilePhotoUrl = profilePhotoUrl,
 					PhoneNumber = viewModel.PhoneNumber ?? string.Empty,
 					Bio = viewModel.Bio ?? string.Empty,
 					YearsOfExperience = viewModel.YearsOfExperience ?? 0,
