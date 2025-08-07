@@ -1,20 +1,61 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Services;
+using FreelanceJobBoard.Domain.Constants;
+using FreelanceJobBoard.Domain.Entities;
+using FreelanceJobBoard.Domain.Identity;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 
 namespace FreelanceJobBoard.Application.Features.Auth.Commands.ClientRegister;
-public class ClientRegisterCommandHandler : IRequestHandler<ClientRegisterCommand>
+public class ClientRegisterCommandHandler(UserManager<ApplicationUser> userManager,
+	RoleManager<IdentityRole> roleManager,
+	IUnitOfWork unitOfWork,
+	ICloudinaryService cloudinaryService) : IRequestHandler<ClientRegisterCommand>
 
 {
-    private readonly IAuthService _authService;
 
-    public ClientRegisterCommandHandler(IAuthService authService) => _authService = authService;
+	public async Task Handle(ClientRegisterCommand request, CancellationToken cancellationToken)
+	{
+		var user = new ApplicationUser
+		{
+			Email = request.Email,
+			UserName = request.Email,
+			FullName = request.FullName,
+			ProfileImageUrl = request.ProfilePhotoUrl
+		};
 
-    public async Task Handle(ClientRegisterCommand request, CancellationToken cancellationToken)
-    {
-        await _authService.RegisterClientAsync(
-            email: request.Email,
-            password: request.Password,
-            fullName: request.FullName);
+		var createResult = await userManager.CreateAsync(user, request.Password);
+		if (!createResult.Succeeded)
+		{
+			var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+			throw new InvalidOperationException($"Failed to create client user: {errors}");
+		}
 
-    }
+		if (!await roleManager.RoleExistsAsync(AppRoles.Client))
+		{
+			await roleManager.CreateAsync(new IdentityRole(AppRoles.Client));
+		}
+
+		await userManager.AddToRoleAsync(user, AppRoles.Client);
+
+
+		var client = new Client
+		{
+			UserId = user.Id,
+			Company = new Company
+			{
+				Name = request.CompanyName,
+				WebsiteUrl = request.CompanyWebsite,
+				Industry = request.Industry
+			},
+			AverageRating = 0,
+			TotalReviews = 0,
+			IsActive = true,
+			CreatedOn = DateTime.UtcNow
+		};
+
+		await unitOfWork.Clients.CreateAsync(client);
+		await unitOfWork.SaveChangesAsync();
+
+	}
 }

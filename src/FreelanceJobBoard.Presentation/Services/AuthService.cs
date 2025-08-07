@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Interfaces.Services;
+using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Presentation.Models.DTOs;
 using FreelanceJobBoard.Presentation.Models.ViewModels;
 
@@ -17,7 +18,7 @@ public class AuthService
 		_webHostEnvironment = webHostEnvironment;
 		_logger = logger;
 		_emailService = emailService;
-		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Auth/");
+		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Auth/");
 	}
 
 	public async Task<AuthResponseDto?> LoginAsync(LoginViewModel viewModel)
@@ -50,49 +51,46 @@ public class AuthService
 	{
 		try
 		{
-			// Handle profile photo upload
-			string? profilePhotoPath = null;
-			if (viewModel.ProfilePhoto != null)
-			{
-				profilePhotoPath = await SaveProfilePhotoAsync(viewModel.ProfilePhoto);
-			}
+			// Handle Register user based on role
+			HttpResponseMessage? response = null;
 
-			var endpoint = viewModel.Role.ToLower() switch
+			if (viewModel.Role.Equals(nameof(AppRoles.Client)))
 			{
-				"client" => "client-register",
-				"freelancer" => "freelancer-register",
-				_ => throw new ArgumentException("Invalid role specified")
-			};
-
-			object requestDto = viewModel.Role.ToLower() switch
-			{
-				"client" => new ClientRegisterDto
+				var dto = new ClientRegisterDto
 				{
 					Email = viewModel.Email,
 					FullName = viewModel.FullName,
 					Password = viewModel.Password,
-					ProfilePhotoPath = profilePhotoPath,
+					ProfilePhotoUrl = "",
 					CompanyName = viewModel.CompanyName,
 					CompanyWebsite = viewModel.CompanyWebsite,
 					Industry = viewModel.Industry
-				},
-				"freelancer" => new FreelancerRegisterDto
+				};
+
+				response = await _httpClient.PostAsJsonAsync("client-register", dto);
+
+			}
+			else if (viewModel.Role.Equals(nameof(AppRoles.Freelancer)))
+			{
+				var dto = new FreelancerRegisterDto
 				{
 					Email = viewModel.Email,
 					FullName = viewModel.FullName,
 					Password = viewModel.Password,
-					ProfilePhotoPath = profilePhotoPath,
+					ProfilePhotoUrl = "",
 					PhoneNumber = viewModel.PhoneNumber ?? string.Empty,
 					Bio = viewModel.Bio ?? string.Empty,
 					YearsOfExperience = viewModel.YearsOfExperience ?? 0,
 					HourlyRate = viewModel.HourlyRate ?? 0,
 					PortfolioUrl = viewModel.PortfolioUrl,
 					Specialization = viewModel.Specialization ?? string.Empty
-				},
-				_ => throw new ArgumentException("Invalid role specified")
-			};
+				};
 
-			var response = await _httpClient.PostAsJsonAsync(endpoint, requestDto);
+				response = await _httpClient.PostAsJsonAsync("freelancer-register", dto);
+
+			}
+
+
 			if (response.IsSuccessStatusCode)
 			{
 				// Send welcome email
@@ -227,7 +225,7 @@ public class AuthService
 		{
 			var dto = new { Email = email };
 			var response = await _httpClient.PostAsJsonAsync("resend-email-confirmation", dto);
-			
+
 			if (response.IsSuccessStatusCode)
 			{
 				// Send email confirmation reminder
@@ -261,9 +259,9 @@ public class AuthService
         <div style='background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;'>
             <h3>What's next?</h3>
             <ul>
-                {(role.ToLower() == "client" 
-                    ? "<li>Complete your company profile</li><li>Post your first job</li><li>Browse talented freelancers</li>" 
-                    : "<li>Complete your freelancer profile</li><li>Browse available jobs</li><li>Submit your first proposal</li>")}
+                {(role.ToLower() == "client"
+					? "<li>Complete your company profile</li><li>Post your first job</li><li>Browse talented freelancers</li>"
+					: "<li>Complete your freelancer profile</li><li>Browse available jobs</li><li>Submit your first proposal</li>")}
             </ul>
         </div>
         
@@ -416,7 +414,7 @@ public class AuthService
 			// Validate file type
 			var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
 			var fileExtension = Path.GetExtension(profilePhoto.FileName).ToLowerInvariant();
-			
+
 			if (!allowedExtensions.Contains(fileExtension))
 				return null;
 
@@ -465,7 +463,7 @@ public class AuthService
 				Email = viewModel.Email,
 				FullName = viewModel.FullName,
 				Password = viewModel.Password,
-				ProfilePhotoPath = profilePhotoPath,
+				ProfilePhotoUrl = "",
 				PhoneNumber = viewModel.PhoneNumber,
 				Bio = viewModel.Bio,
 				YearsOfExperience = viewModel.YearsOfExperience,

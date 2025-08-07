@@ -1,7 +1,5 @@
 ﻿using FreelanceJobBoard.Presentation.Models.DTOs;
 using FreelanceJobBoard.Presentation.Models.ViewModels;
-using System.Security.Claims;
-using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Presentation.Services;
 
@@ -11,14 +9,16 @@ public class CategoryService
 	private readonly HttpContext? _httpContext;
 	private readonly ILogger<CategoryService> _logger;
 
-	public CategoryService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, ILogger<CategoryService> logger)
+	public CategoryService(HttpClient httpClient,
+		IHttpContextAccessor httpContextAccessor,
+		ILogger<CategoryService> logger,
+		IConfiguration configuration)
 	{
 		_httpClient = httpClient;
 		_httpContext = httpContextAccessor.HttpContext;
 		_logger = logger;
-		
-		// Fix URL - remove double slashes
-		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Categories/");
+
+		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Categories/");
 
 		// Set authorization header if user is authenticated
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
@@ -40,7 +40,7 @@ public class CategoryService
 				var categories = await response.Content.ReadFromJsonAsync<IEnumerable<CategoryViewModel>>();
 				return categories ?? new List<CategoryViewModel>();
 			}
-			
+
 			_logger.LogWarning("Failed to get categories. Status: {StatusCode}", response.StatusCode);
 			return new List<CategoryViewModel>();
 		}
@@ -66,7 +66,7 @@ public class CategoryService
 			{
 				return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
 			}
-			
+
 			_logger.LogWarning("Failed to create category. Status: {StatusCode}", response.StatusCode);
 			return null;
 		}
@@ -92,7 +92,7 @@ public class CategoryService
 			{
 				return await response.Content.ReadFromJsonAsync<CategoryFormViewModel>();
 			}
-			
+
 			_logger.LogWarning("Failed to get category by ID {Id}. Status: {StatusCode}", id, response.StatusCode);
 			return null;
 		}
@@ -118,7 +118,7 @@ public class CategoryService
 			{
 				return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
 			}
-			
+
 			_logger.LogWarning("Failed to update category {Id}. Status: {StatusCode}", viewModel.Id, response.StatusCode);
 			return null;
 		}
@@ -144,7 +144,7 @@ public class CategoryService
 			{
 				return await response.Content.ReadFromJsonAsync<ChangeCategoryStatusResultDto>();
 			}
-			
+
 			_logger.LogWarning("Failed to change category status for ID {Id}. Status: {StatusCode}", id, response.StatusCode);
 			return null;
 		}

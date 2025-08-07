@@ -5,7 +5,7 @@ public class FreelancerRegisterDto
 	public string Email { get; set; } = string.Empty;
 	public string Password { get; set; } = string.Empty;
 	public string FullName { get; set; } = string.Empty;
-	public string? ProfilePhotoPath { get; set; }
+	public string? ProfilePhotoUrl { get; set; }
 	public string PhoneNumber { get; set; } = string.Empty;
 	public string Bio { get; set; } = string.Empty;
 	public int YearsOfExperience { get; set; }
