@@ -6,6 +6,7 @@
 var updatedRow;
 var datatable;
 
+
 $(document).ready(function () {
     var message = $('.js-success-message').text();
     if (message != '') {
@@ -47,8 +48,27 @@ $(document).ready(function () {
     $('.js-modal-save').on('click', function () {
         $('#ModalForm').submit();
     });
+
+
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const menuItems = document.querySelectorAll(".menu-item.menu-accordion");
+
+    menuItems.forEach(item => {
+        const link = item.querySelector(".menu-link");
+
+        link.addEventListener("click", function () {
+            menuItems.forEach(i => {
+                if (i !== item) {
+                    i.classList.remove("show");
+                }
+            });
+
+            item.classList.toggle("show");
+        });
+    });
+});
 function initializeDataTable() {
     // Check if DataTable element exists and is not already initialized
     if ($('#datatable').length && !$.fn.DataTable.isDataTable('#datatable')) {
@@ -95,7 +115,7 @@ function onModalFormSuccess(newRow) {
             $('.js-tbody').append(newRow);
             message = "Item created successfully";
         }
-        
+
         // Reinitialize DataTable
         destroyDataTable();
         initializeDataTable();
@@ -175,11 +195,11 @@ function showSuccessMessage(message) {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     `);
-    
+
     $('body').append(toast);
-    
+
     // Auto remove after 3 seconds
-    setTimeout(function() {
+    setTimeout(function () {
         toast.alert('close');
     }, 3000);
 }
@@ -197,11 +217,11 @@ function showErrorMessage(message) {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     `);
-    
+
     $('body').append(toast);
-    
+
     // Auto remove after 5 seconds
-    setTimeout(function() {
+    setTimeout(function () {
         toast.alert('close');
     }, 5000);
 }

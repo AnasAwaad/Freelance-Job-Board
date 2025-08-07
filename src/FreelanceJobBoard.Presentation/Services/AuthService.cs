@@ -51,25 +51,9 @@ public class AuthService
 	{
 		try
 		{
-			// 1. Upload profile photo if exists
-			string? profilePhotoUrl = string.Empty;
+			// 1. Upload profile photo if available
+			string profilePhotoUrl = await UploadProfilePhotoAsync(viewModel.ProfilePhoto);
 
-			if (viewModel.ProfilePhoto != null)
-			{
-				using var formData = new MultipartFormDataContent();
-				var streamContent = new StreamContent(viewModel.ProfilePhoto.OpenReadStream());
-				streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(viewModel.ProfilePhoto.ContentType);
-				formData.Add(streamContent, "ImageFile", viewModel.ProfilePhoto.FileName);
-
-				var uploadResponse = await _httpClient.PostAsync("upload-image-profile", formData);
-
-				if (uploadResponse.IsSuccessStatusCode)
-				{
-					profilePhotoUrl = await uploadResponse.Content.ReadAsStringAsync();
-					// remove extra quotes if string is returned as JSON string
-					profilePhotoUrl = profilePhotoUrl.Trim('"');
-				}
-			}
 
 			// Handle Register user based on role
 			HttpResponseMessage? response = null;
@@ -153,6 +137,26 @@ public class AuthService
 			_logger.LogError(ex, "Error occurred during forgot password for user {Email}", viewModel.Email);
 			return false;
 		}
+	}
+
+	private async Task<string> UploadProfilePhotoAsync(IFormFile? photo)
+	{
+		if (photo == null) return string.Empty;
+
+		using var formData = new MultipartFormDataContent();
+		using var stream = photo.OpenReadStream();
+		var content = new StreamContent(stream);
+		content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(photo.ContentType);
+		formData.Add(content, "ImageFile", photo.FileName);
+
+		var response = await _httpClient.PostAsync("upload-image-profile", formData);
+
+		if (response.IsSuccessStatusCode)
+		{
+			var url = await response.Content.ReadAsStringAsync();
+		}
+
+		return string.Empty;
 	}
 
 	public async Task<bool> ResetPasswordAsync(ResetPasswordViewModel viewModel)
@@ -466,72 +470,4 @@ public class AuthService
 		}
 	}
 
-	// Keep existing methods for backward compatibility
-	public async Task<bool> FreelancerRegisterAsync(FreelancerRegisterViewModel viewModel)
-	{
-		try
-		{
-			// Handle profile photo upload
-			string? profilePhotoPath = null;
-			if (viewModel.ProfilePhoto != null)
-			{
-				profilePhotoPath = await SaveProfilePhotoAsync(viewModel.ProfilePhoto);
-			}
-
-			var user = new FreelancerRegisterDto
-			{
-				Email = viewModel.Email,
-				FullName = viewModel.FullName,
-				Password = viewModel.Password,
-				ProfilePhotoUrl = "",
-				PhoneNumber = viewModel.PhoneNumber,
-				Bio = viewModel.Bio,
-				YearsOfExperience = viewModel.YearsOfExperience,
-				HourlyRate = viewModel.HourlyRate,
-				PortfolioUrl = viewModel.PortfolioUrl,
-				Specialization = viewModel.Specialization
-			};
-
-			var response = await _httpClient.PostAsJsonAsync("freelancer-register", user);
-			if (response.IsSuccessStatusCode)
-			{
-				// Send welcome email
-				await SendWelcomeEmailAsync(viewModel.Email, viewModel.FullName, "Freelancer");
-				return true;
-			}
-			return false;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogError(ex, "Freelancer registration error for user {Email}", viewModel.Email);
-			return false;
-		}
-	}
-
-	public async Task<bool> ClientRegisterAsync(ClientRegisterViewModel viewModel)
-	{
-		try
-		{
-			var user = new ClientRegisterDto
-			{
-				Email = viewModel.Email,
-				FullName = viewModel.FullName,
-				Password = viewModel.Password,
-			};
-
-			var response = await _httpClient.PostAsJsonAsync("client-register", user);
-			if (response.IsSuccessStatusCode)
-			{
-				// Send welcome email
-				await SendWelcomeEmailAsync(viewModel.Email, viewModel.FullName, "Client");
-				return true;
-			}
-			return false;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogError(ex, "Client registration error for user {Email}", viewModel.Email);
-			return false;
-		}
-	}
 }

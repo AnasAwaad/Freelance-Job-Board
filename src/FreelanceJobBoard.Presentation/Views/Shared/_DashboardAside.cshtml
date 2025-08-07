@@ -35,9 +35,9 @@
 						</a>
 					</div>
 					<!--end:Menu item-->
-
+					
 					<!--begin:Menu item - Jobs-->
-					<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "here show" : "")" data-kt-menu-trigger="click">
+					<div class="menu-item menu-accordion" >
 						<!--begin:Menu link-->
 						<span class="menu-link" role="button" tabindex="0">
 							<span class="menu-icon">
@@ -49,9 +49,9 @@
 							<span class="menu-title">Jobs</span>
 							<span class="menu-arrow"></span>
 						</span>
-						<!--end:Menu link-->
+						
 						<!--begin:Menu sub-->
-						<div class="menu-sub menu-sub-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "show" : "")">
+						<div class="menu-sub menu-sub-accordion ">
 							<!--begin:Menu item-->
 							<div class="menu-item">
 								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "active" : "")" asp-controller="Jobs" asp-action="Index">
@@ -64,7 +64,7 @@
 							<!--end:Menu item-->
 							<!--begin:Menu item-->
 							<div class="menu-item">
-								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyJobs" ? "active" : "")" asp-controller="Jobs" asp-action="MyJobs">
+								<a class="menu-link" asp-controller="Jobs" asp-action="MyJobs">
 									<span class="menu-bullet">
 										<span class="bullet bullet-dot"></span>
 									</span>
@@ -74,9 +74,10 @@
 							<!--end:Menu item-->
 							@if (User.IsInRole(AppRoles.Client))
 							{
+
 								<!--begin:Menu item - Create Job (Clients only)-->
 								<div class="menu-item">
-									<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Create" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "active" : "")" asp-controller="Jobs" asp-action="Create">
+									<a class="menu-link " asp-controller="Jobs" asp-action="Create">
 										<span class="menu-bullet">
 											<span class="bullet bullet-dot"></span>
 										</span>
@@ -85,11 +86,14 @@
 								</div>
 								<!--end:Menu item-->
 							}
+
+
 						</div>
 						<!--end:Menu sub-->
+
 					</div>
 					<!--end:Menu item-->
-
+						
 					<!--begin:Menu item - Categories-->
 					<div class="menu-item">
 						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">
@@ -139,7 +143,7 @@
 					<!--end:Menu item-->
 
 					<!--begin:Menu item - Profile-->
-					<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "here show" : "")" data-kt-menu-trigger="click">
+					<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "here show" : "")" >
 						<!--begin:Menu link-->
 						<span class="menu-link" role="button" tabindex="0">
 							<span class="menu-icon">
@@ -227,7 +231,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Handle menu accordions
-    const menuTriggers = document.querySelectorAll('[data-kt-menu-trigger="click"]');
+    const menuTriggers = document.querySelectorAll('[]');
     
     menuTriggers.forEach(trigger => {
         trigger.addEventListener('click', function(e) {

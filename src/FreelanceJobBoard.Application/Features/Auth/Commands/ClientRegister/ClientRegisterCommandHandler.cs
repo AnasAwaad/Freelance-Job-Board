@@ -10,7 +10,7 @@ namespace FreelanceJobBoard.Application.Features.Auth.Commands.ClientRegister;
 public class ClientRegisterCommandHandler(UserManager<ApplicationUser> userManager,
 	RoleManager<IdentityRole> roleManager,
 	IUnitOfWork unitOfWork,
-	ICloudinaryService cloudinaryService) : IRequestHandler<ClientRegisterCommand>
+	IEmailService emailService) : IRequestHandler<ClientRegisterCommand>
 
 {
 
@@ -48,14 +48,16 @@ public class ClientRegisterCommandHandler(UserManager<ApplicationUser> userManag
 				WebsiteUrl = request.CompanyWebsite,
 				Industry = request.Industry
 			},
-			AverageRating = 0,
-			TotalReviews = 0,
-			IsActive = true,
-			CreatedOn = DateTime.UtcNow
 		};
 
 		await unitOfWork.Clients.CreateAsync(client);
 		await unitOfWork.SaveChangesAsync();
+
+
+		// Send confirmation email
+		//var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+		//var link = $"https://localhost:7117/Auth/ConfirmEmail?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+		//await emailService.SendEmailAsync(request.Email, "Confirm your email", $"Click to confirm: <a href='{link}'>Confirm Email</a>");
 
 	}
 }

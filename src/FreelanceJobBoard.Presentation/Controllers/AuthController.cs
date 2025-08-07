@@ -163,7 +163,7 @@ public class AuthController : Controller
 		viewModel.UserId = userId;
 		viewModel.Token = token;
 		viewModel.IsSuccess = result;
-		viewModel.Message = result ? 
+		viewModel.Message = result ?
 			"Your email has been confirmed successfully! You can now login to your account." :
 			"Email confirmation failed. The link may be expired or invalid.";
 
@@ -250,7 +250,7 @@ public class AuthController : Controller
 			_logger.LogError(ex, "Error occurred during logout");
 			TempData["Error"] = "An error occurred during logout.";
 		}
-		
+
 		return RedirectToAction("Login");
 	}
 
@@ -259,56 +259,5 @@ public class AuthController : Controller
 		return View();
 	}
 
-	// Keep existing methods for backward compatibility
-	public IActionResult ClientRegister()
-	{
-		if (User.Identity?.IsAuthenticated == true)
-			return RedirectToDashboard();
-		return View();
-	}
 
-	[HttpPost]
-	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> ClientRegister(ClientRegisterViewModel viewModel)
-	{
-		if (!ModelState.IsValid)
-			return View(viewModel);
-
-		var result = await _authService.ClientRegisterAsync(viewModel);
-		if (result)
-		{
-			TempData["Success"] = "Registration successful! Please check your email to confirm your account, then login.";
-			return RedirectToAction("Login");
-		}
-
-		ModelState.AddModelError("", "Registration failed. Please try again.");
-		return View(viewModel);
-	}
-
-	public IActionResult FreelancerRegister()
-	{
-		if (User.Identity?.IsAuthenticated == true)
-			return RedirectToDashboard();
-		return View();
-	}
-
-	[HttpPost]
-	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> FreelancerRegister(FreelancerRegisterViewModel viewModel)
-	{
-		if (!ModelState.IsValid)
-		{
-			return View(viewModel);
-		}
-
-		var result = await _authService.FreelancerRegisterAsync(viewModel);
-		if (result)
-		{
-			TempData["Success"] = "Registration successful! Please check your email to confirm your account, then login.";
-			return RedirectToAction("Login");
-		}
-
-		ModelState.AddModelError("", "Registration failed. Please try again.");
-		return View(viewModel);
-	}
 }

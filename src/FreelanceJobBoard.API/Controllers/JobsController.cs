@@ -20,7 +20,7 @@ public class JobsController(IMediator mediator) : ControllerBase
 	{
 		var id = await mediator.Send(command);
 
-		return CreatedAtAction(nameof(GetById), new { id }, null);
+		return CreatedAtAction(nameof(GetById), new { id }, id);
 	}
 
 	[HttpPut("{id}")]
