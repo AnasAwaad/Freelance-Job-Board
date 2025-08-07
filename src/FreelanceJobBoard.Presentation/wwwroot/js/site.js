@@ -5,15 +5,15 @@
 
 var updatedRow;
 var datatable;
+
 $(document).ready(function () {
     var message = $('.js-success-message').text();
     if (message != '') {
         showSuccessMessage(message);
     }
 
-    KTDatatables.init();
-
-
+    // Initialize DataTables for pages that need it
+    initializeDataTable();
 
     // Handle Global Modal 
     $('.js-render-modal').on('click', function () {
@@ -33,56 +33,86 @@ $(document).ready(function () {
             url,
             success: function (form) {
                 myModal.find('.modal-body').html(form);
-
-
                 // Re-enable client-side validation for the new form
-                //$.validator.unobtrusive.parse(myModal);
+                $.validator.unobtrusive.parse(myModal);
             },
             error: function (err) {
-                showErrorMessage(err);
+                showErrorMessage("Failed to load form. Please try again.");
             }
-        })
-
+        });
 
         myModal.modal('show');
-    })
+    });
 
     $('.js-modal-save').on('click', function () {
         $('#ModalForm').submit();
-    })
-})
+    });
+});
+
+function initializeDataTable() {
+    // Check if DataTable element exists and is not already initialized
+    if ($('#datatable').length && !$.fn.DataTable.isDataTable('#datatable')) {
+        // Only initialize if there are rows with data
+        if ($('#datatable tbody tr').length > 0) {
+            datatable = $('#datatable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                order: [[0, 'asc']],
+                columnDefs: [
+                    { orderable: false, targets: -1 } // Disable sorting on last column (Actions)
+                ],
+                language: {
+                    emptyTable: "No data available",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    lengthMenu: "Show _MENU_ entries",
+                    loadingRecords: "Loading...",
+                    processing: "Processing...",
+                    search: "Search:",
+                    zeroRecords: "No matching records found"
+                }
+            });
+        }
+    }
+}
+
+function destroyDataTable() {
+    // Destroy existing DataTable if it exists
+    if ($.fn.DataTable.isDataTable('#datatable')) {
+        $('#datatable').DataTable().destroy();
+    }
+}
 
 function onModalFormSuccess(newRow) {
-    $('.js-tbody').append(newRow);
-    // add new row to datatable.
-    if (newRow != undefined)
-        datatable.row.add($(newRow)).draw();
-
-    if (updatedRow != undefined) {
-        // remove existing row from datatable
-        datatable.row(updatedRow).remove().draw();
-        updatedRow = undefined;
-
-        message = "Category updated successfully";
-    } else {
-
-        message = "Category created successfully";
+    if (newRow != undefined) {
+        if (updatedRow != undefined) {
+            // Update existing row
+            updatedRow.replaceWith(newRow);
+            message = "Item updated successfully";
+        } else {
+            // Add new row
+            $('.js-tbody').append(newRow);
+            message = "Item created successfully";
+        }
+        
+        // Reinitialize DataTable
+        destroyDataTable();
+        initializeDataTable();
     }
 
+    updatedRow = undefined;
     $('#myModal').modal('hide');
-
-    showSuccessMessage("Category created successfully");
-
+    showSuccessMessage(message);
 }
 
 function onModalFormFailure(res) {
     $('#myModal').modal('hide');
-    showErrorMessage("An error happen while creating category");
+    showErrorMessage("An error occurred while processing your request");
 }
 
-
 // Handle change status checkbox
-$('.js-change-status').on('click', function () {
+$(document).on('click', '.js-change-status', function () {
     var btn = $(this);
     var url = btn.data('url');
 
@@ -97,153 +127,83 @@ $('.js-change-status').on('click', function () {
             confirm: {
                 label: '<i class="fa fa-check"></i> Confirm',
                 className: 'btn btn-danger',
-
             }
         },
         callback: function (result) {
             if (result) {
-                $.post({
-                    url,
+                $.ajax({
+                    url: url,
+                    type: 'POST',
                     data: {
                         "__RequestVerificationToken": $("input[name='__RequestVerificationToken']").val()
                     },
                     success: function (response) {
-                        // toastify alert
-                        showSuccessMessage("item updated successfully");
+                        showSuccessMessage("Status updated successfully");
 
-                        // change time of last updated on
+                        // Update last updated time if exists
                         btn.parents('tr').find('.js-last-updated-on').html(response.lastUpdatedOn);
 
-                        // change status badge text and style
+                        // Update status badge
                         var statusItem = btn.parents('tr').find('.js-status');
-                        if (btn.data('status') !== undefined) {
+                        if (response.isActive !== undefined) {
                             if (response.isActive) {
                                 statusItem.html('<span class="badge badge-success">Active</span>');
                             } else {
                                 statusItem.html('<span class="badge badge-warning">Inactive</span>');
                             }
                         }
-
                     },
                     error: function () {
                         showErrorMessage("An error occurred while changing status.");
                     }
-                })
+                });
             }
         }
     });
-
-
-})
+});
 
 function showSuccessMessage(message) {
-    //Toastify({
-    //    text: message,
-    //    duration: 3000,
-    //    newWindow: true,
-    //    close: true,
-    //    gravity: "top",
-    //    position: "right",
-    //    stopOnFocus: true,
-    //    style: {
-    //        background: "linear-gradient(to right, #00b09b, #96c93d)",
-    //    },
-    //}).showToast();
+    // Create and show success toast
+    const toast = $(`
+        <div class="alert alert-success alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            <i class="ki-duotone ki-check fs-3 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(function() {
+        toast.alert('close');
+    }, 3000);
 }
 
 function showErrorMessage(message) {
-    //Toastify({
-    //    text: message,
-    //    duration: 3000,
-    //    newWindow: true,
-    //    close: true,
-    //    gravity: "top",
-    //    position: "right",
-    //    stopOnFocus: true,
-    //    style: {
-    //        background: "linear-gradient(to right, #ff5f6d, #ffc371)", // red-orange gradient
-    //        color: "#fff"
-    //    },
-    //    icon: "❌"
-    //}).showToast();
+    // Create and show error toast
+    const toast = $(`
+        <div class="alert alert-danger alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            <i class="ki-duotone ki-cross fs-3 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(function() {
+        toast.alert('close');
+    }, 5000);
 }
 
-
-var KTDatatables = function () {
-    // Shared variables
-    var table;
-
-    // Private functions
-    var initDatatable = function () {
-
-        // Init datatable --- more info on datatables: https://datatables.net/manual/
-        datatable = $(table).DataTable({
-            "info": false,
-            'order': [],
-            'pageLength': 10,
-        });
-    }
-
-    // Hook export buttons
-    var exportButtons = () => {
-        const documentTitle = $(table).data("title");
-        var buttons = new $.fn.dataTable.Buttons(table, {
-            buttons: [
-                {
-                    extend: 'copyHtml5',
-                    title: documentTitle
-                },
-                {
-                    extend: 'excelHtml5',
-                    title: documentTitle
-                },
-                {
-                    extend: 'csvHtml5',
-                    title: documentTitle
-                },
-                {
-                    extend: 'pdfHtml5',
-                    title: documentTitle
-                }
-            ]
-        }).container().appendTo($('#kt_datatable_example_buttons'));
-
-        // Hook dropdown menu click event to datatable export buttons
-        const exportButtons = document.querySelectorAll('#kt_datatable_example_export_menu [data-kt-export]');
-        exportButtons.forEach(exportButton => {
-            exportButton.addEventListener('click', e => {
-                e.preventDefault();
-
-                // Get clicked export value
-                const exportValue = e.target.getAttribute('data-kt-export');
-                const target = document.querySelector('.dt-buttons .buttons-' + exportValue);
-
-                // Trigger click event on hidden datatable export buttons
-                target.click();
-            });
-        });
-    }
-
-    // Search Datatable --- official docs reference: https://datatables.net/reference/api/search()
-    var handleSearchDatatable = () => {
-        const filterSearch = document.querySelector('[data-kt-filter="search"]');
-        filterSearch.addEventListener('keyup', function (e) {
-            datatable.search(e.target.value).draw();
-        });
-    }
-
-    // Public methods
-    return {
-        init: function () {
-            table = document.querySelector('#datatable');
-
-            if (!table) {
-                return;
-            }
-
-            initDatatable();
-            exportButtons();
-            handleSearchDatatable();
-        }
-    };
-}();
+// Remove the old KTDatatables object as it's causing conflicts

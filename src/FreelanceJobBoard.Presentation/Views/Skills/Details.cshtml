@@ -1,0 +1,209 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.SkillViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">@Model.Name</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="Index" class="text-muted text-hover-primary">Skills</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Details</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm fw-bold btn-light-primary">
+                    <i class="ki-duotone ki-pencil fs-4"></i>
+                    Edit Skill
+                </a>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-fluid">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="row">
+                <!-- Skill Details -->
+                <div class="col-xl-8">
+                    <div class="card mb-8">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Skill Information</h3>
+                            </div>
+                            <div class="card-toolbar">
+                                <span class="badge badge-light-@(Model.IsActive ? "success" : "danger") fs-7 fw-bold">
+                                    @(Model.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="d-flex align-items-center mb-8">
+                                        <div class="symbol symbol-circle symbol-75px me-5">
+                                            <div class="symbol-label bg-light-primary">
+                                                <i class="ki-duotone ki-code fs-2x text-primary">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                    <span class="path4"></span>
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h1 class="text-gray-900 fw-bold fs-1">@Model.Name</h1>
+                                            <div class="text-muted fs-6">Skill ID: @Model.Id</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="separator my-5"></div>
+
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="d-flex flex-stack mb-5">
+                                        <span class="text-gray-700 fw-bold fs-6">Status:</span>
+                                        <span class="badge badge-light-@(Model.IsActive ? "success" : "danger")">
+                                            @(Model.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-flex flex-stack mb-5">
+                                        <span class="text-gray-700 fw-bold fs-6">Created Date:</span>
+                                        <span class="text-dark fw-bold fs-6">@Model.CreatedOn.ToString("MMMM dd, yyyy")</span>
+                                    </div>
+
+                                    <div class="d-flex flex-stack mb-5">
+                                        <span class="text-gray-700 fw-bold fs-6">Created Time:</span>
+                                        <span class="text-dark fw-bold fs-6">@Model.CreatedOn.ToString("hh:mm tt")</span>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="d-flex flex-stack mb-5">
+                                        <span class="text-gray-700 fw-bold fs-6">Skill ID:</span>
+                                        <span class="text-dark fw-bold fs-6">#@Model.Id</span>
+                                    </div>
+
+                                    @{
+                                        var daysOld = (DateTime.UtcNow - Model.CreatedOn).Days;
+                                    }
+                                    <div class="d-flex flex-stack mb-5">
+                                        <span class="text-gray-700 fw-bold fs-6">Age:</span>
+                                        <span class="text-dark fw-bold fs-6">@daysOld days old</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Panel -->
+                <div class="col-xl-4">
+                    <div class="card mb-8">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Actions</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-column gap-3">
+                                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
+                                    <i class="ki-duotone ki-pencil fs-4 me-1"></i>
+                                    Edit Skill
+                                </a>
+                                
+                                <button type="button" class="btn btn-light-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="ki-duotone ki-trash fs-4 me-1"></i>
+                                    Delete Skill
+                                </button>
+
+                                <a asp-action="Index" class="btn btn-light btn-sm">
+                                    <i class="ki-duotone ki-arrow-left fs-4 me-1"></i>
+                                    Back to Skills
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Usage Statistics (Placeholder) -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Usage Statistics</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-stack mb-3">
+                                <span class="text-gray-700 fw-bold fs-6">Jobs Requiring:</span>
+                                <span class="text-dark fw-bold fs-6">-</span>
+                            </div>
+
+                            <div class="d-flex flex-stack mb-3">
+                                <span class="text-gray-700 fw-bold fs-6">Freelancers with Skill:</span>
+                                <span class="text-dark fw-bold fs-6">-</span>
+                            </div>
+
+                            <div class="d-flex flex-stack mb-3">
+                                <span class="text-gray-700 fw-bold fs-6">Average Skill Level:</span>
+                                <span class="text-dark fw-bold fs-6">-</span>
+                            </div>
+
+                            <div class="form-text">Statistics are being calculated and will be available soon.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the skill "<strong>@Model.Name</strong>"?</p>
+                <p class="text-warning">This action might affect existing jobs and freelancer profiles that reference this skill.</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete Skill</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}

@@ -42,6 +42,23 @@
 							</div>
 							<!--begin::Heading-->
 							<!--end::Separator-->
+
+							@if (TempData["Success"] != null)
+							{
+								<div class="alert alert-success alert-dismissible fade show" role="alert">
+									@TempData["Success"]
+									<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+								</div>
+							}
+
+							@if (TempData["Error"] != null)
+							{
+								<div class="alert alert-danger alert-dismissible fade show" role="alert">
+									@TempData["Error"]
+									<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+								</div>
+							}
+
 							<div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 							<!--begin::Input group=-->
 							<div class="fv-row mb-8 fv-plugins-icon-container">
@@ -56,7 +73,7 @@
 								<!--begin::Input wrapper-->
 								<div class="position-relative mb-3">
 									<label asp-for="Password" class="form-label"></label>
-									<input asp-for="Password" class="form-control" type="password" placeholder="Password" autocomplete="off" />
+									<input asp-for="Password" class="form-control" type="password" placeholder="Password" autocomplete="current-password" />
 									<span asp-validation-for="Password" class="text-danger"></span>
 								</div>
 								<!--end::Input wrapper-->
@@ -69,7 +86,7 @@
 							<div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
 								<div></div>
 								<!--begin::Link-->
-								<a href="../../demo1/dist/authentication/layouts/overlay/reset-password.html" class="link-primary">Forgot Password ?</a>
+								<a asp-action="ForgotPassword" class="link-primary">Forgot Password ?</a>
 								<!--end::Link-->
 							</div>
 
@@ -91,7 +108,7 @@
 							<!--begin::Sign up-->
 							<div class="text-gray-500 text-center fw-semibold fs-6">
 								Not a Member yet?
-								<a asp-controller="Account" asp-action="Register" class="link-primary fw-semibold">Sign up</a>
+								<a asp-controller="Auth" asp-action="Register" class="link-primary fw-semibold">Sign up</a>
 							</div>
 							<!--end::Sign up-->
 						</form>
@@ -111,5 +128,16 @@
 
 @section Scripts {
 	<partial name="_ValidationScriptsPartial" />
+	<script>
+		$(document).ready(function() {
+			// Form submission loading state
+			$('form').on('submit', function() {
+				const submitBtn = $(this).find('button[type="submit"]');
+				submitBtn.attr('disabled', true);
+				submitBtn.find('.indicator-label').hide();
+				submitBtn.find('.indicator-progress').show();
+			});
+		});
+	</script>
 }
 

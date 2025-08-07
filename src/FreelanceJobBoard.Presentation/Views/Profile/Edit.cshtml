@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Edit Profile";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Edit Profile</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Profile" asp-action="Index" class="text-muted text-hover-primary">My Profile</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Edit</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            <div class="card">
+                <div class="card-header border-0 cursor-pointer">
+                    <div class="card-title m-0">
+                        <h3 class="fw-bold m-0">Profile Information</h3>
+                    </div>
+                </div>
+                
+                <div class="card-body border-top p-9">
+                    <form asp-action="Edit" method="post">
+                        <div class="row mb-6">
+                            <label class="col-lg-4 col-form-label required fw-semibold fs-6">Full Name</label>
+                            <div class="col-lg-8">
+                                <input type="text" name="fullName" class="form-control form-control-lg form-control-solid" 
+                                       placeholder="Full Name" value="@ViewBag.Name" />
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-6">
+                            <label class="col-lg-4 col-form-label required fw-semibold fs-6">Email</label>
+                            <div class="col-lg-8">
+                                <input type="email" name="email" class="form-control form-control-lg form-control-solid" 
+                                       placeholder="Email" value="@ViewBag.Email" />
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer d-flex justify-content-end py-6 px-9">
+                            <a asp-action="Index" class="btn btn-light btn-active-light-primary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

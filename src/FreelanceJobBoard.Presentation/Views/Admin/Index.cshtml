@@ -1,0 +1,435 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Admin Dashboard</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Admin Dashboard</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!--begin::Row-->
+            <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+                <!--begin::Col-->
+                <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
+                    <!--begin::Card widget 20-->
+                    <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-end h-md-50 mb-5 mb-xl-10" style="background-color: #F1416C;background-image:url('assets/media/patterns/vector-1.png')">
+                        <!--begin::Header-->
+                        <div class="card-header pt-5">
+                            <!--begin::Title-->
+                            <div class="card-title d-flex flex-column">
+                                <!--begin::Amount-->
+                                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">69</span>
+                                <!--end::Amount-->
+                                <!--begin::Subtitle-->
+                                <span class="text-white opacity-75 pt-1 fw-semibold fs-6">Active Users</span>
+                                <!--end::Subtitle-->
+                            </div>
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Card body-->
+                        <div class="card-body d-flex align-items-end pt-0">
+                            <!--begin::Progress-->
+                            <div class="d-flex align-items-center flex-column mt-3 w-100">
+                                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-75 w-100 mt-auto mb-2">
+                                    <span>43 Freelancers</span>
+                                    <span>26 Clients</span>
+                                </div>
+                                <!--begin::Progress-->
+                                <div class="h-8px mx-3 w-100 bg-white bg-opacity-50 rounded">
+                                    <div class="bg-white rounded h-8px" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <!--end::Progress-->
+                            </div>
+                            <!--end::Progress-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Card widget 20-->
+                </div>
+                <!--end::Col-->
+                
+                <!--begin::Col-->
+                <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
+                    <!--begin::Card widget 7-->
+                    <div class="card card-flush h-md-50 mb-5 mb-xl-10">
+                        <!--begin::Header-->
+                        <div class="card-header pt-5">
+                            <!--begin::Title-->
+                            <div class="card-title d-flex flex-column">
+                                <!--begin::Amount-->
+                                <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">1,836</span>
+                                <!--end::Amount-->
+                                <!--begin::Subtitle-->
+                                <span class="text-gray-400 pt-1 fw-semibold fs-6">Total Jobs</span>
+                                <!--end::Subtitle-->
+                            </div>
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Card body-->
+                        <div class="card-body d-flex flex-column justify-content-end pe-0">
+                            <!--begin::Title-->
+                            <span class="fs-6 fw-bolder text-gray-800 d-block mb-2">Today's Heroes</span>
+                            <!--end::Title-->
+                            <!--begin::Users group-->
+                            <div class="symbol-group symbol-hover flex-nowrap">
+                                <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Alan Warden">
+                                    <span class="symbol-label bg-warning text-inverse-warning fw-bold">A</span>
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Michael Eberon">
+                                    <img alt="Pic" src="~/images/avatar.jpg" />
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Susan Redwood">
+                                    <span class="symbol-label bg-primary text-inverse-primary fw-bold">S</span>
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Melody Macy">
+                                    <img alt="Pic" src="~/images/avatar.jpg" />
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Perry Matthew">
+                                    <span class="symbol-label bg-danger text-inverse-danger fw-bold">P</span>
+                                </div>
+                                <div class="symbol symbol-35px symbol-circle" data-bs-toggle="tooltip" title="Barry Walter">
+                                    <img alt="Pic" src="~/images/avatar.jpg" />
+                                </div>
+                                <a href="#" class="symbol symbol-35px symbol-circle" data-bs-toggle="modal" data-bs-target="#kt_modal_view_users">
+                                    <span class="symbol-label bg-light text-gray-400 fs-8 fw-bold">+42</span>
+                                </a>
+                            </div>
+                            <!--end::Users group-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Card widget 7-->
+                </div>
+                <!--end::Col-->
+
+                <!--begin::Col-->
+                <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
+                    <!--begin::Card widget 17-->
+                    <div class="card card-flush h-md-50 mb-xl-10">
+                        <!--begin::Header-->
+                        <div class="card-header pt-5">
+                            <!--begin::Title-->
+                            <div class="card-title d-flex flex-column">
+                                <!--begin::Amount-->
+                                <span class="fs-2hx fw-bold text-dark me-2 lh-1 ls-n2">$24,500</span>
+                                <!--end::Amount-->
+                                <!--begin::Subtitle-->
+                                <span class="text-gray-400 pt-1 fw-semibold fs-6">Total Revenue</span>
+                                <!--end::Subtitle-->
+                            </div>
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Card body-->
+                        <div class="card-body d-flex flex-column justify-content-end pe-0">
+                            <!--begin::Title-->
+                            <span class="fs-6 fw-bolder text-gray-800 d-block mb-2">This Month Performance</span>
+                            <!--end::Title-->
+                            <!--begin::Users group-->
+                            <div class="d-flex align-items-center flex-wrap">
+                                <div class="d-flex align-items-center me-5 me-xl-13">
+                                    <div class="symbol symbol-30px symbol-circle me-3">
+                                        <span class="symbol-label" style="background: #E8FFF3; color: #50CD89">
+                                            <i class="ki-duotone ki-arrow-up fs-5">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </span>
+                                    </div>
+                                    <div class="m-0">
+                                        <span class="fw-bolder text-gray-800 d-block fs-7">$15,300</span>
+                                        <span class="text-gray-400 fw-bold fs-8">Completed</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="symbol symbol-30px symbol-circle me-3">
+                                        <span class="symbol-label" style="background: #FFF5F8; color: #F1416C">
+                                            <i class="ki-duotone ki-arrow-down fs-5">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </span>
+                                    </div>
+                                    <div class="m-0">
+                                        <span class="fw-bolder text-gray-800 d-block fs-7">$9,200</span>
+                                        <span class="text-gray-400 fw-bold fs-8">Pending</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end::Users group-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Card widget 17-->
+                </div>
+                <!--end::Col-->
+
+                <!--begin::Col-->
+                <div class="col-md-6 col-lg-6 col-xl-6 col-xxl-3 mb-md-5 mb-xl-10">
+                    <!--begin::Card widget 20-->
+                    <div class="card card-flush bgi-no-repeat bgi-size-contain bgi-position-x-end h-md-50 mb-5 mb-xl-10" style="background-color: #7239EA;background-image:url('assets/media/patterns/vector-1.png')">
+                        <!--begin::Header-->
+                        <div class="card-header pt-5">
+                            <!--begin::Title-->
+                            <div class="card-title d-flex flex-column">
+                                <!--begin::Amount-->
+                                <span class="fs-2hx fw-bold text-white me-2 lh-1 ls-n2">18</span>
+                                <!--end::Amount-->
+                                <!--begin::Subtitle-->
+                                <span class="text-white opacity-75 pt-1 fw-semibold fs-6">Active Projects</span>
+                                <!--end::Subtitle-->
+                            </div>
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Card body-->
+                        <div class="card-body d-flex align-items-end pt-0">
+                            <!--begin::Progress-->
+                            <div class="d-flex align-items-center flex-column mt-3 w-100">
+                                <div class="d-flex justify-content-between fw-bold fs-6 text-white opacity-75 w-100 mt-auto mb-2">
+                                    <span>12 In Progress</span>
+                                    <span>6 Review</span>
+                                </div>
+                                <!--begin::Progress-->
+                                <div class="h-8px mx-3 w-100 bg-white bg-opacity-50 rounded">
+                                    <div class="bg-white rounded h-8px" role="progressbar" style="width: 67%;" aria-valuenow="67" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <!--end::Progress-->
+                            </div>
+                            <!--end::Progress-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Card widget 20-->
+                </div>
+                <!--end::Col-->
+            </div>
+            <!--end::Row-->
+
+            <!--begin::Row-->
+            <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+                <!--begin::Col-->
+                <div class="col-xl-6">
+                    <!--begin::Chart-->
+                    <div class="card card-flush h-xl-100">
+                        <!--begin::Header-->
+                        <div class="card-header pt-5">
+                            <!--begin::Title-->
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-dark">Quick Actions</span>
+                                <span class="text-gray-400 mt-1 fw-semibold fs-6">Administrative tools and shortcuts</span>
+                            </h3>
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Body-->
+                        <div class="card-body pt-6">
+                            <div class="row g-5">
+                                <div class="col-6">
+                                    <a asp-controller="Categories" asp-action="Index" class="btn btn-light-primary w-100 h-100 d-flex flex-column justify-content-center">
+                                        <i class="ki-duotone ki-category fs-1 mb-3">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                            <span class="path4"></span>
+                                        </i>
+                                        <span class="fw-semibold">Manage Categories</span>
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a asp-controller="Skills" asp-action="Index" class="btn btn-light-info w-100 h-100 d-flex flex-column justify-content-center">
+                                        <i class="ki-duotone ki-code fs-1 mb-3">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                            <span class="path4"></span>
+                                        </i>
+                                        <span class="fw-semibold">Manage Skills</span>
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a asp-controller="Jobs" asp-action="Index" class="btn btn-light-success w-100 h-100 d-flex flex-column justify-content-center">
+                                        <i class="ki-duotone ki-briefcase fs-1 mb-3">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        <span class="fw-semibold">All Jobs</span>
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a href="#" class="btn btn-light-warning w-100 h-100 d-flex flex-column justify-content-center">
+                                        <i class="ki-duotone ki-people fs-1 mb-3">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                            <span class="path4"></span>
+                                            <span class="path5"></span>
+                                        </i>
+                                        <span class="fw-semibold">User Management</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Body-->
+                    </div>
+                    <!--end::Chart-->
+                </div>
+                <!--end::Col-->
+
+                <!--begin::Col-->
+                <div class="col-xl-6">
+                    <!--begin::Authentication Info-->
+                    <div class="card card-flush h-xl-100">
+                        <!--begin::Header-->
+                        <div class="card-header pt-5">
+                            <!--begin::Title-->
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-dark">Authentication Status</span>
+                                <span class="text-gray-400 mt-1 fw-semibold fs-6">Current user session information</span>
+                            </h3>
+                            <!--end::Title-->
+                        </div>
+                        <!--end::Header-->
+                        <!--begin::Body-->
+                        <div class="card-body pt-6">
+                            <div class="table-responsive">
+                                <table class="table table-row-dashed align-middle gs-0 gy-4 my-0">
+                                    <tbody>
+                                        <tr>
+                                            <td class="fs-6 fw-bold text-gray-800">Email:</td>
+                                            <td class="text-end">
+                                                <span class="badge badge-light-primary">@(ViewBag.UserEmail ?? "Not Available")</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fs-6 fw-bold text-gray-800">Role:</td>
+                                            <td class="text-end">
+                                                <span class="badge badge-light-success">@(ViewBag.UserRole ?? "Not Available")</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fs-6 fw-bold text-gray-800">Is Admin:</td>
+                                            <td class="text-end">
+                                                @if (ViewBag.IsAdmin == true)
+                                                {
+                                                    <span class="badge badge-light-success">
+                                                        <i class="ki-duotone ki-check fs-7 me-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                        Yes
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-light-danger">
+                                                        <i class="ki-duotone ki-cross fs-7 me-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                        No
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fs-6 fw-bold text-gray-800">Authenticated:</td>
+                                            <td class="text-end">
+                                                @if (User.Identity?.IsAuthenticated == true)
+                                                {
+                                                    <span class="badge badge-light-success">
+                                                        <i class="ki-duotone ki-check fs-7 me-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                        Yes
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-light-danger">
+                                                        <i class="ki-duotone ki-cross fs-7 me-1">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                        No
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fs-6 fw-bold text-gray-800">Session Time:</td>
+                                            <td class="text-end">
+                                                <span class="text-gray-600">@DateTime.Now.ToString("MMM dd, yyyy HH:mm")</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <div class="separator my-5"></div>
+                                <div class="d-flex flex-column">
+                                    <h5 class="mb-4">User Claims:</h5>
+                                    <div class="scroll-y mh-200px">
+                                        @foreach (var claim in User.Claims)
+                                        {
+                                            <div class="d-flex justify-content-between py-2 border-bottom border-gray-200">
+                                                <span class="fw-semibold text-gray-600">@claim.Type:</span>
+                                                <span class="text-gray-800">@claim.Value</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <!--end::Body-->
+                    </div>
+                    <!--end::Authentication Info-->
+                </div>
+                <!--end::Col-->
+            </div>
+            <!--end::Row-->
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
