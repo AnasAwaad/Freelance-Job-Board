@@ -1,0 +1,155 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.UpdateSkillViewModel
+@{
+    ViewData["Title"] = "Edit Skill";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Edit Skill</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="Index" class="text-muted text-hover-primary">Skills</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="text-muted text-hover-primary">Details</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Edit</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-fluid">
+            <div class="row">
+                <div class="col-xl-8 offset-xl-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title fs-3 fw-bold">Edit Skill Information</div>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="Edit" method="post" novalidate>
+                                <input asp-for="Id" type="hidden" />
+                                
+                                <div class="row mb-8">
+                                    <div class="col-xl-12">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Name" class="fs-6 fw-semibold mb-2">Skill Name</label>
+                                            <input asp-for="Name" class="form-control form-control-solid" placeholder="Enter skill name" />
+                                            <span asp-validation-for="Name" class="text-danger fs-7"></span>
+                                            <div class="form-text">Enter a clear and descriptive skill name that freelancers and clients can easily understand.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-8">
+                                    <div class="col-xl-12">
+                                        <div class="fv-row mb-8">
+                                            <div class="form-check form-switch form-check-custom form-check-solid">
+                                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                                <label asp-for="IsActive" class="form-check-label fw-semibold text-gray-700 fs-6">
+                                                    Skill is Active
+                                                </label>
+                                            </div>
+                                            <div class="form-text">
+                                                When inactive, this skill will not appear in dropdown lists for new jobs or freelancer profiles.
+                                                Existing associations will remain but won't be editable.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-light me-3">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="indicator-label">Update Skill</span>
+                                        <span class="indicator-progress">Please wait...
+                                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Impact Warning -->
+                    <div class="card mt-5">
+                        <div class="card-header">
+                            <div class="card-title fs-5 fw-bold text-warning">
+                                <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i>
+                                Important Information
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="d-flex align-items-start mb-3">
+                                    <i class="ki-duotone ki-check-circle fs-5 text-success me-3 mt-1">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <span>Changing the skill name will update it everywhere it's referenced</span>
+                                </li>
+                                <li class="d-flex align-items-start mb-3">
+                                    <i class="ki-duotone ki-information-5 fs-5 text-primary me-3 mt-1">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <span>Deactivating a skill will hide it from new job/profile creation forms</span>
+                                </li>
+                                <li class="d-flex align-items-start mb-0">
+                                    <i class="ki-duotone ki-shield-tick fs-5 text-info me-3 mt-1">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <span>Existing jobs and freelancer profiles using this skill will remain unchanged</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Form submission with loading state
+            $('form').on('submit', function() {
+                const submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.attr('disabled', true);
+                submitBtn.find('.indicator-label').hide();
+                submitBtn.find('.indicator-progress').show();
+            });
+
+            // Auto-focus on skill name input
+            $('#Name').focus().select();
+        });
+    </script>
+}

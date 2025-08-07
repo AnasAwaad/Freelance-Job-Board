@@ -1,0 +1,414 @@
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">My Profile</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">My Profile</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!--begin::Layout-->
+            <div class="d-flex flex-column flex-xl-row">
+                <!--begin::Sidebar-->
+                <div class="flex-column flex-lg-row-auto w-100 w-xl-350px mb-10">
+                    <!--begin::Card-->
+                    <div class="card mb-5 mb-xl-8">
+                        <!--begin::Card body-->
+                        <div class="card-body pt-15">
+                            <!--begin::Summary-->
+                            <div class="d-flex flex-center flex-column mb-5">
+                                <!--begin::Avatar-->
+                                <div class="symbol symbol-100px symbol-circle mb-7">
+                                    @{
+                                        var profilePhotoPath = ViewBag.ProfilePhoto as string;
+                                        var userName = ViewBag.Name?.ToString() ?? "User";
+                                        var userInitial = userName.Substring(0, 1).ToUpper();
+                                        var hasProfilePhoto = !string.IsNullOrEmpty(profilePhotoPath);
+                                    }
+                                    
+                                    @if (hasProfilePhoto)
+                                    {
+                                        <img src="@profilePhotoPath" alt="Profile Photo" class="w-100 h-100 rounded-circle object-fit-cover" />
+                                    }
+                                    else
+                                    {
+                                        <div class="symbol-label bg-primary text-white fw-bold fs-2">
+                                            @userInitial
+                                        </div>
+                                    }
+                                </div>
+                                <!--end::Avatar-->
+                                <!--begin::Name-->
+                                <span class="fw-bold text-gray-800 text-hover-primary fs-3">@userName</span>
+                                <!--end::Name-->
+                                <!--begin::Position-->
+                                <div class="mb-7">
+                                    <span class="badge badge-lg badge-light-primary d-inline">@(ViewBag.Role ?? "User")</span>
+                                </div>
+                                <!--end::Position-->
+                            </div>
+                            <!--end::Summary-->
+                            <!--begin::Details-->
+                            <div class="d-flex flex-stack fs-4 py-3">
+                                <div class="fw-bold rotate collapsible" data-bs-toggle="collapse" href="#kt_customer_view_details" role="button" aria-expanded="false" aria-controls="kt_customer_view_details">Details
+                                    <span class="ms-2 rotate-180">
+                                        <i class="ki-duotone ki-down fs-3"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <!--end::Details-->
+                            <!--begin::Details-->
+                            <div class="separator separator-dashed my-3"></div>
+                            <!--end::Details-->
+                            <!--begin::Details-->
+                            <div id="kt_customer_view_details" class="collapse show">
+                                <div class="py-5 fs-6">
+                                    <!--begin::Badge-->
+                                    <div class="badge badge-light-info d-inline">Account Details</div>
+                                    <!--end::Badge-->
+                                    <!--begin::Details-->
+                                    <div class="fw-bold text-gray-600 mt-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="ki-duotone ki-sms fs-4 me-2 text-primary">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <span>@(ViewBag.Email ?? "N/A")</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="ki-duotone ki-shield-tick fs-4 me-2 text-success">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <span>@(ViewBag.Role ?? "N/A")</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="ki-duotone ki-calendar fs-4 me-2 text-info">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <span>Member since @DateTime.Now.ToString("MMM yyyy")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end::Details-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Card-->
+                    <!--begin::Connected Accounts-->
+                    <div class="card mb-5 mb-xl-8">
+                        <!--begin::Card header-->
+                        <div class="card-header border-0">
+                            <div class="card-title">
+                                <h3 class="fw-bold m-0">Quick Actions</h3>
+                            </div>
+                        </div>
+                        <!--end::Card header-->
+                        <!--begin::Card body-->
+                        <div class="card-body pt-2">
+                            <!--begin::Notice-->
+                            <div class="notice d-flex bg-light-primary rounded border-primary border border-dashed mb-9 p-6">
+                                <i class="ki-duotone ki-design-1 fs-2tx text-primary me-4"></i>
+                                <div class="d-flex flex-stack flex-grow-1">
+                                    <div class="fw-semibold">
+                                        <div class="fs-6 text-gray-700">Manage your account settings, security preferences, and personal information from here.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end::Notice-->
+                            
+                            <!--begin::Items-->
+                            <div class="mb-7">
+                                <a asp-action="Edit" class="btn btn-sm btn-light-primary w-100 mb-3">
+                                    <i class="ki-duotone ki-pencil fs-4 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Edit Profile
+                                </a>
+                                
+                                <a asp-action="ChangePassword" class="btn btn-sm btn-light-warning w-100 mb-3">
+                                    <i class="ki-duotone ki-lock-2 fs-4 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Change Password
+                                </a>
+                                
+                                <a asp-action="Security" class="btn btn-sm btn-light-info w-100 mb-3">
+                                    <i class="ki-duotone ki-shield-tick fs-4 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Security Settings
+                                </a>
+                            </div>
+                            <!--end::Items-->
+                        </div>
+                        <!--end::Card body-->
+                    </div>
+                    <!--end::Connected Accounts-->
+                </div>
+                <!--end::Sidebar-->
+                
+                <!--begin::Content-->
+                <div class="flex-lg-row-fluid ms-lg-15">
+                    <!--begin:::Tabs-->
+                    <ul class="nav nav-custom nav-tabs nav-line-tabs nav-line-tabs-2x border-0 fs-4 fw-semibold mb-8">
+                        <!--begin:::Tab item-->
+                        <li class="nav-item">
+                            <a class="nav-link text-active-primary pb-4 active" data-bs-toggle="tab" href="#kt_customer_view_overview_tab">Overview</a>
+                        </li>
+                        <!--end:::Tab item-->
+                        <!--begin:::Tab item-->
+                        <li class="nav-item">
+                            <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#kt_customer_view_invoices_tab">Recent Activity</a>
+                        </li>
+                        <!--end:::Tab item-->
+                        <!--begin:::Tab item-->
+                        <li class="nav-item">
+                            <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#kt_customer_view_statements_tab">Settings</a>
+                        </li>
+                        <!--end:::Tab item-->
+                    </ul>
+                    <!--end:::Tabs-->
+                    
+                    <!--begin:::Tab content-->
+                    <div class="tab-content" id="myTabContent">
+                        <!--begin:::Tab pane-->
+                        <div class="tab-pane fade show active" id="kt_customer_view_overview_tab" role="tabpanel">
+                            <!--begin::Card-->
+                            <div class="card card-flush mb-6 mb-xl-9">
+                                <!--begin::Card header-->
+                                <div class="card-header mt-6">
+                                    <!--begin::Card title-->
+                                    <div class="card-title flex-column">
+                                        <h2 class="mb-1">Profile Overview</h2>
+                                        <div class="fs-6 fw-semibold text-muted">Your account information and settings</div>
+                                    </div>
+                                    <!--end::Card title-->
+                                    <!--begin::Card toolbar-->
+                                    <div class="card-toolbar">
+                                        <a asp-action="Edit" class="btn btn-light-primary btn-sm">Edit Profile</a>
+                                    </div>
+                                    <!--end::Card toolbar-->
+                                </div>
+                                <!--end::Card header-->
+                                <!--begin::Card body-->
+                                <div class="card-body pt-0 pb-5">
+                                    <!--begin::Table wrapper-->
+                                    <div class="table-responsive">
+                                        <!--begin::Table-->
+                                        <table class="table align-middle table-row-dashed gy-5">
+                                            <tbody class="fw-semibold text-gray-600">
+                                                <tr>
+                                                    <td class="text-muted">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="ki-duotone ki-profile-circle fs-2 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                                <span class="path3"></span>
+                                                            </i>Full Name
+                                                        </div>
+                                                    </td>
+                                                    <td class="fw-bold text-end">@userName</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-muted">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="ki-duotone ki-sms fs-2 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>Email
+                                                        </div>
+                                                    </td>
+                                                    <td class="fw-bold text-end">
+                                                        <a href="mailto:@ViewBag.Email" class="text-gray-600 text-hover-primary">@(ViewBag.Email ?? "N/A")</a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-muted">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="ki-duotone ki-shield-tick fs-2 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>Account Type
+                                                        </div>
+                                                    </td>
+                                                    <td class="fw-bold text-end">
+                                                        <span class="badge badge-light-primary">@(ViewBag.Role ?? "N/A")</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-muted">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="ki-duotone ki-calendar fs-2 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>Member Since
+                                                        </div>
+                                                    </td>
+                                                    <td class="fw-bold text-end">@DateTime.Now.ToString("MMMM yyyy")</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <!--end::Table-->
+                                    </div>
+                                    <!--end::Table wrapper-->
+                                </div>
+                                <!--end::Card body-->
+                            </div>
+                            <!--end::Card-->
+                        </div>
+                        <!--end:::Tab pane-->
+                        
+                        <!--begin:::Tab pane-->
+                        <div class="tab-pane fade" id="kt_customer_view_invoices_tab" role="tabpanel">
+                            <!--begin::Card-->
+                            <div class="card card-flush mb-6 mb-xl-9">
+                                <div class="card-header mt-6">
+                                    <div class="card-title flex-column">
+                                        <h2 class="mb-1">Recent Activity</h2>
+                                        <div class="fs-6 fw-semibold text-muted">Your recent account activities</div>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0 pb-5">
+                                    <div class="d-flex flex-center flex-column py-10">
+                                        <div class="symbol symbol-100px symbol-circle mb-7">
+                                            <div class="symbol-label bg-light-info">
+                                                <i class="ki-duotone ki-abstract-47 fs-1 text-info">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div class="fs-1 fw-bolder text-dark mb-4">No Recent Activity</div>
+                                        <div class="fs-6 text-muted text-center mb-6">
+                                            Your recent account activities will appear here<br>
+                                            Start using the platform to see your activity history
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end:::Tab pane-->
+                        
+                        <!--begin:::Tab pane-->
+                        <div class="tab-pane fade" id="kt_customer_view_statements_tab" role="tabpanel">
+                            <!--begin::Card-->
+                            <div class="card card-flush mb-6 mb-xl-9">
+                                <div class="card-header mt-6">
+                                    <div class="card-title flex-column">
+                                        <h2 class="mb-1">Account Settings</h2>
+                                        <div class="fs-6 fw-semibold text-muted">Manage your account preferences</div>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0 pb-5">
+                                    <div class="row g-5 g-xl-10">
+                                        <div class="col-xl-6">
+                                            <div class="card card-flush h-xl-100">
+                                                <div class="card-header pt-7">
+                                                    <h3 class="card-title align-items-start flex-column">
+                                                        <span class="card-label fw-bold text-gray-800">Profile Settings</span>
+                                                        <span class="text-gray-500 mt-1 fw-semibold fs-6">Manage your profile information</span>
+                                                    </h3>
+                                                </div>
+                                                <div class="card-body pt-0">
+                                                    <div class="d-flex flex-column gap-5">
+                                                        <a asp-action="Edit" class="btn btn-sm btn-light-primary">
+                                                            <i class="ki-duotone ki-pencil fs-4 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Edit Profile Information
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-6">
+                                            <div class="card card-flush h-xl-100">
+                                                <div class="card-header pt-7">
+                                                    <h3 class="card-title align-items-start flex-column">
+                                                        <span class="card-label fw-bold text-gray-800">Security Settings</span>
+                                                        <span class="text-gray-500 mt-1 fw-semibold fs-6">Secure your account</span>
+                                                    </h3>
+                                                </div>
+                                                <div class="card-body pt-0">
+                                                    <div class="d-flex flex-column gap-5">
+                                                        <a asp-action="ChangePassword" class="btn btn-sm btn-light-warning">
+                                                            <i class="ki-duotone ki-lock-2 fs-4 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Change Password
+                                                        </a>
+                                                        <a asp-action="Security" class="btn btn-sm btn-light-info">
+                                                            <i class="ki-duotone ki-shield-tick fs-4 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Security Settings
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end:::Tab pane-->
+                    </div>
+                    <!--end:::Tab content-->
+                </div>
+                <!--end::Content-->
+            </div>
+            <!--end::Layout-->
+        </div>
+    </div>
+</div>
+
+<style>
+.object-fit-cover {
+    object-fit: cover;
+}
+</style>

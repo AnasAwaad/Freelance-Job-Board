@@ -1,0 +1,166 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.CreateJobViewModel
+@{
+    ViewData["Title"] = "Create Job";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Create Job</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="MyJobs" class="text-muted text-hover-primary">My Jobs</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Create</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-fluid">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title fs-3 fw-bold">Job Details</div>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="Create" method="post" novalidate>
+                                <div class="row mb-8">
+                                    <div class="col-xl-12">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Title" class="fs-6 fw-semibold mb-2">Job Title</label>
+                                            <input asp-for="Title" class="form-control form-control-solid" placeholder="Enter job title" />
+                                            <span asp-validation-for="Title" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-8">
+                                    <div class="col-xl-12">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Description" class="fs-6 fw-semibold mb-2">Description</label>
+                                            <textarea asp-for="Description" class="form-control form-control-solid" rows="6" placeholder="Describe the job requirements, expectations, and deliverables..."></textarea>
+                                            <span asp-validation-for="Description" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-8">
+                                    <div class="col-xl-6">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="BudgetMin" class="fs-6 fw-semibold mb-2">Minimum Budget ($)</label>
+                                            <input asp-for="BudgetMin" type="number" step="0.01" class="form-control form-control-solid" placeholder="0.00" />
+                                            <span asp-validation-for="BudgetMin" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="BudgetMax" class="fs-6 fw-semibold mb-2">Maximum Budget ($)</label>
+                                            <input asp-for="BudgetMax" type="number" step="0.01" class="form-control form-control-solid" placeholder="0.00" />
+                                            <span asp-validation-for="BudgetMax" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-8">
+                                    <div class="col-xl-6">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Deadline" class="fs-6 fw-semibold mb-2">Deadline</label>
+                                            <input asp-for="Deadline" type="date" class="form-control form-control-solid" />
+                                            <span asp-validation-for="Deadline" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Tags" class="fs-6 fw-semibold mb-2">Tags</label>
+                                            <input asp-for="Tags" class="form-control form-control-solid" placeholder="web development, design, mobile app" />
+                                            <span asp-validation-for="Tags" class="text-danger fs-7"></span>
+                                            <div class="form-text">Separate tags with commas</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-8">
+                                    <div class="col-xl-6">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="CategoryIds" class="fs-6 fw-semibold mb-2">Categories</label>
+                                            <select asp-for="CategoryIds" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Select categories">
+                                                @foreach (var category in Model.AvailableCategories)
+                                                {
+                                                    <option value="@category.Id">@category.Name</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="CategoryIds" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="SkillIds" class="fs-6 fw-semibold mb-2">Required Skills</label>
+                                            <select asp-for="SkillIds" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Select required skills">
+                                                @foreach (var skill in Model.AvailableSkills)
+                                                {
+                                                    <option value="@skill.Id">@skill.Name</option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="SkillIds" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <a asp-action="MyJobs" class="btn btn-light me-3">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="indicator-label">Create Job</span>
+                                        <span class="indicator-progress">Please wait...
+                                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for multi-select dropdowns
+            $('[data-control="select2"]').select2({
+                placeholder: function() {
+                    return $(this).data('placeholder');
+                },
+                allowClear: true
+            });
+
+            // Form submission with loading state
+            $('form').on('submit', function() {
+                const submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.attr('disabled', true);
+                submitBtn.find('.indicator-label').hide();
+                submitBtn.find('.indicator-progress').show();
+            });
+        });
+    </script>
+}

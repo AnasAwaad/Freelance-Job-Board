@@ -1,8 +1,10 @@
-﻿<div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
+﻿@using FreelanceJobBoard.Domain.Constants
+
+<div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
 	<!--begin::Logo-->
 	<div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
 		<!--begin::Logo image-->
-		<a href="/">
+		<a asp-controller="Home" asp-action="Index">
 			<img alt="Logo" src="~/images/default-small.svg" class="h-35px" />
 		</a>
 		<div id="kt_app_sidebar_toggle" class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary h-30px w-30px position-absolute top-50 start-100 translate-middle rotate" data-kt-toggle="true" data-kt-toggle-state="active" data-kt-toggle-target="body" data-kt-toggle-name="app-sidebar-minimize">
@@ -21,38 +23,184 @@
 			<!--begin::Scroll wrapper-->
 			<div id="kt_app_sidebar_menu_scroll" class="scroll-y my-5 mx-3" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer" data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
 				<!--begin::Menu-->
-				<div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6" id="#kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false">
-						<div class="menu-item here show menu-accordion">
-							<!--begin:Menu link-->
-							<!--begin:Menu link-->
-							<a class="menu-link " active-when="Home" asp-controller="Home" asp-action="Index">
-								<i class="ki-duotone ki-home fs-2x me-2                      ">
+				<div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6" id="kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false">
+					
+					<!--begin:Menu item - Dashboard-->
+					<div class="menu-item">
+						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+							<span class="menu-icon">
+								<i class="ki-duotone ki-home fs-2"></i>
+							</span>
+							<span class="menu-title">Dashboard</span>
+						</a>
+					</div>
+					<!--end:Menu item-->
+
+					<!--begin:Menu item - Jobs-->
+					<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "here show" : "")" data-kt-menu-trigger="click">
+						<!--begin:Menu link-->
+						<span class="menu-link" role="button" tabindex="0">
+							<span class="menu-icon">
+								<i class="ki-duotone ki-briefcase fs-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
 								</i>
-								<span class="menu-title">Home</span>
-							</a>
-
-							<!--end:Menu link-->
-
+							</span>
+							<span class="menu-title">Jobs</span>
+							<span class="menu-arrow"></span>
+						</span>
+						<!--end:Menu link-->
+						<!--begin:Menu sub-->
+						<div class="menu-sub menu-sub-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "show" : "")">
+							<!--begin:Menu item-->
+							<div class="menu-item">
+								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "active" : "")" asp-controller="Jobs" asp-action="Index">
+									<span class="menu-bullet">
+										<span class="bullet bullet-dot"></span>
+									</span>
+									<span class="menu-title">Browse Jobs</span>
+								</a>
+							</div>
+							<!--end:Menu item-->
+							<!--begin:Menu item-->
+							<div class="menu-item">
+								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyJobs" ? "active" : "")" asp-controller="Jobs" asp-action="MyJobs">
+									<span class="menu-bullet">
+										<span class="bullet bullet-dot"></span>
+									</span>
+									<span class="menu-title">My Jobs</span>
+								</a>
+							</div>
+							<!--end:Menu item-->
+							@if (User.IsInRole(AppRoles.Client))
+							{
+								<!--begin:Menu item - Create Job (Clients only)-->
+								<div class="menu-item">
+									<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Create" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Jobs" ? "active" : "")" asp-controller="Jobs" asp-action="Create">
+										<span class="menu-bullet">
+											<span class="bullet bullet-dot"></span>
+										</span>
+										<span class="menu-title">Post Job</span>
+									</a>
+								</div>
+								<!--end:Menu item-->
+							}
 						</div>
-						<!--end:Menu item-->
-						<!--begin:Menu item-->
-						<div class="menu-item here show menu-accordion">
-							<!--begin:Menu link-->
-							<!--begin:Menu link-->
-							<a class="menu-link " active-when="Categories" asp-controller="Categories" asp-action="Index">
-								<i class="ki-duotone ki-category fs-2x me-2                       ">
+						<!--end:Menu sub-->
+					</div>
+					<!--end:Menu item-->
+
+					<!--begin:Menu item - Categories-->
+					<div class="menu-item">
+						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">
+							<span class="menu-icon">
+								<i class="ki-duotone ki-category fs-2">
 									<span class="path1"></span>
 									<span class="path2"></span>
 									<span class="path3"></span>
 									<span class="path4"></span>
 								</i>
-								<span class="menu-title">Categories</span>
+							</span>
+							<span class="menu-title">Categories</span>
+						</a>
+					</div>
+					<!--end:Menu item-->
+
+					<!--begin:Menu item - Skills (Admin only)-->
+					@if (User.IsInRole(AppRoles.Admin))
+					{
+						<div class="menu-item">
+							<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Skills" ? "active" : "")" asp-controller="Skills" asp-action="Index">
+								<span class="menu-icon">
+									<i class="ki-duotone ki-code fs-2">
+										<span class="path1"></span>
+										<span class="path2"></span>
+										<span class="path3"></span>
+										<span class="path4"></span>
+									</i>
+								</span>
+								<span class="menu-title">Skills</span>
 							</a>
-
-							<!--end:Menu link-->
-
 						</div>
-						<!--end:Menu item-->
+
+						<!--begin:Menu item - Admin Panel-->
+						<div class="menu-item">
+							<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" ? "active" : "")" asp-controller="Admin" asp-action="Index">
+								<span class="menu-icon">
+									<i class="ki-duotone ki-shield-tick fs-2">
+										<span class="path1"></span>
+										<span class="path2"></span>
+									</i>
+								</span>
+								<span class="menu-title">Admin Panel</span>
+							</a>
+						</div>
+					}
+					<!--end:Menu item-->
+
+					<!--begin:Menu item - Profile-->
+					<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "here show" : "")" data-kt-menu-trigger="click">
+						<!--begin:Menu link-->
+						<span class="menu-link" role="button" tabindex="0">
+							<span class="menu-icon">
+								<i class="ki-duotone ki-profile-user fs-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
+									<span class="path3"></span>
+									<span class="path4"></span>
+								</i>
+							</span>
+							<span class="menu-title">My Profile</span>
+							<span class="menu-arrow"></span>
+						</span>
+						<!--end:Menu link-->
+						<!--begin:Menu sub-->
+						<div class="menu-sub menu-sub-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "show" : "")">
+							<!--begin:Menu item-->
+							<div class="menu-item">
+								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index">
+									<span class="menu-bullet">
+										<span class="bullet bullet-dot"></span>
+									</span>
+									<span class="menu-title">Overview</span>
+								</a>
+							</div>
+							<!--end:Menu item-->
+							<!--begin:Menu item-->
+							<div class="menu-item">
+								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Edit" ? "active" : "")" asp-controller="Profile" asp-action="Edit">
+									<span class="menu-bullet">
+										<span class="bullet bullet-dot"></span>
+									</span>
+									<span class="menu-title">Edit Profile</span>
+								</a>
+							</div>
+							<!--end:Menu item-->
+							<!--begin:Menu item-->
+							<div class="menu-item">
+								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")" asp-controller="Profile" asp-action="ChangePassword">
+									<span class="menu-bullet">
+										<span class="bullet bullet-dot"></span>
+									</span>
+									<span class="menu-title">Change Password</span>
+								</a>
+							</div>
+							<!--end:Menu item-->
+							<!--begin:Menu item-->
+							<div class="menu-item">
+								<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Security" ? "active" : "")" asp-controller="Profile" asp-action="Security">
+									<span class="menu-bullet">
+										<span class="bullet bullet-dot"></span>
+									</span>
+									<span class="menu-title">Security</span>
+								</a>
+							</div>
+							<!--end:Menu item-->
+						</div>
+						<!--end:Menu sub-->
+					</div>
+					<!--end:Menu item-->
+
 				</div>
 				<!--end::Menu-->
 			</div>
@@ -63,13 +211,60 @@
 	<!--end::sidebar menu-->
 	<!--begin::Footer-->
 	<div class="app-sidebar-footer flex-column-auto pt-2 pb-6 px-6" id="kt_app_sidebar_footer">
-		<a href="https://preview.keenthemes.com/html/metronic/docs" class="btn btn-flex flex-center btn-custom btn-primary overflow-hidden text-nowrap px-0 h-40px w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="200+ in-house components and 3rd-party plugins">
-			<span class="btn-label">Docs & Components</span>
-			<i class="ki-duotone ki-document btn-icon fs-2 m-0">
-				<span class="path1"></span>
-				<span class="path2"></span>
-			</i>
-		</a>
+		<form asp-controller="Auth" asp-action="Logout" method="post" class="w-100">
+			<button type="submit" class="btn btn-flex flex-center btn-custom btn-danger overflow-hidden text-nowrap px-0 h-40px w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Sign out from your account">
+				<span class="btn-label">Sign Out</span>
+				<i class="ki-duotone ki-entrance-left btn-icon fs-2 m-0">
+					<span class="path1"></span>
+					<span class="path2"></span>
+				</i>
+			</button>
+		</form>
 	</div>
 	<!--end::Footer-->
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle menu accordions
+    const menuTriggers = document.querySelectorAll('[data-kt-menu-trigger="click"]');
+    
+    menuTriggers.forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const parentItem = this.closest('.menu-item');
+            const menuSub = this.nextElementSibling;
+            const isExpanded = parentItem.classList.contains('show');
+            
+            // Close all other menu items
+            document.querySelectorAll('.menu-item.show').forEach(item => {
+                if (item !== parentItem) {
+                    item.classList.remove('show');
+                    const subMenu = item.querySelector('.menu-sub');
+                    if (subMenu) {
+                        subMenu.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Toggle current menu
+            if (isExpanded) {
+                parentItem.classList.remove('show');
+                if (menuSub) menuSub.style.display = 'none';
+            } else {
+                parentItem.classList.add('show');
+                if (menuSub) menuSub.style.display = 'block';
+            }
+        });
+        
+        // Show submenu if we're on the corresponding page
+        if (trigger.closest('.menu-item').classList.contains('here')) {
+            trigger.closest('.menu-item').classList.add('show');
+            const menuSub = trigger.nextElementSibling;
+            if (menuSub) menuSub.style.display = 'block';
+        }
+    });
+});
+</script>

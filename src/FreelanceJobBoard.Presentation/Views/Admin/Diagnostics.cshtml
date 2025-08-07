@@ -1,0 +1,310 @@
+@model object
+@{
+    ViewData["Title"] = "Admin Diagnostics";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Admin Diagnostics</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Admin" asp-action="Index" class="text-muted text-hover-primary">Admin</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Diagnostics</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            <div class="row g-5 g-xl-10">
+                <!--begin::Authentication Status-->
+                <div class="col-xl-6">
+                    <div class="card card-flush">
+                        <div class="card-header">
+                            <h3 class="card-title">Authentication Status</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-row-dashed">
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-bold">Is Authenticated:</td>
+                                            <td>
+                                                @if (ViewBag.DiagnosticInfo.IsAuthenticated)
+                                                {
+                                                    <span class="badge badge-success">? Yes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-danger">? No</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">User Name:</td>
+                                            <td>@(ViewBag.DiagnosticInfo.UserName ?? "Not Available")</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Authentication Type:</td>
+                                            <td>@(ViewBag.DiagnosticInfo.AuthenticationType ?? "Not Available")</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Is In Admin Role:</td>
+                                            <td>
+                                                @if (ViewBag.DiagnosticInfo.IsInAdminRole)
+                                                {
+                                                    <span class="badge badge-success">? Yes</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-danger">? No</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Expected Admin Role:</td>
+                                            <td><code>@ViewBag.DiagnosticInfo.AppRolesAdmin</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">User Roles:</td>
+                                            <td>
+                                                @if (ViewBag.DiagnosticInfo.Roles.Count > 0)
+                                                {
+                                                    @foreach (var role in ViewBag.DiagnosticInfo.Roles)
+                                                    {
+                                                        <span class="badge badge-light me-2">@role</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No roles found</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">Diagnostic Time:</td>
+                                            <td>@ViewBag.DiagnosticInfo.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Authentication Status-->
+
+                <!--begin::User Claims-->
+                <div class="col-xl-6">
+                    <div class="card card-flush">
+                        <div class="card-header">
+                            <h3 class="card-title">User Claims</h3>
+                        </div>
+                        <div class="card-body">
+                            @if (ViewBag.DiagnosticInfo.Claims.Count > 0)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-row-dashed table-striped">
+                                        <thead>
+                                            <tr class="fw-bold fs-6 text-gray-800">
+                                                <th>Claim Type</th>
+                                                <th>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var claim in ViewBag.DiagnosticInfo.Claims)
+                                            {
+                                                <tr>
+                                                    <td class="fw-semibold">
+                                                        @if (claim.Type.Contains("role", StringComparison.OrdinalIgnoreCase))
+                                                        {
+                                                            <span class="badge badge-light-primary">@claim.Type</span>
+                                                        }
+                                                        else if (claim.Type.Contains("email", StringComparison.OrdinalIgnoreCase))
+                                                        {
+                                                            <span class="badge badge-light-info">@claim.Type</span>
+                                                        }
+                                                        else if (claim.Type.Contains("name", StringComparison.OrdinalIgnoreCase))
+                                                        {
+                                                            <span class="badge badge-light-success">@claim.Type</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge badge-light">@claim.Type</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <code>@claim.Value</code>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-10">
+                                    <div class="text-gray-400 fs-2">
+                                        <i class="ki-duotone ki-information fs-1 mb-3">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                    </div>
+                                    <div class="text-gray-600 fw-semibold fs-4">No claims found</div>
+                                    <div class="text-gray-400 fs-6">The user might not be properly authenticated</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <!--end::User Claims-->
+            </div>
+
+            <!--begin::Troubleshooting-->
+            <div class="row g-5 g-xl-10 mt-5">
+                <div class="col-12">
+                    <div class="card card-flush">
+                        <div class="card-header">
+                            <h3 class="card-title">Troubleshooting Steps</h3>
+                        </div>
+                        <div class="card-body">
+                            @if (!ViewBag.DiagnosticInfo.IsAuthenticated)
+                            {
+                                <div class="alert alert-danger d-flex align-items-center p-5 mb-5">
+                                    <i class="ki-duotone ki-shield-cross fs-2hx text-danger me-4">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <div class="d-flex flex-column">
+                                        <h4 class="mb-1 text-danger">User Not Authenticated</h4>
+                                        <span>Please log in with admin credentials to access admin features.</span>
+                                    </div>
+                                </div>
+                            }
+                            else if (!ViewBag.DiagnosticInfo.IsInAdminRole)
+                            {
+                                <div class="alert alert-warning d-flex align-items-center p-5 mb-5">
+                                    <i class="ki-duotone ki-shield-search fs-2hx text-warning me-4">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <div class="d-flex flex-column">
+                                        <h4 class="mb-1 text-warning">User Not In Admin Role</h4>
+                                        <span>The user is authenticated but doesn't have admin privileges.</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success d-flex align-items-center p-5 mb-5">
+                                    <i class="ki-duotone ki-shield-tick fs-2hx text-success me-4">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <div class="d-flex flex-column">
+                                        <h4 class="mb-1 text-success">Authentication Successful</h4>
+                                        <span>User is properly authenticated and has admin privileges.</span>
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="separator my-5"></div>
+
+                            <h5 class="mb-4">Common Solutions:</h5>
+                            <ol class="list-group list-group-flush">
+                                <li class="list-group-item d-flex align-items-start">
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">1</span>
+                                    <div>
+                                        <strong>Clear Browser Cache:</strong> Clear cookies and browser cache, then try logging in again.
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-start">
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">2</span>
+                                    <div>
+                                        <strong>Check Database:</strong> Ensure the admin user exists in the database with the correct role.
+                                        <br><small class="text-muted">Default admin: admin@freelancejobboard.com / Admin@123</small>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-start">
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">3</span>
+                                    <div>
+                                        <strong>Restart Application:</strong> Restart the web application to reinitialize the database seed.
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-start">
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">4</span>
+                                    <div>
+                                        <strong>Check Connection String:</strong> Verify the database connection string in appsettings.json.
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-start">
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">5</span>
+                                    <div>
+                                        <strong>Review Application Logs:</strong> Check the console output for any errors during startup.
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Troubleshooting-->
+
+            <!--begin::Actions-->
+            <div class="row g-5 g-xl-10 mt-5">
+                <div class="col-12">
+                    <div class="card card-flush">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <a asp-controller="Auth" asp-action="Logout" class="btn btn-light-danger">
+                                    <i class="ki-duotone ki-entrance-left me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Logout & Re-login
+                                </a>
+                                
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-light-primary">
+                                    <i class="ki-duotone ki-home me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    Back to Admin Dashboard
+                                </a>
+                                
+                                <a href="javascript:location.reload();" class="btn btn-light-info">
+                                    <i class="ki-duotone ki-arrows-circle me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Refresh Diagnostics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Actions-->
+        </div>
+    </div>
+    <!--end::Content-->
+</div>

@@ -1,36 +1,94 @@
 ﻿@model CategoryFormViewModel
-
-<form 
-    id="ModalForm"
-    asp-action="@(Model?.Id > 0 ?"Update":"Create")"
-    data-ajax-method="post"
-    data-ajax="true"
-    data-ajax-success="onModalFormSuccess"
-    data-ajax-failure="onModalFormFailure">
-
-    @if (Model?.Id > 0)
-    {
-        <input type="hidden" asp-for="Id" />
-    }
-    <!--begin::Input group-->
-    <div>
-        <div class="form-floating mb-2">
-            <input asp-for="Name" type="text" class="form-control form-control-solid" placeholder="Name" />
-            <label asp-for="Name"></label>
-            <span asp-validation-for="Name" class="text-danger"></span>
-
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">
+                    @(Model?.Id > 0 ? "Update Category" : "Create Category")
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form 
+                id="ModalForm"
+                asp-action="@(Model?.Id > 0 ?"Update":"Create")"
+                method="post" 
+                class="form"
+                data-ajax-method="post"
+                data-ajax="true"
+                data-ajax-success="onModalFormSuccess"
+                data-ajax-failure="onModalFormFailure">
+                <div class="modal-body">
+                    @if (Model?.Id > 0)
+                    {
+                        <input type="hidden" asp-for="Id" />
+                    }
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label required">Category Name</label>
+                        <input asp-for="Name" class="form-control form-control-solid" placeholder="Enter category name" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter category description (optional)"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsActive" class="form-check-label">
+                            Active
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        @(Model?.Id > 0 ? "Update" : "Create") Category
+                    </button>
+                </div>
+            </form>
         </div>
-
     </div>
-    <!--end::Input group-->
-    <!--begin::Input group-->
-    <div>
-        <div class="form-floating mb-2">
-            <input asp-for="Description " type="text" class="form-control form-control-solid" placeholder="Description" />
-            <label asp-for="Description"></label>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
+</div>
 
-    </div>
-
-</form>
+<script>
+    $(document).ready(function() {
+        // Show modal
+        $('#categoryModal').modal('show');
+        
+        // Handle form submission
+        $('#categoryModal form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const form = $(this);
+            const formData = form.serialize();
+            const url = form.attr('action');
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.includes('_CategoryRow')) {
+                        // If it's a partial view of the row, refresh the page
+                        location.reload();
+                    } else {
+                        // If there are validation errors, update the modal content
+                        $('#categoryModal .modal-content').html($(response).html());
+                    }
+                },
+                error: function(xhr) {
+                    alert('An error occurred. Please try again.');
+                    console.error('Form submission error:', xhr);
+                }
+            });
+        });
+    });
+</script>
