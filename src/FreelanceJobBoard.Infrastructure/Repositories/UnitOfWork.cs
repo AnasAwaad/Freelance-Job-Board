@@ -18,7 +18,7 @@ internal class UnitOfWork : IUnitOfWork
 	public INotificationRepository Notifications { get; }
 	public IReviewRepository Reviews { get; }
 
-	public UnitOfWork(ApplicationDbContext context)
+    public UnitOfWork(ApplicationDbContext context)
 	{
 		_context = context;
 		Categories = new CategoryRepository(context);

@@ -1,4 +1,5 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
