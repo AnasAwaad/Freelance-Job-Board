@@ -1,43 +1,50 @@
 ﻿@model IEnumerable<CategoryViewModel>
 
 @{
-	ViewData["Title"] = "Create Category";
+	ViewData["Title"] = "Categories";
+	Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-<div class="d-flex flex-column flex-column-fluid" style="margin-top:30px;">
+<div class="d-flex flex-column flex-column-fluid">
+	<!--begin::Toolbar-->
+	<div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+		<div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+			<div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+				<h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Categories</h1>
+				<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+					<li class="breadcrumb-item text-muted">
+						<a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+					</li>
+					<li class="breadcrumb-item">
+						<span class="bullet bg-gray-400 w-5px h-2px"></span>
+					</li>
+					<li class="breadcrumb-item text-muted">Categories</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!--end::Toolbar-->
 
 	<!--begin::Content-->
-	<div id="kt_app_content" class="app-content  flex-column-fluid ">
-		<!--begin::Content container-->
-		<div id="kt_app_content_container">
-			<div class="page-title d-flex flex-column justify-content-center flex-wrap me-3 mb-4 ">
-				<!--begin::Title-->
-				<h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">
-					Categories
-				</h1>
-				<!--end::Title-->
-				<!--begin::Breadcrumb-->
-				<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
-					<!--begin::Item-->
-					<li class="breadcrumb-item text-muted">
-						<a href="/" class="text-muted text-hover-primary">
-							Home
-						</a>
-					</li>
-					<!--end::Item-->
-					<!--begin::Item-->
-					<li class="breadcrumb-item">
-						<span class="bullet bg-gray-500 w-5px h-2px"></span>
-					</li>
-					<!--end::Item-->
-					<!--begin::Item-->
-					<li class="breadcrumb-item text-muted">
-						Categories
-					</li>
+	<div id="kt_app_content" class="app-content flex-column-fluid">
+		<div id="kt_app_content_container" class="app-container container-xxl">
+			
+			@if (TempData["Success"] != null)
+			{
+				<div class="alert alert-success alert-dismissible fade show" role="alert">
+					@TempData["Success"]
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+			}
 
-				</ul>
-				<!--end::Breadcrumb-->
-			</div>
+			@if (TempData["Error"] != null)
+			{
+				<div class="alert alert-danger alert-dismissible fade show" role="alert">
+					@TempData["Error"]
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+			}
+
 			<!--begin::Category-->
 			<div class="card card-flush">
 				<!--begin::Card header-->
@@ -45,106 +52,99 @@
 					<div class="card-title">
 						<!--begin::Search-->
 						<div class="d-flex align-items-center position-relative my-1">
-							<i class="ki-duotone ki-magnifier fs-1 position-absolute ms-4"><span class="path1"></span><span class="path2"></span></i>
+							<i class="ki-duotone ki-magnifier fs-1 position-absolute ms-4">
+								<span class="path1"></span>
+								<span class="path2"></span>
+							</i>
 							<input type="text" data-kt-filter="search" class="form-control form-control-solid w-250px ps-14" placeholder="Search Category" />
 						</div>
 						<!--end::Search-->
-						<!--begin::Export buttons-->
-						<div id="kt_datatable_example_1_export" class="d-none"></div>
-						<!--end::Export buttons-->
 					</div>
 					<div class="card-toolbar flex-row-fluid justify-content-end gap-5">
-
 						<!--begin::Export dropdown-->
 						<button type="button" class="btn btn-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-							<i class="ki-duotone ki-exit-down fs-2"><span class="path1"></span><span class="path2"></span></i>
+							<i class="ki-duotone ki-exit-down fs-2">
+								<span class="path1"></span>
+								<span class="path2"></span>
+							</i>
 							Export
 						</button>
 						<!--begin::Menu-->
 						<div id="kt_datatable_example_export_menu" class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">
-							<!--begin::Menu item-->
 							<div class="menu-item px-3">
-								<a href="#" class="menu-link px-3" data-kt-export="copy">
-									Copy to clipboard
-								</a>
+								<a href="#" class="menu-link px-3" data-kt-export="copy">Copy to clipboard</a>
 							</div>
-							<!--end::Menu item-->
-							<!--begin::Menu item-->
 							<div class="menu-item px-3">
-								<a href="#" class="menu-link px-3" data-kt-export="excel">
-									Export as Excel
-								</a>
+								<a href="#" class="menu-link px-3" data-kt-export="excel">Export as Excel</a>
 							</div>
-							<!--end::Menu item-->
-							<!--begin::Menu item-->
 							<div class="menu-item px-3">
-								<a href="#" class="menu-link px-3" data-kt-export="csv">
-									Export as CSV
-								</a>
+								<a href="#" class="menu-link px-3" data-kt-export="csv">Export as CSV</a>
 							</div>
-							<!--end::Menu item-->
-							<!--begin::Menu item-->
 							<div class="menu-item px-3">
-								<a href="#" class="menu-link px-3" data-kt-export="pdf">
-									Export as PDF
-								</a>
+								<a href="#" class="menu-link px-3" data-kt-export="pdf">Export as PDF</a>
 							</div>
-							<!--end::Menu item-->
 						</div>
 						<!--end::Menu-->
 						<!--end::Export dropdown-->
-						<a href="javascript:;" data-url="/Categories/Create" data-title="Create New Category" class="btn btn-primary js-render-modal">
-							Add Category
-						</a>
-						<!--begin::Hide default export buttons-->
-						<div id="kt_datatable_example_buttons" class="d-none"></div>
-						<!--end::Hide default export buttons->
-
-								</div>
-							</div>
-
-
-						</div>
-
-						<!--end::Category-->
+						
+						@if (User.IsInRole("Admin"))
+						{
+							<a href="javascript:;" data-url="/Categories/Create" data-title="Create New Category" class="btn btn-primary js-render-modal">
+								Add Category
+							</a>
+						}
 					</div>
 				</div>
+				<!--end::Card header-->
+
 				<!--begin::Card body-->
 				<div class="card-body pt-0">
-
-
-					<!--begin::Table-->
-					<div class="table-responsive">
-						<table id="datatable" data-title="Category - Report" class="table align-middle border rounded table-row-dashed fs-6 g-5">
-							<thead>
-								<tr class="fw-bold fs-6 text-gray-800">
-									<th class="text-center">Name</th>
-									<th>Description</th>
-									@* <th>Creation Date</th> *@
-									@* <th>Last Updated on</th> *@
-									<th>Status</th> 
-									<th class="text-center">Actions</th>
-								</tr>
-							</thead>
-							<tbody class="js-tbody">
-								@foreach (var category in Model)
-								{
-									<partial name="_CategoryRow" model="category" />
-								}
-
-
-							</tbody>
-						</table>
-					</div>
-					<!--end::Table-->
+					@if (Model != null && Model.Any())
+					{
+						<!--begin::Table-->
+						<div class="table-responsive">
+							<table id="datatable" data-title="Categories Report" class="table align-middle border rounded table-row-dashed fs-6 g-5">
+								<thead>
+									<tr class="fw-bold fs-6 text-gray-800">
+										<th class="text-center">Name</th>
+										<th>Description</th>
+										<th>Status</th> 
+										<th class="text-center">Actions</th>
+									</tr>
+								</thead>
+								<tbody class="js-tbody">
+									@foreach (var category in Model)
+									{
+										<partial name="_CategoryRow" model="category" />
+									}
+								</tbody>
+							</table>
+						</div>
+						<!--end::Table-->
+					}
+					else
+					{
+						<!--begin::Empty state-->
+						<div class="d-flex flex-column flex-center">
+							<img src="~/images/illustrations/sketchy-1/5.png" alt="" class="mw-300px">
+							<div class="fs-1 fw-bolder text-dark mb-4">No Categories Found</div>
+							<div class="fs-6 text-muted mb-6">There are no categories available at the moment.</div>
+							@if (User.IsInRole("Admin"))
+							{
+								<a href="javascript:;" data-url="/Categories/Create" data-title="Create New Category" class="btn btn-primary js-render-modal">
+									Create First Category
+								</a>
+							}
+						</div>
+						<!--end::Empty state-->
+					}
 				</div>
 				<!--end::Card body-->
-				<!--end::Content container-->
 			</div>
-			<!--end::Content-->
+			<!--end::Category-->
 		</div>
 	</div>
-
+	<!--end::Content-->
 </div>
 
 @Html.AntiForgeryToken()
@@ -152,6 +152,7 @@
 @section Styles {
 	<link href="~/css/datatables.bundle.css" rel="stylesheet" />
 }
+
 @section Plugins {
 	<script src="~/js/datatables.bundle.js"></script>
 }
@@ -161,7 +162,56 @@
 
 	<script>
 		$(document).ready(function () {
-			$('.table').DataTable();
-		})
+			// Initialize DataTable only if table exists and has data
+			if ($('#datatable tbody tr').length > 0) {
+				$('#datatable').DataTable({
+					responsive: true,
+					pageLength: 10,
+					order: [[0, 'asc']],
+					columnDefs: [
+						{ orderable: false, targets: [3] } // Disable sorting on Actions column
+					]
+				});
+			}
+
+			// Handle status change
+			$(document).on('click', '.js-change-status', function(e) {
+				e.preventDefault();
+				
+				const url = $(this).data('url');
+				const isActive = $(this).data('status') === 'true';
+				const action = isActive ? 'deactivate' : 'activate';
+				
+				if (confirm(`Are you sure you want to ${action} this category?`)) {
+					$.ajax({
+						url: url,
+						type: 'POST',
+						headers: {
+							'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+						},
+						success: function(response) {
+							if (response) {
+								location.reload(); // Reload to show updated status
+							}
+						},
+						error: function(xhr) {
+							alert('Error changing category status. Please try again.');
+							console.error('Status change error:', xhr);
+						}
+					});
+				}
+			});
+
+			// Handle modal forms
+			$(document).on('click', '.js-render-modal', function(e) {
+				e.preventDefault();
+				const url = $(this).data('url');
+				const title = $(this).data('title');
+				
+				// You can implement modal loading here
+				// For now, we'll redirect to the action
+				window.location.href = url;
+			});
+		});
 	</script>
 }

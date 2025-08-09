@@ -1,73 +1,157 @@
 ﻿using FreelanceJobBoard.Presentation.Models.DTOs;
 using FreelanceJobBoard.Presentation.Models.ViewModels;
 
+namespace FreelanceJobBoard.Presentation.Services;
+
 public class CategoryService
 {
 	private readonly HttpClient _httpClient;
-	private readonly HttpContext _httpContext;
+	private readonly HttpContext? _httpContext;
+	private readonly ILogger<CategoryService> _logger;
 
-	public CategoryService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+	public CategoryService(HttpClient httpClient,
+		IHttpContextAccessor httpContextAccessor,
+		ILogger<CategoryService> logger,
+		IConfiguration configuration)
 	{
 		_httpClient = httpClient;
 		_httpContext = httpContextAccessor.HttpContext;
+		_logger = logger;
+
 		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Categories/");
 
+		// Set authorization header if user is authenticated
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
-
-		_httpClient.DefaultRequestHeaders.Authorization =
-			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-	}
-
-	public async Task<IEnumerable<CategoryViewModel>?> GetAllCategoriesAsync()
-	{
-		var response = await _httpClient.GetAsync("");
-
-		if (response.IsSuccessStatusCode)
+		if (!string.IsNullOrEmpty(token))
 		{
-			return await response.Content.ReadFromJsonAsync<IEnumerable<CategoryViewModel>>();
+			_httpClient.DefaultRequestHeaders.Authorization =
+				new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 		}
-
-		return null!;
 	}
 
+	public async Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync()
+	{
+		try
+		{
+			var response = await _httpClient.GetAsync("");
+
+			if (response.IsSuccessStatusCode)
+			{
+				var categories = await response.Content.ReadFromJsonAsync<IEnumerable<CategoryViewModel>>();
+				return categories ?? new List<CategoryViewModel>();
+			}
+
+			_logger.LogWarning("Failed to get categories. Status: {StatusCode}", response.StatusCode);
+			return new List<CategoryViewModel>();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while fetching categories");
+			return new List<CategoryViewModel>();
+		}
+	}
 
 	public async Task<CategoryViewModel?> CreateCategoryAsync(CategoryFormViewModel viewModel)
 	{
-		var response = await _httpClient.PostAsJsonAsync("", viewModel);
-		if (response.IsSuccessStatusCode)
+		try
 		{
-			return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+			if (viewModel == null)
+			{
+				_logger.LogWarning("Attempted to create category with null viewModel");
+				return null;
+			}
+
+			var response = await _httpClient.PostAsJsonAsync("", viewModel);
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+			}
+
+			_logger.LogWarning("Failed to create category. Status: {StatusCode}", response.StatusCode);
+			return null;
 		}
-		return null!;
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while creating category");
+			return null;
+		}
 	}
 
 	public async Task<CategoryFormViewModel?> GetCategoryByIdAsync(int id)
 	{
-		var response = await _httpClient.GetAsync($"{id}");
-		if (response.IsSuccessStatusCode)
+		try
 		{
-			return await response.Content.ReadFromJsonAsync<CategoryFormViewModel>();
+			if (id <= 0)
+			{
+				_logger.LogWarning("Invalid category ID: {Id}", id);
+				return null;
+			}
+
+			var response = await _httpClient.GetAsync($"{id}");
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<CategoryFormViewModel>();
+			}
+
+			_logger.LogWarning("Failed to get category by ID {Id}. Status: {StatusCode}", id, response.StatusCode);
+			return null;
 		}
-		return null!;
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while fetching category by ID {Id}", id);
+			return null;
+		}
 	}
 
 	public async Task<CategoryViewModel?> UpdateCategoryAsync(CategoryFormViewModel viewModel)
 	{
-		var response = await _httpClient.PutAsJsonAsync($"{viewModel.Id}", viewModel);
-		if (response.IsSuccessStatusCode)
+		try
 		{
-			return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+			if (viewModel == null)
+			{
+				_logger.LogWarning("Attempted to update category with null viewModel");
+				return null;
+			}
+
+			var response = await _httpClient.PutAsJsonAsync($"{viewModel.Id}", viewModel);
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+			}
+
+			_logger.LogWarning("Failed to update category {Id}. Status: {StatusCode}", viewModel.Id, response.StatusCode);
+			return null;
 		}
-		return null!;
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while updating category");
+			return null;
+		}
 	}
 
 	public async Task<ChangeCategoryStatusResultDto?> ChangeCategoryStatusAsync(int id)
 	{
-		var response = await _httpClient.PostAsync($"{id}/ChangeStatus", null);
-		if (response.IsSuccessStatusCode)
+		try
 		{
-			return await response.Content.ReadFromJsonAsync<ChangeCategoryStatusResultDto>();
+			if (id <= 0)
+			{
+				_logger.LogWarning("Invalid category ID for status change: {Id}", id);
+				return null;
+			}
+
+			var response = await _httpClient.PostAsync($"{id}/ChangeStatus", null);
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<ChangeCategoryStatusResultDto>();
+			}
+
+			_logger.LogWarning("Failed to change category status for ID {Id}. Status: {StatusCode}", id, response.StatusCode);
+			return null;
 		}
-		throw new Exception("Failed to change category status");
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while changing category status for ID {Id}", id);
+			return null;
+		}
 	}
 }

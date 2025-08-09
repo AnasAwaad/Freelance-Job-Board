@@ -4,6 +4,7 @@ using FreelanceJobBoard.Application.Features.Auth.Commands.ForgotPassword;
 using FreelanceJobBoard.Application.Features.Auth.Commands.FreelancerRegister;
 using FreelanceJobBoard.Application.Features.Auth.Commands.Login;
 using FreelanceJobBoard.Application.Features.Auth.Commands.ResetPassword;
+using FreelanceJobBoard.Application.Features.Auth.Commands.UploadImageProfile;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -65,6 +66,13 @@ namespace FreelanceJobBoard.API.Controllers
 		{
 			// I'll still put some logic in here
 			return Ok(new { success = true, message = "Logged out successfully" });
+		}
+
+		[HttpPost("upload-image-profile")]
+		public async Task<IActionResult> UploadImageProfile([FromForm] UploadImageProfileCommand command)
+		{
+			var imagePathUrl = await _mediator.Send(command);
+			return Ok(imagePathUrl);
 		}
 	}
 }

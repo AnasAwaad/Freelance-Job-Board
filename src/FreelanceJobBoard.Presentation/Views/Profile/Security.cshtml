@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Security Settings";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Security Settings</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Profile" asp-action="Index" class="text-muted text-hover-primary">My Profile</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Security</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="row g-5 g-xl-10">
+                <!--begin::Password-->
+                <div class="col-xl-6">
+                    <div class="card card-flush h-lg-100">
+                        <div class="card-header pt-7">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-gray-800">Password Security</span>
+                                <span class="text-gray-500 mt-1 fw-semibold fs-6">Manage your account password</span>
+                            </h3>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="d-flex flex-wrap align-items-center mb-7">
+                                <div class="d-flex flex-column flex-grow-1 my-lg-0 my-2 pe-3">
+                                    <span class="text-gray-800 fw-bold fs-6">Password</span>
+                                    <span class="text-gray-500 fw-semibold">Last changed: Never</span>
+                                </div>
+                                <a asp-action="ChangePassword" class="btn btn-sm btn-primary">Change Password</a>
+                            </div>
+                            <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-6">
+                                <i class="ki-duotone ki-information fs-2tx text-warning me-4">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i>
+                                <div class="d-flex flex-stack flex-grow-1">
+                                    <div class="fw-semibold">
+                                        <h4 class="text-gray-900 fw-bold">Secure Your Account</h4>
+                                        <div class="fs-6 text-gray-700">Use a strong password with at least 8 characters, including letters, numbers, and symbols.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Password-->
+
+                <!--begin::Email-->
+                <div class="col-xl-6">
+                    <div class="card card-flush h-lg-100">
+                        <div class="card-header pt-7">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-gray-800">Email Verification</span>
+                                <span class="text-gray-500 mt-1 fw-semibold fs-6">Verify your email address</span>
+                            </h3>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="d-flex flex-wrap align-items-center mb-7">
+                                <div class="d-flex flex-column flex-grow-1 my-lg-0 my-2 pe-3">
+                                    <span class="text-gray-800 fw-bold fs-6">Email Address</span>
+                                    <span class="text-gray-500 fw-semibold">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</span>
+                                </div>
+                                <span class="badge badge-light-success">Verified</span>
+                            </div>
+                            <div class="d-flex flex-stack">
+                                <div class="d-flex flex-column flex-grow-1 pe-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-gray-800 fw-bold fs-7">Email Confirmation</span>
+                                    </div>
+                                    <span class="text-gray-500 fw-semibold fs-8">Resend confirmation email if needed</span>
+                                </div>
+                                <form asp-action="ResendEmailConfirmation" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-light-primary">Resend Email</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Email-->
+            </div>
+
+            <!--begin::Account Security-->
+            <div class="card mt-5">
+                <div class="card-header border-0 cursor-pointer">
+                    <div class="card-title m-0">
+                        <h3 class="fw-bold m-0">Account Security</h3>
+                    </div>
+                </div>
+                <div class="card-body border-top p-9">
+                    <div class="row mb-6">
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center mb-5">
+                                <div class="symbol symbol-40px me-5">
+                                    <span class="symbol-label bg-light-success">
+                                        <i class="ki-duotone ki-shield-tick text-success fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold text-gray-800 fs-6">Two-Factor Authentication</span>
+                                    <span class="text-gray-500 fw-semibold fs-7">Coming soon - Add an extra layer of security</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center mb-5">
+                                <div class="symbol symbol-40px me-5">
+                                    <span class="symbol-label bg-light-warning">
+                                        <i class="ki-duotone ki-security-user text-warning fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold text-gray-800 fs-6">Login History</span>
+                                    <span class="text-gray-500 fw-semibold fs-7">Coming soon - View your recent login activity</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Account Security-->
+        </div>
+    </div>
+</div>

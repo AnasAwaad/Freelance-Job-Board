@@ -1,0 +1,300 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-root" id="kt_app_root">
+    <div class="d-flex flex-column flex-lg-row flex-column-fluid">
+        <div class="d-flex flex-lg-row-fluid">
+            <div class="d-flex flex-column flex-center pb-0 pb-lg-10 p-10 w-100">
+                <img class="theme-light-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20" src="~/images/misc/auth-screens.png" alt="" />
+                <img class="theme-dark-show mx-auto mw-100 w-150px w-lg-300px mb-10 mb-lg-20" src="~/images/misc/auth-screens-dark.png" alt="" />
+                <h1 class="text-gray-800 fs-2qx fw-bold text-center mb-7">Join Our Platform</h1>
+                <div class="text-gray-600 fs-base text-center fw-semibold">
+                    Create your account and start your journey with us
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center justify-content-lg-end p-12">
+            <div class="bg-body d-flex flex-column flex-center rounded-4 w-md-600px p-10">
+                <div class="d-flex flex-center flex-column align-items-stretch h-lg-100 w-md-500px">
+                    <div class="d-flex flex-center flex-column flex-column-fluid pb-15 pb-lg-20">
+                        <form asp-action="Register" method="post" enctype="multipart/form-data" class="form w-100" novalidate="novalidate">
+                            <div class="text-center mb-11">
+                                <h1 class="text-dark fw-bolder mb-3">Create Account</h1>
+                                <div class="text-gray-500 fw-semibold fs-6">Choose your account type and get started</div>
+                            </div>
+
+                            @if (TempData["Success"] != null)
+                            {
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    @TempData["Success"]
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            }
+
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <!-- Role Selection -->
+                            <div class="fv-row mb-8">
+                                <label asp-for="Role" class="form-label fw-bold">I want to:</label>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" asp-for="Role" value="Client" id="role-client" autocomplete="off">
+                                        <label class="btn btn-outline btn-outline-dashed btn-active-light-primary d-flex flex-column p-5 w-100" for="role-client">
+                                            <i class="ki-duotone ki-briefcase fs-2x mb-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <span class="fw-bold fs-6">Hire Talent</span>
+                                            <span class="fs-7 text-gray-600">Post jobs and find freelancers</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="radio" class="btn-check" asp-for="Role" value="Freelancer" id="role-freelancer" autocomplete="off">
+                                        <label class="btn btn-outline btn-outline-dashed btn-active-light-primary d-flex flex-column p-5 w-100" for="role-freelancer">
+                                            <i class="ki-duotone ki-profile-user fs-2x mb-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                                <span class="path4"></span>
+                                            </i>
+                                            <span class="fw-bold fs-6">Work as Freelancer</span>
+                                            <span class="fs-7 text-gray-600">Find jobs and earn money</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Role" class="text-danger"></span>
+                            </div>
+
+                            <!-- Basic Information -->
+                            <div class="fv-row mb-8">
+                                <input asp-for="FullName" type="text" placeholder="Full Name" autocomplete="name" class="form-control bg-transparent" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="fv-row mb-8">
+                                <input asp-for="Email" type="email" placeholder="Email Address" autocomplete="email" class="form-control bg-transparent" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <!-- Profile Photo -->
+                            <div class="fv-row mb-8">
+                                <label asp-for="ProfilePhoto" class="form-label">Profile Photo (Optional)</label>
+                                <input asp-for="ProfilePhoto" type="file" accept="image/*" class="form-control bg-transparent" />
+                                <div class="form-text">Upload a professional photo (JPG, PNG, max 5MB)</div>
+                                <span asp-validation-for="ProfilePhoto" class="text-danger"></span>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="fv-row mb-8" id="phone-field" style="display: none;">
+                                <input asp-for="PhoneNumber" type="tel" placeholder="Phone Number" class="form-control bg-transparent" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <!-- Role-specific fields for Freelancer -->
+                            <div id="freelancer-fields" style="display: none;">
+                                <div class="fv-row mb-8">
+                                    <textarea asp-for="Bio" placeholder="Professional Bio (Tell clients about your skills and experience)" class="form-control bg-transparent" rows="3"></textarea>
+                                    <span asp-validation-for="Bio" class="text-danger"></span>
+                                </div>
+                                
+                                <div class="row g-3 mb-8">
+                                    <div class="col-6">
+                                        <input asp-for="YearsOfExperience" type="number" placeholder="Years of Experience" class="form-control bg-transparent" min="0" max="50" />
+                                        <span asp-validation-for="YearsOfExperience" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-6">
+                                        <input asp-for="HourlyRate" type="number" placeholder="Hourly Rate ($)" class="form-control bg-transparent" min="1" max="10000" step="0.01" />
+                                        <span asp-validation-for="HourlyRate" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="fv-row mb-8">
+                                    <select asp-for="Specialization" class="form-select bg-transparent">
+                                        <option value="">Select Primary Specialization</option>
+                                        <option value="Web Development">Web Development</option>
+                                        <option value="Mobile Development">Mobile Development</option>
+                                        <option value="UI/UX Design">UI/UX Design</option>
+                                        <option value="Graphic Design">Graphic Design</option>
+                                        <option value="Content Writing">Content Writing</option>
+                                        <option value="Digital Marketing">Digital Marketing</option>
+                                        <option value="Data Science">Data Science</option>
+                                        <option value="DevOps">DevOps</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span asp-validation-for="Specialization" class="text-danger"></span>
+                                </div>
+
+                                <div class="fv-row mb-8">
+                                    <input asp-for="PortfolioUrl" type="url" placeholder="Portfolio Website (Optional)" class="form-control bg-transparent" />
+                                    <span asp-validation-for="PortfolioUrl" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Role-specific fields for Client -->
+                            <div id="client-fields" style="display: none;">
+                                <div class="fv-row mb-8">
+                                    <input asp-for="CompanyName" type="text" placeholder="Company Name (Optional)" class="form-control bg-transparent" />
+                                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                </div>
+
+                                <div class="fv-row mb-8">
+                                    <input asp-for="CompanyWebsite" type="url" placeholder="Company Website (Optional)" class="form-control bg-transparent" />
+                                    <span asp-validation-for="CompanyWebsite" class="text-danger"></span>
+                                </div>
+
+                                <div class="fv-row mb-8">
+                                    <select asp-for="Industry" class="form-select bg-transparent">
+                                        <option value="">Select Industry (Optional)</option>
+                                        <option value="Technology">Technology</option>
+                                        <option value="Healthcare">Healthcare</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Education">Education</option>
+                                        <option value="Retail">Retail</option>
+                                        <option value="Manufacturing">Manufacturing</option>
+                                        <option value="Real Estate">Real Estate</option>
+                                        <option value="Marketing">Marketing</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span asp-validation-for="Industry" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="fv-row mb-8" data-kt-password-meter="true">
+                                <div class="mb-1">
+                                    <div class="position-relative mb-3">
+                                        <input asp-for="Password" type="password" placeholder="Password" autocomplete="new-password" class="form-control bg-transparent" />
+                                        <span class="btn btn-sm btn-icon position-absolute translate-middle top-50 end-0 me-n2" data-kt-password-meter-control="visibility">
+                                            <i class="bi bi-eye-slash fs-2"></i>
+                                            <i class="bi bi-eye fs-2 d-none"></i>
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3" data-kt-password-meter-control="highlight">
+                                        <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2"></div>
+                                        <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2"></div>
+                                        <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2"></div>
+                                        <div class="flex-grow-1 bg-secondary bg-active-success rounded h-5px"></div>
+                                    </div>
+                                </div>
+                                <div class="text-muted">Use 6 or more characters with a mix of letters, numbers & symbols.</div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="fv-row mb-8">
+                                <input asp-for="ConfirmPassword" type="password" placeholder="Confirm Password" autocomplete="new-password" class="form-control bg-transparent" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid mb-10">
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="indicator-label">Create Account</span>
+                                    <span class="indicator-progress">Please wait...
+                                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Login Link -->
+                            <div class="text-gray-500 text-center fw-semibold fs-6">
+                                Already have an account?
+                                <a asp-action="Login" class="link-primary">Sign in</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Role-based field visibility
+            function toggleRoleFields() {
+                const selectedRole = $('input[name="Role"]:checked').val();
+                const phoneField = $('#phone-field');
+                const freelancerFields = $('#freelancer-fields');
+                const clientFields = $('#client-fields');
+                
+                // Hide all role-specific fields first
+                phoneField.hide();
+                freelancerFields.hide();
+                clientFields.hide();
+                
+                if (selectedRole === 'Freelancer') {
+                    phoneField.show();
+                    freelancerFields.show();
+                    // Make freelancer fields required
+                    $('#Bio, #YearsOfExperience, #HourlyRate, #Specialization, #PhoneNumber').attr('required', true);
+                    $('#CompanyName, #CompanyWebsite, #Industry').removeAttr('required');
+                    
+                    // Update button text
+                    $('.indicator-label').text('Create Freelancer Account');
+                } else if (selectedRole === 'Client') {
+                    clientFields.show();
+                    // Remove freelancer field requirements
+                    $('#Bio, #YearsOfExperience, #HourlyRate, #Specialization, #PhoneNumber').removeAttr('required');
+                    $('#CompanyName, #CompanyWebsite, #Industry').removeAttr('required');
+                    
+                    // Update button text
+                    $('.indicator-label').text('Create Client Account');
+                } else {
+                    $('.indicator-label').text('Create Account');
+                    // Remove all requirements
+                    $('#Bio, #YearsOfExperience, #HourlyRate, #Specialization, #PhoneNumber, #CompanyName, #CompanyWebsite, #Industry').removeAttr('required');
+                }
+            }
+
+            // Handle role selection
+            $('input[name="Role"]').on('change', toggleRoleFields);
+            
+            // Initialize on page load
+            toggleRoleFields();
+
+            // Form submission loading state
+            $('form').on('submit', function() {
+                const submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.attr('disabled', true);
+                submitBtn.find('.indicator-label').hide();
+                submitBtn.find('.indicator-progress').show();
+            });
+
+            // Password visibility toggle
+            $('[data-kt-password-meter-control="visibility"]').on('click', function() {
+                const input = $(this).parent().find('input');
+                const icon1 = $(this).find('.bi-eye-slash');
+                const icon2 = $(this).find('.bi-eye');
+                
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon1.addClass('d-none');
+                    icon2.removeClass('d-none');
+                } else {
+                    input.attr('type', 'password');
+                    icon1.removeClass('d-none');
+                    icon2.addClass('d-none');
+                }
+            });
+
+            // Profile photo preview
+            $('input[type="file"]').on('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // You can add image preview functionality here
+                        console.log('Image selected:', file.name);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+}

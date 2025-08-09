@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using IEmailSender = Microsoft.AspNetCore.Identity.UI.Services.IEmailSender;
 
 namespace FreelanceJobBoard.Infrastructure.Extensions;
 public static class ServiceCollectionExtensions
@@ -23,16 +24,18 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
 		services.AddScoped<ICloudinaryService, CloudinaryService>();
 		services.AddScoped<ICurrentUserService, CurrentUserService>();
+		services.AddScoped<IEmailSender, EmailSender>();
 		services.AddScoped<IEmailService, EmailService>();
+
 		services.AddScoped<INotificationService, NotificationService>();
 
 		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 		services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
-        services.AddIdentity<ApplicationUser, IdentityRole>()
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
+		services.AddIdentity<ApplicationUser, IdentityRole>()
+		.AddEntityFrameworkStores<ApplicationDbContext>()
+		.AddDefaultTokenProviders();
 
-        return services;
+		return services;
 	}
 }
