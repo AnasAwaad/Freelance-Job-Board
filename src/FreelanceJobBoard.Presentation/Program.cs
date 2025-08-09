@@ -19,16 +19,17 @@ public class Program
 
 		// Add services to the container.
 		builder.Services.AddControllersWithViews();
-		
+
 		// Register HttpClients with IWebHostEnvironment for file handling
 		builder.Services.AddHttpClient<Presentation.Services.AuthService>();
 		builder.Services.AddHttpClient<CategoryService>();
 		builder.Services.AddHttpClient<JobService>();
 		builder.Services.AddHttpClient<SkillService>();
+		builder.Services.AddHttpClient<HomeService>();
 
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-		
+
 		// Register Email Service
 		builder.Services.AddScoped<IEmailService, EmailService>();
 
@@ -96,7 +97,7 @@ public class Program
 			options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 			options.Cookie.SameSite = SameSiteMode.Lax;
 			options.Cookie.Name = "FreelanceJobBoard.Auth";
-			
+
 			// Handle authentication failures
 			options.Events.OnRedirectToAccessDenied = context =>
 			{
@@ -115,25 +116,25 @@ public class Program
 		builder.Services.AddAuthorization(options =>
 		{
 			// Add authorization policies
-			options.AddPolicy("RequireAdminRole", policy => 
+			options.AddPolicy("RequireAdminRole", policy =>
 			{
 				policy.RequireAuthenticatedUser();
 				policy.RequireRole(AppRoles.Admin);
 			});
-			
-			options.AddPolicy("RequireClientRole", policy => 
+
+			options.AddPolicy("RequireClientRole", policy =>
 			{
 				policy.RequireAuthenticatedUser();
 				policy.RequireRole(AppRoles.Client);
 			});
-			
-			options.AddPolicy("RequireFreelancerRole", policy => 
+
+			options.AddPolicy("RequireFreelancerRole", policy =>
 			{
 				policy.RequireAuthenticatedUser();
 				policy.RequireRole(AppRoles.Freelancer);
 			});
-			
-			options.AddPolicy("RequireClientOrFreelancer", policy => 
+
+			options.AddPolicy("RequireClientOrFreelancer", policy =>
 			{
 				policy.RequireAuthenticatedUser();
 				policy.RequireRole(AppRoles.Client, AppRoles.Freelancer);
@@ -163,7 +164,7 @@ public class Program
 		app.UseStaticFiles();
 
 		app.UseRouting();
-		
+
 		// Order is important: Authentication before Authorization
 		app.UseAuthentication();
 		app.UseAuthorization();
@@ -208,10 +209,10 @@ public class Program
 				// Database exists, check for pending migrations
 				var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
 				var pendingMigrationsList = pendingMigrations.ToList();
-				
+
 				if (pendingMigrationsList.Any())
 				{
-					logger.LogInformation("Found {Count} pending migrations: {Migrations}", 
+					logger.LogInformation("Found {Count} pending migrations: {Migrations}",
 						pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
 
 					try
@@ -223,17 +224,17 @@ public class Program
 					catch (Exception migrationEx)
 					{
 						logger.LogWarning(migrationEx, "Migration failed, checking if tables already exist...");
-						
+
 						// Check if Identity tables exist (indicating database was created without migrations)
 						var hasIdentityTables = await CheckIfIdentityTablesExistAsync(context);
-						
+
 						if (hasIdentityTables)
 						{
 							logger.LogInformation("Identity tables already exist, marking all migrations as applied...");
-							
+
 							// Get all migrations from the assembly
 							var allMigrations = context.Database.GetMigrations();
-							
+
 							// Add migration history entries for existing migrations
 							foreach (var migration in allMigrations)
 							{
@@ -242,7 +243,7 @@ public class Program
 									"INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ({0}, {1})",
 									migration, "8.0.0");
 							}
-							
+
 							logger.LogInformation("Migration history updated successfully");
 						}
 						else
@@ -266,7 +267,7 @@ public class Program
 		catch (Exception ex)
 		{
 			logger.LogError(ex, "An error occurred while initializing the database");
-			
+
 			// In development, we can try to recover from certain database issues
 			if (app.Environment.IsDevelopment())
 			{
@@ -318,15 +319,15 @@ public class Program
 			// Try to delete and recreate the database in development
 			logger.LogWarning("Deleting existing database for clean recreation...");
 			await context.Database.EnsureDeletedAsync();
-			
+
 			logger.LogInformation("Creating fresh database...");
 			await context.Database.EnsureCreatedAsync();
-			
+
 			logger.LogInformation("Database recreated successfully");
 
 			// Create roles and admin user
 			await CreateRolesAndAdminUserAsync(userManager, roleManager, logger);
-			
+
 			logger.LogInformation("Database recovery completed successfully");
 		}
 		catch (Exception ex)
@@ -337,8 +338,8 @@ public class Program
 	}
 
 	private static async Task CreateRolesAndAdminUserAsync(
-		UserManager<ApplicationUser> userManager, 
-		RoleManager<IdentityRole> roleManager, 
+		UserManager<ApplicationUser> userManager,
+		RoleManager<IdentityRole> roleManager,
 		ILogger logger)
 	{
 		try
@@ -354,14 +355,14 @@ public class Program
 				{
 					var role = new IdentityRole(roleName);
 					var result = await roleManager.CreateAsync(role);
-					
+
 					if (result.Succeeded)
 					{
 						logger.LogInformation("Role '{RoleName}' created successfully", roleName);
 					}
 					else
 					{
-						logger.LogError("Failed to create role '{RoleName}': {Errors}", 
+						logger.LogError("Failed to create role '{RoleName}': {Errors}",
 							roleName, string.Join(", ", result.Errors.Select(e => e.Description)));
 					}
 				}
@@ -385,7 +386,7 @@ public class Program
 					FullName = "System Administrator",
 					EmailConfirmed = true,
 					PhoneNumberConfirmed = true,
-					LockoutEnabled = false 
+					LockoutEnabled = false
 				};
 
 				var createResult = await userManager.CreateAsync(adminUser, adminPassword);
@@ -395,19 +396,19 @@ public class Program
 					if (roleResult.Succeeded)
 					{
 						logger.LogInformation("Default admin user created successfully");
-						logger.LogInformation("Admin Credentials - Email: {Email}, Password: {Password}", 
+						logger.LogInformation("Admin Credentials - Email: {Email}, Password: {Password}",
 							adminEmail, adminPassword);
 						logger.LogWarning("IMPORTANT: Change the default admin password after first login!");
 					}
 					else
 					{
-						logger.LogError("Failed to assign admin role: {Errors}", 
+						logger.LogError("Failed to assign admin role: {Errors}",
 							string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 					}
 				}
 				else
 				{
-					logger.LogError("Failed to create default admin user: {Errors}", 
+					logger.LogError("Failed to create default admin user: {Errors}",
 						string.Join(", ", createResult.Errors.Select(e => e.Description)));
 				}
 			}
@@ -423,7 +424,7 @@ public class Program
 					}
 					else
 					{
-						logger.LogError("Failed to assign admin role to existing user: {Errors}", 
+						logger.LogError("Failed to assign admin role to existing user: {Errors}",
 							string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 					}
 				}
@@ -438,10 +439,10 @@ public class Program
 			{
 				var isInAdminRole = await userManager.IsInRoleAsync(verifyAdmin, AppRoles.Admin);
 				var userRoles = await userManager.GetRolesAsync(verifyAdmin);
-				
-				logger.LogInformation("Admin user verification - Email: {Email}, IsAdmin: {IsAdmin}, Roles: {Roles}", 
+
+				logger.LogInformation("Admin user verification - Email: {Email}, IsAdmin: {IsAdmin}, Roles: {Roles}",
 					verifyAdmin.Email, isInAdminRole, string.Join(", ", userRoles));
-				
+
 				if (isInAdminRole)
 				{
 					logger.LogInformation("✅ Admin role configuration completed successfully!");

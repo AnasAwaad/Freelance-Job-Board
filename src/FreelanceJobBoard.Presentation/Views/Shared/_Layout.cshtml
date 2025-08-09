@@ -4,14 +4,25 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-</head>
-<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled">
+    <link rel="stylesheet" href="~/css/home-plugins.css">
+    <link href="~/css/home.css" rel="stylesheet">
+	<link type="text/css" rel="stylesheet" id="jssDefault" href="~/css/colors/green-style.css">
+	<link href="~/css/top-categories.css" rel="stylesheet" />
+	<link href="~/css/recent-jobs.css" rel="stylesheet" />
+    @RenderSection("Styles", required: false)
 
-    <main class="d-flex flex-column flex-root">
-        <section class="page d-flex flex-column flex-column-fluid">
-			@RenderBody()
-        </section>
-    </main>
+</head>
+<body>
+
+    <div class="Loader"></div>
+    <div class="wrapper">
+        <partial name="~/Views/Shared/Header/_HomeHeader.cshtml"/>
+        <div class="clearfix"></div>
+
+        @RenderBody()
+
+    </div>
+    <script src="~/js/loader.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

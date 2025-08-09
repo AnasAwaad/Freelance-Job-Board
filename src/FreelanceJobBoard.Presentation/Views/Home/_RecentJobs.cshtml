@@ -1,0 +1,42 @@
+﻿@model IEnumerable<RecentJobViewModel>
+
+<section class="container">
+    <h2>Recent Jobs</h2>
+    <div class="job-list">
+        @foreach (var job in Model)
+        {
+            <div class="job-card shadow-sm p-3 mb-4 rounded">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">@job.Title</h5>
+                        <small class="text-muted">
+                            <i class="fas fa-building me-1"></i> @job.ClientName
+                        </small>
+                    </div>
+                    <div class="text-end text-success fw-bold">
+                        @job.BudgetMin.ToString("C0") - @job.BudgetMax.ToString("C0")
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    @foreach (var tag in job.Tags)
+                    {
+                        <span class="badge bg-light text-dark border me-1">@tag</span>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-2">
+                    <small class="text-muted">
+                        <i class="far fa-clock me-1"></i> @job.TimeAgo
+                    </small>
+                    <a href="/Jobs/Details/@job.Id" class="btn btn-primary btn-sm">
+                        View Details
+                    </a>
+                </div>
+            </div>
+
+        }
+    </div>
+</section>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />

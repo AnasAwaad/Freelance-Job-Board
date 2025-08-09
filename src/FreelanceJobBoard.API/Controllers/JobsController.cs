@@ -4,6 +4,7 @@ using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetAllJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobById;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobsByCurrentClient;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRecentJobs;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,14 @@ namespace FreelanceJobBoard.API.Controllers;
 [ApiController]
 public class JobsController(IMediator mediator) : ControllerBase
 {
+
+	[HttpGet("recent-jobs/{numOfJobs}")]
+	public async Task<IActionResult> GetRecentJobs(int numOfJobs)
+	{
+		var jobs = await mediator.Send(new GetRecentJobsQuery(numOfJobs));
+		return Ok(jobs);
+	}
+
 	[HttpPost]
 	//[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> Create([FromBody] CreateJobCommand command)

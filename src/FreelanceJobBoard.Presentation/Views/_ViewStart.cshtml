@@ -4,12 +4,14 @@
 	string layout = "";
 	// if (controller == "Auth" || controller == "Clients" || controller == "Categories" || controller == "Categories")
 	// {
-		layout = "~/Views/Shared/_DashboardLayout.cshtml";
+	layout = "~/Views/Shared/_DashboardLayout.cshtml";
 	// }
 	// else
 	// {
 	// 	layout = "~/Views/Shared/_Layout.cshtml";
 	// }
+	if (controller == "Home")
+		layout = "_Layout";
 
 	Layout = layout;
 }
