@@ -18,7 +18,8 @@ public class CategoryService
 		_httpContext = httpContextAccessor.HttpContext;
 		_logger = logger;
 
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Categories/");
+		// Set base address to API root - don't include Categories path here
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
 
 		// Set authorization header if user is authenticated
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
@@ -33,7 +34,8 @@ public class CategoryService
 	{
 		try
 		{
-			var response = await _httpClient.GetAsync("");
+			// This will call GET /api/Categories
+			var response = await _httpClient.GetAsync("Categories");
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -61,7 +63,8 @@ public class CategoryService
 				return null;
 			}
 
-			var response = await _httpClient.PostAsJsonAsync("", viewModel);
+			// This will call POST /api/Categories
+			var response = await _httpClient.PostAsJsonAsync("Categories", viewModel);
 			if (response.IsSuccessStatusCode)
 			{
 				return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
@@ -87,7 +90,8 @@ public class CategoryService
 				return null;
 			}
 
-			var response = await _httpClient.GetAsync($"{id}");
+			// This will call GET /api/Categories/{id}
+			var response = await _httpClient.GetAsync($"Categories/{id}");
 			if (response.IsSuccessStatusCode)
 			{
 				return await response.Content.ReadFromJsonAsync<CategoryFormViewModel>();
@@ -113,7 +117,8 @@ public class CategoryService
 				return null;
 			}
 
-			var response = await _httpClient.PutAsJsonAsync($"{viewModel.Id}", viewModel);
+			// This will call PUT /api/Categories/{id}
+			var response = await _httpClient.PutAsJsonAsync($"Categories/{viewModel.Id}", viewModel);
 			if (response.IsSuccessStatusCode)
 			{
 				return await response.Content.ReadFromJsonAsync<CategoryViewModel>();
@@ -139,7 +144,8 @@ public class CategoryService
 				return null;
 			}
 
-			var response = await _httpClient.PostAsync($"{id}/ChangeStatus", null);
+			// This will call POST /api/Categories/{id}/ChangeStatus
+			var response = await _httpClient.PostAsync($"Categories/{id}/ChangeStatus", null);
 			if (response.IsSuccessStatusCode)
 			{
 				return await response.Content.ReadFromJsonAsync<ChangeCategoryStatusResultDto>();

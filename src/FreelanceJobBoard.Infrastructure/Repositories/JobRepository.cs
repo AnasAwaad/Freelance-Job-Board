@@ -13,7 +13,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 	}
 
 
-	public async Task<(int, IEnumerable<Job>)> GetAllMatchingAsync(int pageNumber, int pageSize, string? search, string? sortBy, SortDirection sortDirection)
+	public async Task<(int, IEnumerable<Job>)> GetAllMatchingAsync(int pageNumber, int pageSize, string? search, string? sortBy, SortDirection sortDirection, string? statusFilter = null)
 	{
 		var searchValue = search?.ToLower().Trim();
 
@@ -21,24 +21,35 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Where(j => searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
 														(j.Description!.ToLower().Contains(searchValue))));
 
-		var totalCount = await query.CountAsync();
+		// Apply status filter if provided
+		if (!string.IsNullOrEmpty(statusFilter))
+		{
+			query = query.Where(j => j.Status == statusFilter);
+		}
 
+		var totalCount = await query.CountAsync();
 
 		if (sortBy is not null)
 		{
 			var columnsSelector = new Dictionary<string, Expression<Func<Job, object>>>()
 			{
 				{nameof(Job.Title),j=>j.Title},
-				{nameof(Job.Description),j=>j.Description}
+				{nameof(Job.Description),j=>j.Description},
+				{"deadline", j=>j.Deadline},
+				{"budget", j=>j.BudgetMax}
 			};
 
-			var selectedColumn = columnsSelector[sortBy];
+			var selectedColumn = columnsSelector.GetValueOrDefault(sortBy.ToLower()) ?? columnsSelector[nameof(Job.Title)];
 
 			query = (sortDirection == SortDirection.Ascending)
 				? query.OrderBy(selectedColumn)
 				: query.OrderByDescending(selectedColumn);
 		}
-
+		else
+		{
+			// Default ordering by creation date (newest first)
+			query = query.OrderByDescending(j => j.CreatedOn);
+		}
 
 		var jobs = await query
 			.Skip(pageSize * (pageNumber - 1))
@@ -48,8 +59,6 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Include(j => j.Skills)
 				.ThenInclude(s => s.Skill)
 			.ToListAsync();
-
-
 
 		return (totalCount, jobs);
 	}

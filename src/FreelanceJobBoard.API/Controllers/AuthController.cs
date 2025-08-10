@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Application.Features.Auth.Commands.ClientRegister;
+﻿using FreelanceJobBoard.Application.Features.Auth.Commands.ChangePassword;
+using FreelanceJobBoard.Application.Features.Auth.Commands.ClientRegister;
 using FreelanceJobBoard.Application.Features.Auth.Commands.ConfirmEmail;
 using FreelanceJobBoard.Application.Features.Auth.Commands.ForgotPassword;
 using FreelanceJobBoard.Application.Features.Auth.Commands.FreelancerRegister;
@@ -6,6 +7,7 @@ using FreelanceJobBoard.Application.Features.Auth.Commands.Login;
 using FreelanceJobBoard.Application.Features.Auth.Commands.ResetPassword;
 using FreelanceJobBoard.Application.Features.Auth.Commands.UploadImageProfile;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FreelanceJobBoard.API.Controllers
@@ -27,8 +29,9 @@ namespace FreelanceJobBoard.API.Controllers
 		public async Task<IActionResult> ClientRegister([FromBody] ClientRegisterCommand command)
 		{
 			await _mediator.Send(command);
-			return Ok(new { success = true, message = "Freelancer registration successful" });
+			return Ok(new { success = true, message = "Client registration successful" });
 		}
+		
 		[HttpPost("freelancer-register")]
 		public async Task<IActionResult> FreelancerRegister([FromBody] FreelancerRegisterCommand command)
 		{
@@ -43,24 +46,28 @@ namespace FreelanceJobBoard.API.Controllers
 
 			return Ok(await _mediator.Send(command));
 		}
+		
 		[HttpPost("forgot-password")]
 		public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
 		{
 			await _mediator.Send(command);
 			return Ok(new { success = true, message = "If your email exists, a reset link has been sent." });
 		}
+		
 		[HttpPost("reset-password")]
 		public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
 		{
 			await _mediator.Send(command);
 			return Ok(new { success = true, message = "Password reset successful" });
 		}
+		
 		[HttpGet("confirm-email")]
 		public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmEmailCommand command)
 		{
 			await _mediator.Send(command);
 			return Ok(new { success = true, message = "Email confirmed successfully" });
 		}
+		
 		[HttpPost("logout")]
 		public IActionResult Logout()
 		{
@@ -73,6 +80,30 @@ namespace FreelanceJobBoard.API.Controllers
 		{
 			var imagePathUrl = await _mediator.Send(command);
 			return Ok(imagePathUrl);
+		}
+
+		[HttpPost("change-password")]
+		[Authorize]
+		public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+		{
+			try
+			{
+				await _mediator.Send(command);
+				return Ok(new { success = true, message = "Password changed successfully" });
+			}
+			catch (UnauthorizedAccessException)
+			{
+				return Unauthorized(new { success = false, message = "User is not authenticated" });
+			}
+			catch (ArgumentException ex)
+			{
+				return BadRequest(new { success = false, message = ex.Message });
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error occurred while changing password");
+				return StatusCode(500, new { success = false, message = "An error occurred while changing password" });
+			}
 		}
 	}
 }

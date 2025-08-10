@@ -93,7 +93,24 @@
 
 					</div>
 					<!--end:Menu item-->
-						
+
+					<!--begin:Menu item - Proposals-->
+					@if (User.IsInRole(AppRoles.Freelancer))
+					{
+						<div class="menu-item">
+							<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Proposals" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyProposals" ? "active" : "")" asp-controller="Proposals" asp-action="MyProposals">
+								<span class="menu-icon">
+									<i class="ki-duotone ki-questionnaire-tablet fs-2">
+										<span class="path1"></span>
+										<span class="path2"></span>
+									</i>
+								</span>
+								<span class="menu-title">My Proposals</span>
+							</a>
+						</div>
+					}
+					<!--end:Menu item-->
+
 					<!--begin:Menu item - Categories-->
 					<div class="menu-item">
 						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">
@@ -216,6 +233,7 @@
 	<!--begin::Footer-->
 	<div class="app-sidebar-footer flex-column-auto pt-2 pb-6 px-6" id="kt_app_sidebar_footer">
 		<form asp-controller="Auth" asp-action="Logout" method="post" class="w-100">
+			@Html.AntiForgeryToken()
 			<button type="submit" class="btn btn-flex flex-center btn-custom btn-danger overflow-hidden text-nowrap px-0 h-40px w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" title="Sign out from your account">
 				<span class="btn-label">Sign Out</span>
 				<i class="ki-duotone ki-entrance-left btn-icon fs-2 m-0">

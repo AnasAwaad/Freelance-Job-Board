@@ -2,6 +2,9 @@ using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Entities;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using FreelanceJobBoard.Domain.Identity;
+using FreelanceJobBoard.Domain.Constants;
 
 namespace FreelanceJobBoard.Infrastructure.Services;
 
@@ -10,12 +13,14 @@ internal class NotificationService : INotificationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IEmailService _emailService;
     private readonly ILogger<NotificationService> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public NotificationService(IUnitOfWork unitOfWork, IEmailService emailService, ILogger<NotificationService> logger)
+    public NotificationService(IUnitOfWork unitOfWork, IEmailService emailService, ILogger<NotificationService> logger, UserManager<ApplicationUser> userManager)
     {
         _unitOfWork = unitOfWork;
         _emailService = emailService;
         _logger = logger;
+        _userManager = userManager;
     }
 
     public async Task CreateNotificationAsync(string userId, string title, string message, int? templateId = null)
@@ -158,5 +163,45 @@ internal class NotificationService : INotificationService
     public async Task MarkAsReadAsync(int notificationId)
     {
         await _unitOfWork.Notifications.MarkAsReadAsync(notificationId);
+    }
+
+    public async Task NotifyJobSubmittedForApprovalAsync(int jobId)
+    {
+        try
+        {
+            var job = await _unitOfWork.Jobs.GetJobWithDetailsAsync(jobId);
+            if (job == null) return;
+
+            // Get all admin users
+            var adminUsers = await _userManager.GetUsersInRoleAsync(AppRoles.Admin);
+            
+            foreach (var admin in adminUsers)
+            {
+                if (!string.IsNullOrEmpty(admin.Email))
+                {
+                    await _emailService.SendJobSubmissionNotificationAsync(
+                        admin.Email,
+                        job.Title ?? "New Job",
+                        job.Client?.User?.FullName ?? "Unknown Client",
+                        job.BudgetMin,
+                        job.BudgetMax
+                    );
+
+                    await CreateNotificationAsync(
+                        admin.Id,
+                        $"New Job Needs Approval: {job.Title}",
+                        $"A new job posting from {job.Client?.User?.FullName ?? "a client"} " +
+                        $"requires your approval. Budget: ${job.BudgetMin:N2} - ${job.BudgetMax:N2}"
+                    );
+                }
+            }
+
+            _logger.LogInformation("Job submission notifications sent to admins for job {JobId}", jobId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send job submission notifications for job {JobId}", jobId);
+            throw;
+        }
     }
 }

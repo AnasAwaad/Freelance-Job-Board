@@ -150,6 +150,36 @@ public class EmailService : IEmailService
 		}
 	}
 
+	public async Task SendJobSubmissionNotificationAsync(string adminEmail, string jobTitle, string clientName, decimal budgetMin, decimal budgetMax)
+	{
+		try
+		{
+			var subject = $"New Job Submission Requires Approval: {jobTitle}";
+			var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <h2>New Job Submission</h2>
+    <p>Hello Admin,</p>
+    <p>A new job posting has been submitted and requires your approval:</p>
+    <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>
+        <h3>{jobTitle}</h3>
+        <p><strong>Client:</strong> {clientName}</p>
+        <p><strong>Budget:</strong> ${budgetMin:N2} - ${budgetMax:N2}</p>
+    </div>
+    <p>Please review and approve or reject this job posting in the admin panel.</p>
+    <p>Best regards,<br>FreelanceJobBoard System</p>
+</body>
+</html>";
+
+			await SendEmailAsync(adminEmail, subject, body, true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send job submission notification to {Email}", adminEmail);
+			throw;
+		}
+	}
+
 	private SmtpClient CreateSmtpClient()
 	{
 		var client = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)

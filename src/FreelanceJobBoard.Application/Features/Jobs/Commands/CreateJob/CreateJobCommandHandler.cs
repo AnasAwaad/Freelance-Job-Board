@@ -7,7 +7,7 @@ using FreelanceJobBoard.Domain.Exceptions;
 using MediatR;
 
 namespace FreelanceJobBoard.Application.Features.Jobs.Commands.CreateJob;
-public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService) : IRequestHandler<CreateJobCommand, int>
+public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService, INotificationService notificationService) : IRequestHandler<CreateJobCommand, int>
 {
 	public async Task<int> Handle(CreateJobCommand request, CancellationToken cancellationToken)
 	{
@@ -53,6 +53,17 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 
 		await unitOfWork.Jobs.CreateAsync(job);
 		await unitOfWork.SaveChangesAsync();
+
+		// Notify admins about new job submission
+		try
+		{
+			await notificationService.NotifyJobSubmittedForApprovalAsync(job.Id);
+		}
+		catch (Exception ex)
+		{
+			// Log error but don't fail the job creation
+			// The notification service should have its own logging
+		}
 
 		return job.Id;
 	}

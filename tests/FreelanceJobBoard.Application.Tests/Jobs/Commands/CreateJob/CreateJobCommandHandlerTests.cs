@@ -15,6 +15,7 @@ public class CreateJobCommandHandlerTests
 	private readonly Mock<IUnitOfWork> _unitOfWorkMock;
 	private readonly Mock<IJobRepository> _jobRepositoryMock;
 	private readonly Mock<ICurrentUserService> _currentUserServiceMock;
+	private readonly Mock<INotificationService> _notificationServiceMock;
 	private readonly IMapper _mapper;
 
 	public CreateJobCommandHandlerTests()
@@ -25,6 +26,7 @@ public class CreateJobCommandHandlerTests
 		_jobRepositoryMock = new();
 		_mapper = new Mapper(config);
 		_currentUserServiceMock = new();
+		_notificationServiceMock = new();
 	}
 
 	[Fact]
@@ -77,7 +79,11 @@ public class CreateJobCommandHandlerTests
 
 		_unitOfWorkMock.Setup(x => x.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object, _mapper, _currentUserServiceMock.Object);
+		// Setup notification service mock
+		_notificationServiceMock.Setup(x => x.NotifyJobSubmittedForApprovalAsync(It.IsAny<int>()))
+			.Returns(Task.CompletedTask);
+
+		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object, _mapper, _currentUserServiceMock.Object, _notificationServiceMock.Object);
 
 
 		// Act
@@ -95,6 +101,7 @@ public class CreateJobCommandHandlerTests
 		_unitOfWorkMock.Verify(u => u.Categories.GetCategoriesByIdsAsync(command.CategoryIds), Times.Once);
 		_unitOfWorkMock.Verify(u => u.Skills.GetSkillsByIdsAsync(command.SkillIds), Times.Once);
 		_unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
+		_notificationServiceMock.Verify(x => x.NotifyJobSubmittedForApprovalAsync(jobId), Times.Once);
 
 	}
 
@@ -113,7 +120,8 @@ public class CreateJobCommandHandlerTests
 		var command = new CreateJobCommand();
 		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
 			_mapper,
-			_currentUserServiceMock.Object);
+			_currentUserServiceMock.Object,
+			_notificationServiceMock.Object);
 		// Act
 
 		var act = async () => await handler.Handle(command, CancellationToken.None);
@@ -152,7 +160,8 @@ public class CreateJobCommandHandlerTests
 
 		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
 			_mapper,
-			_currentUserServiceMock.Object);
+			_currentUserServiceMock.Object,
+			_notificationServiceMock.Object);
 
 		// Act
 
@@ -192,7 +201,8 @@ public class CreateJobCommandHandlerTests
 
 		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
 			_mapper,
-			_currentUserServiceMock.Object);
+			_currentUserServiceMock.Object,
+			_notificationServiceMock.Object);
 
 		// Act
 

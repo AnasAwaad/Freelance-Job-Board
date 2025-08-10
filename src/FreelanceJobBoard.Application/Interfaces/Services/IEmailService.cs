@@ -8,4 +8,5 @@ public interface IEmailService
     Task SendJobUpdateNotificationAsync(string freelancerEmail, string jobTitle, string status, string? clientMessage = null);
     Task SendNewProposalNotificationAsync(string clientEmail, string jobTitle, string freelancerName, decimal bidAmount);
     Task SendJobApprovalNotificationAsync(string clientEmail, string jobTitle, bool isApproved, string? adminMessage = null);
+    Task SendJobSubmissionNotificationAsync(string adminEmail, string jobTitle, string clientName, decimal budgetMin, decimal budgetMax);
 }

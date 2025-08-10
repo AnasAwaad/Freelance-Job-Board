@@ -274,13 +274,16 @@
                         </div>
                         <div class="card-body text-center">
                             <div class="d-flex flex-wrap justify-content-center gap-3">
-                                <a asp-controller="Auth" asp-action="Logout" class="btn btn-light-danger">
-                                    <i class="ki-duotone ki-entrance-left me-2">
-                                        <span class="path1"></span>
-                                        <span class="path2"></span>
-                                    </i>
-                                    Logout & Re-login
-                                </a>
+                                <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-light-danger">
+                                        <i class="ki-duotone ki-entrance-left me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Logout & Re-login
+                                    </button>
+                                </form>
                                 
                                 <a asp-controller="Admin" asp-action="Index" class="btn btn-light-primary">
                                     <i class="ki-duotone ki-home me-2">

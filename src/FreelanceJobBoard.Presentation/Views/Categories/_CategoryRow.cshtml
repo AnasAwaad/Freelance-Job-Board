@@ -3,50 +3,62 @@
 @if (Model != null)
 {
     <tr>
-        <td class="text-center">@(Model.Name ?? "N/A")</td>
+        <td class="text-center">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="text-gray-800 text-hover-primary fw-bold">
+                @(Model.Name ?? "N/A")
+            </a>
+        </td>
         <td>
             @{
                 var description = Model.Description ?? "";
-                var displayDescription = description.Length > 30 ? $"{description.Substring(0, 30)}..." : description;
+                var displayDescription = description.Length > 50 ? $"{description.Substring(0, 50)}..." : description;
             }
-            @displayDescription
+            <span class="text-gray-600">@(string.IsNullOrEmpty(displayDescription) ? "No description" : displayDescription)</span>
         </td>
         <td class="js-status">
-            <span class="badge badge-@(!Model.IsActive ? "warning" : "success")">
+            <span class="badge badge-light-@(!Model.IsActive ? "danger" : "success")">
                 @(!Model.IsActive ? "Inactive" : "Active")
             </span>
         </td>
         <td class="text-center">
-            <div class="dropdown">
-                <button class="btn btn-sm btn-light shadow-sm rounded-circle" type="button" id="dropdownMenuButton_@Model.Id"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-three-dots-vertical fs-5 text-dark"></i>
+            <div class="d-flex justify-content-center gap-1">
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-icon btn-light-primary btn-sm"
+                   data-bs-toggle="tooltip" title="View Details">
+                    <i class="ki-duotone ki-eye fs-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                        <span class="path3"></span>
+                    </i>
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-icon btn-light-warning btn-sm"
+                   data-bs-toggle="tooltip" title="Edit Category">
+                    <i class="ki-duotone ki-pencil fs-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </a>
+                <a href="javascript:;" 
+                   class="btn btn-icon btn-light-@(Model.IsActive ? "danger" : "success") btn-sm js-render-modal" 
+                   data-url="/Categories/UpdateModal/@Model.Id"
+                   data-title="Update Category"
+                   data-bs-toggle="tooltip" 
+                   title="Edit (Modal)">
+                    <i class="ki-duotone ki-notepad-edit fs-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                </a>
+                <button type="button" 
+                        class="btn btn-icon btn-light-@(Model.IsActive ? "danger" : "success") btn-sm js-change-status" 
+                        data-status="@Model.IsActive.ToString().ToLower()"
+                        data-url="/Categories/ChangeStatus/@Model.Id"
+                        data-bs-toggle="tooltip" 
+                        title="@(Model.IsActive ? "Deactivate" : "Activate")">
+                    <i class="ki-duotone ki-@(Model.IsActive ? "cross" : "check") fs-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm animate__animated animate__fadeIn"
-                    aria-labelledby="dropdownMenuButton_@Model.Id">
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center js-render-modal"
-                           href="javascript:;"
-                           data-url="/Categories/Update/@Model.Id"
-                           data-title="Update Category"
-                           data-update="true">
-                            <i class="ki-duotone ki-notepad-edit fs-5 text-success me-2">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                            </i>
-                            <span>Update</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center js-change-status text-danger"
-                           data-status="@Model.IsActive.ToString().ToLower()"
-                           data-url="/Categories/ChangeStatus/@Model.Id"
-                           href="javascript:;">
-                            <i class="bi bi-@(Model.IsActive ? "x-circle" : "check-circle") fs-5 me-2"></i>
-                            <span>@(Model.IsActive ? "Deactivate" : "Activate")</span>
-                        </a>
-                    </li>
-                </ul>
             </div>
         </td>
     </tr>
@@ -55,7 +67,11 @@ else
 {
     <tr>
         <td colspan="4" class="text-center text-muted">
-            <i class="bi bi-exclamation-triangle"></i>
+            <i class="ki-duotone ki-information-4 fs-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+                <span class="path3"></span>
+            </i>
             Invalid category data
         </td>
     </tr>

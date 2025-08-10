@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using FreelanceJobBoard.Application.Behaviors;
 using FreelanceJobBoard.Domain.Identity;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,14 +15,15 @@ public static class ServiceCollectionExtensions
 
 		var applicationAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
-		services.AddMediatR(config => config.RegisterServicesFromAssembly(applicationAssembly));
+		services.AddMediatR(config => 
+		{
+			config.RegisterServicesFromAssembly(applicationAssembly);
+			config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+		});
 
 		services.AddAutoMapper(applicationAssembly);
 
-		services.AddValidatorsFromAssembly(applicationAssembly)
-			.AddFluentValidationAutoValidation();
-
-
+		services.AddValidatorsFromAssembly(applicationAssembly);
 
         return services;
 	}

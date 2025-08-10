@@ -8,6 +8,7 @@ public interface INotificationService
     Task NotifyJobStatusChangeAsync(int jobId, string status, string? clientMessage = null);
     Task NotifyNewProposalAsync(int jobId, int proposalId);
     Task NotifyJobApprovalAsync(int jobId, bool isApproved, string? adminMessage = null);
+    Task NotifyJobSubmittedForApprovalAsync(int jobId);
     Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId, bool unreadOnly = false);
     Task MarkAsReadAsync(int notificationId);
 }
