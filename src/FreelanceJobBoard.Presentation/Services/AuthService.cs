@@ -20,7 +20,7 @@ public class AuthService
 		_logger = logger;
 		_emailService = emailService;
 		_httpContextAccessor = httpContextAccessor;
-		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Auth/");
+		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Auth/");
 	}
 
 	public async Task<AuthResponseDto?> LoginAsync(LoginViewModel viewModel)
@@ -209,7 +209,7 @@ public class AuthService
 			// Get JWT token from current HttpContext
 			var context = _httpContextAccessor.HttpContext;
 			string? jwtToken = null;
-			
+
 			if (context?.User?.Identity?.IsAuthenticated == true)
 			{
 				jwtToken = context.User.FindFirst("jwt")?.Value;
@@ -224,14 +224,14 @@ public class AuthService
 			// Create a new HttpClient request with Authorization header
 			using var request = new HttpRequestMessage(HttpMethod.Post, "change-password");
 			request.Content = JsonContent.Create(dto);
-			
+
 			if (!string.IsNullOrEmpty(jwtToken))
 			{
 				request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
 			}
 
 			var response = await _httpClient.SendAsync(request);
-			
+
 			if (response.IsSuccessStatusCode)
 			{
 				_logger.LogInformation("Password changed successfully for current user");

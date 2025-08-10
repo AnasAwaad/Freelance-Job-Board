@@ -9,8 +9,11 @@
 	<link type="text/css" rel="stylesheet" id="jssDefault" href="~/css/colors/green-style.css">
 	<link href="~/css/top-categories.css" rel="stylesheet" />
 	<link href="~/css/recent-jobs.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
 	<link href="~/css/custome.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
     @RenderSection("Styles", required: false)
 
 </head>
@@ -26,10 +29,13 @@
 	</div>
 	<script src="~/js/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    
 	@* <script src="~/js/loader.js"></script> *@
-    <script src="~/js/owl.carousel.min.js"></script>
-    <script src="~/js/bootsnav.js"></script>
-	<script src="~/js/site.js"></script>
+	<script src="~/js/bootsnav.js"></script>
+	<script src="~/lib/owl-carousel/owl.carousel.min.js"></script>
+	<script src="~/js/home-site.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

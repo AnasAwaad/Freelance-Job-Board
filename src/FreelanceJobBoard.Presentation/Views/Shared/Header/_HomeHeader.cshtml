@@ -1,26 +1,68 @@
-﻿<nav class="navbar navbar-default navbar-fixed navbar-transparent  white bootsnav">
+﻿<header class="header">
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
 
-    <div class="container">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-menu">
-            <i class="fa fa-bars"></i>
-        </button>
-        <div class="navbar-header">
-            <a class="navbar-brand" href="index-2.html">
-                <img src="/images/logo.png"
-                     class="logo logo-display"
-                     alt=""><img src="/images/logo.png" class="logo logo-scrolled" alt="">
-            </a>
+        <!-- Logo -->
+        <div class="logo-container">
+            <!-- Green circle -->
+            <div >
+                <!-- This could be an SVG or a different icon, using a simple text 'j' for now -->
+				<img src="~/images/logo-white.png" />
+            </div>
         </div>
-        <div class="collapse navbar-collapse" id="navbar-menu">
-            <ul class="nav navbar-nav navbar-right" data-in="fadeInDown" data-out="fadeOutUp">
-                <li><a href="login.html"><i class="fa fa-pencil" aria-hidden="true"></i>SignUp</a></li>
-                <li><a href="pricing.html"><i class="fa fa-sign-in" aria-hidden="true"></i>Pricing</a></li>
-                <li class="left-br">
-                    <a href="javascript:void(0)" data-toggle="modal" data-target="#signup"
-                       class="signin">Sign In Now</a>
-                </li>
-            </ul>
-            
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-bar">
+                <!-- Search Icon (Using a simple SVG) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <!-- Input field -->
+                <input type="text" placeholder="search for job" class="search-input">
+            </div>
+        </div>
+
+        <!-- Auth and Links -->
+        <div class="auth-links">
+            <nav class="main-nav">
+                <a href="#" class="main-nav-link">Find Job</a>
+                <a href="#" class="main-nav-link">Find Talents</a>
+                <a href="#" class="main-nav-link">Pages</a>
+            </nav>
+            <div class="auth-buttons">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <!-- Show Logout when logged in -->
+                    <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" style="display:inline;">
+                        <button type="submit" class="login-link btn btn-link p-0" style="border:none; background:none;">Logout</button>
+                    </form>
+                }
+                else
+                {
+                    <!-- Show Login and Register when not logged in -->
+                    <a asp-area="" asp-controller="Auth" asp-action="Login" class="login-link">Login</a>
+                    <a asp-area="" asp-controller="Auth" asp-action="Register" class="register-btn">Register</a>
+                }
+            </div>
         </div>
     </div>
-</nav>
+
+    <!-- Secondary Navigation -->
+    <div class="secondary-nav-wrapper">
+        <nav class="secondary-nav">
+            <ul class="secondary-nav-list">
+                <li><a href="#">Design & Creative</a></li>
+                <li><a href="#">IT & Development</a></li>
+                <li><a href="#">Trending</a></li>
+                <li><a href="#">Web & Mobile Dev</a></li>
+                <li><a href="#">Writing</a></li>
+                <li><a href="#">Sales & Marketing</a></li>
+                <li><a href="#">Music & Audio</a></li>
+                <li><a href="#">Video & Animation</a></li>
+                
+            </ul>
+        </nav>
+    </div>
+
+</header>

@@ -15,7 +15,7 @@ public class JobService
 		_httpContext = httpContextAccessor.HttpContext;
 		_logger = logger;
 		// Set base address to API root - don't include Jobs path here
-		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
+		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/");
 
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
 
@@ -149,7 +149,7 @@ public class JobService
 				catch (Exception parseEx)
 				{
 					_logger.LogWarning(parseEx, "Failed to parse job ID from JSON response");
-					
+
 					// Fallback: try parsing as plain text
 					try
 					{
@@ -164,7 +164,7 @@ public class JobService
 					{
 						_logger.LogWarning(textParseEx, "Failed to parse job ID from text response");
 					}
-					
+
 					// Last resort: extract from location header
 					if (response.Headers.Location != null)
 					{
@@ -195,7 +195,7 @@ public class JobService
 		{
 			// This will call PUT /api/Jobs/{id}
 			var response = await _httpClient.PutAsJsonAsync($"Jobs/{viewModel.Id}", viewModel);
-			
+
 			if (response.IsSuccessStatusCode)
 			{
 				_logger.LogInformation("Job updated successfully with ID {JobId}", viewModel.Id);
@@ -218,7 +218,7 @@ public class JobService
 		{
 			// This will call DELETE /api/Jobs/{id}
 			var response = await _httpClient.DeleteAsync($"Jobs/{id}");
-			
+
 			if (response.IsSuccessStatusCode)
 			{
 				_logger.LogInformation("Job deleted successfully with ID {JobId}", id);
@@ -291,6 +291,26 @@ public class JobService
 			Skills = new List<SkillViewModel>() // Not available in JobDetailsDto
 		};
 	}
+
+	public async Task<PublicJobDetailsViewModel?> GetPublicJobDeatils(int jobId)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/details/{jobId}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<PublicJobDetailsViewModel>();
+
+		return null;
+	}
+
+	public async Task<IEnumerable<JobListViewModel>?> GetSimilarJobs(int jobId)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/related-jobs/{jobId}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<JobListViewModel>>();
+
+		return null;
+	}
 }
 
 // API DTO classes (these should match what the API returns)
@@ -354,27 +374,6 @@ public class ApiClientDto
 {
 	public int Id { get; set; }
 	public string? FullName { get; set; }
-		var response = await _httpClient.DeleteAsync($"{id}");
-		return response.IsSuccessStatusCode;
-	}
-
-	public async Task<PublicJobDetailsViewModel?> GetPublicJobDeatils(int jobId)
-	{
-		var response = await _httpClient.GetAsync($"Jobs/details/{jobId}");
-
-		if (response.IsSuccessStatusCode)
-			return await response.Content.ReadFromJsonAsync<PublicJobDetailsViewModel>();
-
-		return null;
-	}
-
-	public async Task<IEnumerable<JobListViewModel>?> GetSimilarJobs(int jobId)
-	{
-		var response = await _httpClient.GetAsync($"Jobs/related-jobs/{jobId}");
-
-		if (response.IsSuccessStatusCode)
-			return await response.Content.ReadFromJsonAsync<IEnumerable<JobListViewModel>>();
-
-		return null;
-	}
 }
+
+

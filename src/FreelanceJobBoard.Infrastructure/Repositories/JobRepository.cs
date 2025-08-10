@@ -125,7 +125,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			Include(j => j.Client)
 			.ThenInclude(c => c.User)
 			.OrderByDescending(j => j.CreatedOn)
-			.Where(j => j.IsActive)
+			.Where(j => j.IsActive && j.Status == JobStatus.Open)
 			.Take(numOfJobs);
 	}
 
@@ -138,7 +138,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 				.ThenInclude(js => js.Skill)
 			.Include(j => j.Categories)
 				.ThenInclude(jc => jc.Category)
-			.Where(j => j.IsActive && j.Id == jobId);
+			.Where(j => j.IsActive && j.Id == jobId && j.Status == JobStatus.Open);
 
 
 	}
