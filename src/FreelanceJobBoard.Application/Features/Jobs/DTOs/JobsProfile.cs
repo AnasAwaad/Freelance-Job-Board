@@ -42,7 +42,8 @@ public class JobsProfile : Profile
 
 		CreateMap<Job, RecentJobDto>()
 			.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Split(new[] { ',' }).ToList()))
-			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.User.FullName));
+			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.User.FullName))
+			.ForMember(dest => dest.ClientProfileImage, opt => opt.MapFrom(src => src.Client.User.ProfileImageUrl));
 
 
 

@@ -10,6 +10,8 @@ public class RecentJobViewModel
 	public decimal BudgetMax { get; set; }
 	public DateTime CreatedDate { get; set; }
 	public List<string> Tags { get; set; } = new();
+	public string ClientProfileImage { get; set; }
+
 	public string TimeAgo
 	{
 		get

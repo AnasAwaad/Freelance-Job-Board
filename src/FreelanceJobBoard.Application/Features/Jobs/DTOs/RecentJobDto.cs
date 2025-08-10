@@ -6,6 +6,7 @@ public class RecentJobDto
 	public string Description { get; set; }
 	public string ClientName { get; set; }
 	public decimal BudgetMin { get; set; }
+	public string? ClientProfileImage { get; set; }
 	public decimal BudgetMax { get; set; }
 	public DateTime CreatedDate { get; set; }
 	public List<string>? Tags { get; set; }
