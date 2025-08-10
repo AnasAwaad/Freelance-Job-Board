@@ -36,6 +36,7 @@ public class Program
 		builder.Services.AddHttpClient<CategoryService>();
 		builder.Services.AddHttpClient<JobService>();
 		builder.Services.AddHttpClient<SkillService>();
+		builder.Services.AddHttpClient<ProposalService>();
 
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
@@ -52,8 +53,7 @@ public class Program
 
 		builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		{
-			options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FreelanceJobBoard.API")
-);
+			options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FreelanceJobBoard.API"));
 			if (builder.Environment.IsDevelopment())
 			{
 				options.EnableSensitiveDataLogging();

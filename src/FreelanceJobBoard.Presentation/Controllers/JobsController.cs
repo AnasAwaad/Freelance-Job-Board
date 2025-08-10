@@ -12,12 +12,14 @@ public class JobsController : Controller
     private readonly JobService _jobService;
     private readonly CategoryService _categoryService;
     private readonly SkillService _skillService;
+    private readonly ProposalService _proposalService;
 
-    public JobsController(JobService jobService, CategoryService categoryService, SkillService skillService)
+    public JobsController(JobService jobService, CategoryService categoryService, SkillService skillService, ProposalService proposalService)
     {
         _jobService = jobService;
         _categoryService = categoryService;
         _skillService = skillService;
+        _proposalService = proposalService;
     }
 
     public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, string? sortDirection = null)
@@ -39,12 +41,63 @@ public class JobsController : Controller
 
     public async Task<IActionResult> Details(int id)
     {
+        // Validate job ID
+        if (id <= 0)
+        {
+            TempData["Error"] = "Invalid job ID provided.";
+            return RedirectToAction(nameof(Index));
+        }
+
         var job = await _jobService.GetJobByIdAsync(id);
         
         if (job == null)
         {
             TempData["Error"] = "The requested job could not be found. It may have been removed or you may not have permission to view it.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Set ownership information for role-based rendering
+        ViewBag.IsOwner = false;
+        ViewBag.HasFreelancerApplied = false;
+        ViewBag.HasAcceptedProposal = false;
+        
+        if (User.IsInRole(AppRoles.Client))
+        {
+            // Check if current user owns this job by comparing user ID with job's client ID
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            // Note: In a real implementation, you would need to get the current user's client ID
+            // For now, we'll assume ownership based on whether they can see their jobs
+            try
+            {
+                var myJobs = await _jobService.GetMyJobsAsync();
+                ViewBag.IsOwner = myJobs?.Any(j => j.Id == id) ?? false;
+            }
+            catch
+            {
+                ViewBag.IsOwner = false;
+            }
+        }
+        else if (User.IsInRole(AppRoles.Freelancer))
+        {
+            // Check if freelancer has already applied to this job
+            try
+            {
+                ViewBag.HasFreelancerApplied = await _proposalService.HasFreelancerAppliedAsync(id);
+            }
+            catch
+            {
+                ViewBag.HasFreelancerApplied = false;
+            }
+        }
+
+        // Check if job has an accepted proposal (for all users)
+        try
+        {
+            ViewBag.HasAcceptedProposal = await _proposalService.HasJobAcceptedProposalAsync(id);
+        }
+        catch
+        {
+            ViewBag.HasAcceptedProposal = false;
         }
 
         return View(job);

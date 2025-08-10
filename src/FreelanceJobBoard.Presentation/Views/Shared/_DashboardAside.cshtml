@@ -93,7 +93,24 @@
 
 					</div>
 					<!--end:Menu item-->
-						
+
+					<!--begin:Menu item - Proposals-->
+					@if (User.IsInRole(AppRoles.Freelancer))
+					{
+						<div class="menu-item">
+							<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Proposals" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyProposals" ? "active" : "")" asp-controller="Proposals" asp-action="MyProposals">
+								<span class="menu-icon">
+									<i class="ki-duotone ki-questionnaire-tablet fs-2">
+										<span class="path1"></span>
+										<span class="path2"></span>
+									</i>
+								</span>
+								<span class="menu-title">My Proposals</span>
+							</a>
+						</div>
+					}
+					<!--end:Menu item-->
+
 					<!--begin:Menu item - Categories-->
 					<div class="menu-item">
 						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">
