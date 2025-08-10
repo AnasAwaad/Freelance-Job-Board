@@ -1,4 +1,4 @@
-@model CategoryFormViewModel
+@model FreelanceJobBoard.Presentation.Models.ViewModels.CreateCategoryViewModel
 @{
     ViewData["Title"] = "Create Category";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
@@ -7,12 +7,18 @@
 <div class="d-flex flex-column flex-column-fluid">
     <!--begin::Toolbar-->
     <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
-        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
             <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
                 <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Create Category</h1>
                 <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
                     <li class="breadcrumb-item text-muted">
-                        <a asp-controller="Categories" asp-action="Index" class="text-muted text-hover-primary">Categories</a>
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="Index" class="text-muted text-hover-primary">Categories</a>
                     </li>
                     <li class="breadcrumb-item">
                         <span class="bullet bg-gray-400 w-5px h-2px"></span>
@@ -26,60 +32,103 @@
 
     <!--begin::Content-->
     <div id="kt_app_content" class="app-content flex-column-fluid">
-        <div id="kt_app_content_container" class="app-container container-xxl">
-            
-            <div class="card">
-                <div class="card-header border-0 cursor-pointer">
-                    <div class="card-title m-0">
-                        <h3 class="fw-bold m-0">Category Information</h3>
-                    </div>
-                </div>
-                
-                <div class="card-body border-top p-9">
-                    <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        
-                        <div class="row mb-6">
-                            <label asp-for="Name" class="col-lg-4 col-form-label required fw-semibold fs-6">Category Name</label>
-                            <div class="col-lg-8">
-                                <input asp-for="Name" class="form-control form-control-lg form-control-solid" 
-                                       placeholder="Enter category name" required />
-                                <span asp-validation-for="Name" class="text-danger"></span>
-                            </div>
+        <div id="kt_app_content_container" class="app-container container-fluid">
+            <div class="row">
+                <div class="col-xl-8 offset-xl-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title fs-3 fw-bold">Category Information</div>
                         </div>
-                        
-                        <div class="row mb-6">
-                            <label asp-for="Description" class="col-lg-4 col-form-label fw-semibold fs-6">Description</label>
-                            <div class="col-lg-8">
-                                <textarea asp-for="Description" class="form-control form-control-lg form-control-solid" 
-                                         rows="3" placeholder="Enter category description (optional)"></textarea>
-                                <span asp-validation-for="Description" class="text-danger"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-6">
-                            <label class="col-lg-4 col-form-label fw-semibold fs-6">Status</label>
-                            <div class="col-lg-8">
-                                <div class="form-check form-switch">
-                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                                    <label asp-for="IsActive" class="form-check-label">
-                                        Active
-                                    </label>
+                        <div class="card-body">
+                            <form asp-action="Create" method="post" novalidate>
+                                <div class="row mb-8">
+                                    <div class="col-xl-12">
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Name" class="fs-6 fw-semibold mb-2">Category Name</label>
+                                            <input asp-for="Name" class="form-control form-control-solid" placeholder="Enter category name (e.g., Web Development, Graphic Design, Content Writing)" />
+                                            <span asp-validation-for="Name" class="text-danger fs-7"></span>
+                                            <div class="form-text">Enter a clear and descriptive category name that helps organize jobs and skills.</div>
+                                        </div>
+
+                                        <div class="fv-row mb-8">
+                                            <label asp-for="Description" class="fs-6 fw-semibold mb-2">Description (Optional)</label>
+                                            <textarea asp-for="Description" class="form-control form-control-solid" rows="3" placeholder="Enter a brief description of this category..."></textarea>
+                                            <span asp-validation-for="Description" class="text-danger fs-7"></span>
+                                            <div class="form-text">Provide additional details about what types of jobs or skills belong in this category.</div>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <a asp-action="Index" class="btn btn-light me-3">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="indicator-label">Create Category</span>
+                                        <span class="indicator-progress">Please wait...
+                                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Popular Categories Suggestions -->
+                    <div class="card mt-5">
+                        <div class="card-header">
+                            <div class="card-title fs-5 fw-bold">Popular Categories Suggestions</div>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-gray-600 mb-5">Here are some popular categories you might want to add:</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge badge-light-primary category-suggestion" data-category="Web Development" data-description="Frontend and backend web development projects">Web Development</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Mobile App Development" data-description="iOS and Android mobile application development">Mobile App Development</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Graphic Design" data-description="Logo design, branding, and visual design projects">Graphic Design</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="UI/UX Design" data-description="User interface and user experience design">UI/UX Design</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Content Writing" data-description="Blog posts, articles, copywriting, and content creation">Content Writing</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Digital Marketing" data-description="SEO, social media marketing, and online advertising">Digital Marketing</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Data Analysis" data-description="Data science, analytics, and business intelligence">Data Analysis</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Video Production" data-description="Video editing, animation, and multimedia production">Video Production</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Translation" data-description="Language translation and localization services">Translation</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Consulting" data-description="Business consulting and advisory services">Consulting</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Photography" data-description="Product photography, event photography, and photo editing">Photography</span>
+                                <span class="badge badge-light-primary category-suggestion" data-category="Virtual Assistant" data-description="Administrative support and virtual assistance">Virtual Assistant</span>
                             </div>
+                            <div class="form-text mt-3">Click on any category to auto-fill the form</div>
                         </div>
-                        
-                        <div class="card-footer d-flex justify-content-end py-6 px-9">
-                            <a asp-action="Index" class="btn btn-light btn-active-light-primary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Create Category</button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <!--end::Content-->
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Form submission with loading state
+            $('form').on('submit', function() {
+                const submitBtn = $(this).find('button[type="submit"]');
+                submitBtn.attr('disabled', true);
+                submitBtn.find('.indicator-label').hide();
+                submitBtn.find('.indicator-progress').show();
+            });
+
+            // Category suggestion click handler
+            $('.category-suggestion').on('click', function() {
+                const categoryName = $(this).data('category');
+                const categoryDescription = $(this).data('description');
+                $('#Name').val(categoryName);
+                $('#Description').val(categoryDescription);
+                $(this).removeClass('badge-light-primary').addClass('badge-success');
+                
+                // Reset other suggestions
+                $('.category-suggestion').not(this).removeClass('badge-success').addClass('badge-light-primary');
+            });
+
+            // Auto-focus on category name input
+            $('#Name').focus();
+        });
+    </script>
 }

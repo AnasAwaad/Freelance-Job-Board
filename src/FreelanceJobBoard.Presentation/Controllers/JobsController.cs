@@ -43,7 +43,8 @@ public class JobsController : Controller
         
         if (job == null)
         {
-            return NotFound();
+            TempData["Error"] = "The requested job could not be found. It may have been removed or you may not have permission to view it.";
+            return RedirectToAction(nameof(Index));
         }
 
         return View(job);
@@ -96,8 +97,21 @@ public class JobsController : Controller
         
         if (jobId.HasValue)
         {
-            TempData["Success"] = "Job created successfully!";
-            return RedirectToAction(nameof(Details), new { id = jobId.Value });
+            TempData["Success"] = "Job created successfully and submitted for admin approval! You'll be notified once it's reviewed.";
+            
+            // Try to verify the job was created before redirecting
+            var createdJob = await _jobService.GetJobByIdAsync(jobId.Value);
+            if (createdJob != null)
+            {
+                return RedirectToAction(nameof(Details), new { id = jobId.Value });
+            }
+            else
+            {
+                // Job was created but might not be immediately available (e.g., pending approval)
+                // Redirect to MyJobs instead
+                TempData["Info"] = "Your job has been created and is pending admin approval. You can view it in your jobs list.";
+                return RedirectToAction(nameof(MyJobs));
+            }
         }
 
         ModelState.AddModelError("", "Failed to create job. Please try again.");

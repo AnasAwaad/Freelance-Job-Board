@@ -21,6 +21,15 @@
 					<li class="breadcrumb-item text-muted">Categories</li>
 				</ul>
 			</div>
+			<div class="d-flex align-items-center gap-2 gap-lg-3">
+				@if (User.IsInRole("Admin"))
+				{
+					<a asp-action="Create" class="btn btn-sm fw-bold btn-primary">
+						<i class="ki-duotone ki-plus fs-2"></i>
+						Add Category
+					</a>
+				}
+			</div>
 		</div>
 	</div>
 	<!--end::Toolbar-->
@@ -89,8 +98,9 @@
 						
 						@if (User.IsInRole("Admin"))
 						{
-							<a href="javascript:;" data-url="/Categories/Create" data-title="Create New Category" class="btn btn-primary js-render-modal">
-								Add Category
+							<a href="javascript:;" data-url="/Categories/CreateModal" data-title="Create New Category" class="btn btn-light-success js-render-modal">
+								<i class="ki-duotone ki-plus fs-2"></i>
+								Quick Add (Modal)
 							</a>
 						}
 					</div>
@@ -125,15 +135,29 @@
 					else
 					{
 						<!--begin::Empty state-->
-						<div class="d-flex flex-column flex-center">
-							<img src="~/images/illustrations/sketchy-1/5.png" alt="" class="mw-300px">
-							<div class="fs-1 fw-bolder text-dark mb-4">No Categories Found</div>
-							<div class="fs-6 text-muted mb-6">There are no categories available at the moment.</div>
+						<div class="d-flex flex-column flex-center py-10">
+							<div class="mb-7">
+								<i class="ki-duotone ki-category fs-3x text-gray-400">
+									<span class="path1"></span>
+									<span class="path2"></span>
+									<span class="path3"></span>
+									<span class="path4"></span>
+								</i>
+							</div>
+							<h3 class="text-gray-600 fw-semibold mb-2">No Categories Found</h3>
+							<p class="text-gray-400 mb-6">There are no categories available at the moment.</p>
 							@if (User.IsInRole("Admin"))
 							{
-								<a href="javascript:;" data-url="/Categories/Create" data-title="Create New Category" class="btn btn-primary js-render-modal">
-									Create First Category
-								</a>
+								<div class="d-flex gap-3">
+									<a asp-action="Create" class="btn btn-primary">
+										<i class="ki-duotone ki-plus fs-2"></i>
+										Create First Category
+									</a>
+									<a href="javascript:;" data-url="/Categories/CreateModal" data-title="Create New Category" class="btn btn-light-primary js-render-modal">
+										<i class="ki-duotone ki-plus fs-2"></i>
+										Quick Add (Modal)
+									</a>
+								</div>
 							}
 						</div>
 						<!--end::Empty state-->
@@ -208,9 +232,19 @@
 				const url = $(this).data('url');
 				const title = $(this).data('title');
 				
-				// You can implement modal loading here
-				// For now, we'll redirect to the action
-				window.location.href = url;
+				// Load modal content via AJAX
+				$.get(url)
+					.done(function(data) {
+						// Remove any existing modal
+						$('#categoryModal').remove();
+						
+						// Append the modal to body
+						$('body').append(data);
+					})
+					.fail(function(xhr) {
+						console.error('Failed to load modal:', xhr);
+						alert('Failed to load the form. Please try again.');
+					});
 			});
 		});
 	</script>

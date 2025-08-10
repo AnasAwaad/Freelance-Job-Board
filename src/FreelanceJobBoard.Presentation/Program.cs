@@ -20,8 +20,19 @@ public class Program
 		// Add services to the container.
 		builder.Services.AddControllersWithViews();
 		
+		// Configure Session (optional, for future use)
+		builder.Services.AddDistributedMemoryCache();
+		builder.Services.AddSession(options =>
+		{
+			options.IdleTimeout = TimeSpan.FromMinutes(30);
+			options.Cookie.HttpOnly = true;
+			options.Cookie.IsEssential = true;
+			options.Cookie.Name = "FreelanceJobBoard.Session";
+		});
+		
 		// Register HttpClients with IWebHostEnvironment for file handling
 		builder.Services.AddHttpClient<Presentation.Services.AuthService>();
+		builder.Services.AddHttpClient<Presentation.Services.UserService>();
 		builder.Services.AddHttpClient<CategoryService>();
 		builder.Services.AddHttpClient<JobService>();
 		builder.Services.AddHttpClient<SkillService>();
@@ -41,7 +52,8 @@ public class Program
 
 		builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		{
-			options.UseSqlServer(connectionString);
+			options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FreelanceJobBoard.API")
+);
 			if (builder.Environment.IsDevelopment())
 			{
 				options.EnableSensitiveDataLogging();
@@ -163,6 +175,9 @@ public class Program
 		app.UseStaticFiles();
 
 		app.UseRouting();
+		
+		// Add session middleware (optional)
+		app.UseSession();
 		
 		// Order is important: Authentication before Authorization
 		app.UseAuthentication();

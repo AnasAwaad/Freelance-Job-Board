@@ -14,8 +14,8 @@ public class SkillService
 		_httpContext = httpContextAccessor.HttpContext;
 		_logger = logger;
 
-		// Fix URL format
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Skills/");
+		// Set base address to API root - don't include Skills path here
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
 
 		// Set authorization header if user is authenticated
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
@@ -39,7 +39,8 @@ public class SkillService
 				queryParams.Add($"isActive={isActive.Value}");
 
 			var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
-			var response = await _httpClient.GetAsync($"{queryString}");
+			// This will call GET /api/Skills?queryString
+			var response = await _httpClient.GetAsync($"Skills{queryString}");
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -67,7 +68,8 @@ public class SkillService
 				return null;
 			}
 
-			var response = await _httpClient.GetAsync($"{id}");
+			// This will call GET /api/Skills/{id}
+			var response = await _httpClient.GetAsync($"Skills/{id}");
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -94,7 +96,8 @@ public class SkillService
 				return null;
 			}
 
-			var response = await _httpClient.PostAsJsonAsync("", viewModel);
+			// This will call POST /api/Skills
+			var response = await _httpClient.PostAsJsonAsync("Skills", viewModel);
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -126,7 +129,8 @@ public class SkillService
 				return false;
 			}
 
-			var response = await _httpClient.PutAsJsonAsync($"{viewModel.Id}", viewModel);
+			// This will call PUT /api/Skills/{id}
+			var response = await _httpClient.PutAsJsonAsync($"Skills/{viewModel.Id}", viewModel);
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -154,7 +158,8 @@ public class SkillService
 				return false;
 			}
 
-			var response = await _httpClient.DeleteAsync($"{id}");
+			// This will call DELETE /api/Skills/{id}
+			var response = await _httpClient.DeleteAsync($"Skills/{id}");
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -182,7 +187,8 @@ public class SkillService
 				return false;
 			}
 
-			var response = await _httpClient.PostAsync($"{id}/toggle-status", null);
+			// This will call POST /api/Skills/{id}/toggle-status
+			var response = await _httpClient.PostAsync($"Skills/{id}/toggle-status", null);
 
 			if (response.IsSuccessStatusCode)
 			{

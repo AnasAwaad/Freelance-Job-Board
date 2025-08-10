@@ -226,11 +226,14 @@
             // Profile photo preview
             $('input[type="file"]').on('change', function() {
                 const file = this.files[0];
+                const fileInput = $(this);
+                
                 if (file) {
                     // Validate file size (5MB)
                     if (file.size > 5 * 1024 * 1024) {
                         alert('File size must be less than 5MB');
                         this.value = '';
+                        removePreview(fileInput);
                         return;
                     }
                     
@@ -239,10 +242,63 @@
                     if (!allowedTypes.includes(file.type)) {
                         alert('Please select a valid image file (JPG, PNG, GIF)');
                         this.value = '';
+                        removePreview(fileInput);
                         return;
                     }
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        showPreview(fileInput, e.target.result, file.name);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    removePreview(fileInput);
                 }
             });
+            
+            // Helper function to show image preview
+            function showPreview(fileInput, imageSrc, fileName) {
+                const previewId = 'preview_' + fileInput.attr('id');
+                let previewContainer = $('#' + previewId);
+                
+                if (previewContainer.length === 0) {
+                    previewContainer = $(`
+                        <div id="${previewId}" class="mt-3">
+                            <div class="d-flex align-items-center">
+                                <img class="preview-image rounded" style="width: 60px; height: 60px; object-fit: cover;" />
+                                <div class="ms-3">
+                                    <div class="fw-bold text-gray-800 fs-6 preview-filename"></div>
+                                    <div class="text-muted fs-7">Image preview</div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-light-danger ms-auto remove-preview">
+                                    <i class="ki-duotone ki-cross fs-4">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </button>
+                            </div>
+                        </div>
+                    `);
+                    fileInput.parent().append(previewContainer);
+                    
+                    // Handle remove preview
+                    previewContainer.find('.remove-preview').on('click', function() {
+                        fileInput.val('');
+                        removePreview(fileInput);
+                    });
+                }
+                
+                previewContainer.find('.preview-image').attr('src', imageSrc);
+                previewContainer.find('.preview-filename').text(fileName);
+                previewContainer.show();
+            }
+            
+            // Helper function to remove image preview
+            function removePreview(fileInput) {
+                const previewId = 'preview_' + fileInput.attr('id');
+                $('#' + previewId).remove();
+            }
         });
     </script>
 }

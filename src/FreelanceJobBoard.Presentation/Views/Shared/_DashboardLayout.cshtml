@@ -75,110 +75,7 @@
 							<!--begin::Navbar-->
 							<div class="app-navbar flex-shrink-0">
 								<div class="app-navbar-item ms-1 ms-md-4">
-									<!--begin::User menu-->
-									<div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-										@{
-											var profilePhotoPath = ViewBag.ProfilePhoto as string;
-											var userName = User.Identity?.Name ?? "User";
-											var userInitial = userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "U";
-											var hasProfilePhoto = !string.IsNullOrEmpty(profilePhotoPath);
-										}
-										
-										@if (hasProfilePhoto)
-										{
-											<img src="@profilePhotoPath" alt="Profile Photo" class="w-35px h-35px rounded-circle object-fit-cover" />
-										}
-										else
-										{
-											<div class="symbol-label bg-primary text-white fw-bold">
-												@userInitial
-											</div>
-										}
-									</div>
-									<!--end::User menu-->
-									
-									<!--begin::User account menu-->
-									<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
-										<!--begin::Menu item-->
-										<div class="menu-item px-3">
-											<div class="menu-content d-flex align-items-center px-3">
-												<!--begin::Avatar-->
-												<div class="symbol symbol-50px me-5">
-													@if (hasProfilePhoto)
-													{
-														<img src="@profilePhotoPath" alt="Profile Photo" class="w-50px h-50px rounded-circle object-fit-cover" />
-													}
-													else
-													{
-														<div class="symbol-label bg-primary text-white fw-bold">
-															@userInitial
-														</div>
-													}
-												</div>
-												<!--end::Avatar-->
-												<!--begin::Username-->
-												<div class="d-flex flex-column">
-													<div class="fw-bold d-flex align-items-center fs-5">
-														@userName
-														<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">
-															@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User")
-														</span>
-													</div>
-													<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">
-														@(User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")
-													</a>
-												</div>
-												<!--end::Username-->
-											</div>
-										</div>
-										<!--end::Menu item-->
-										
-										<!--begin::Menu separator-->
-										<div class="separator my-2"></div>
-										<!--end::Menu separator-->
-										
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<a asp-controller="Profile" asp-action="Index" class="menu-link px-5">
-												<i class="ki-duotone ki-profile-circle fs-6 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>My Profile
-											</a>
-										</div>
-										<!--end::Menu item-->
-										
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<a asp-controller="Profile" asp-action="Security" class="menu-link px-5">
-												<i class="ki-duotone ki-setting-2 fs-6 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>Settings
-											</a>
-										</div>
-										<!--end::Menu item-->
-										
-										<!--begin::Menu separator-->
-										<div class="separator my-2"></div>
-										<!--end::Menu separator-->
-										
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<form asp-controller="Auth" asp-action="Logout" method="post" style="display: inline;">
-												<button type="submit" class="menu-link px-5 btn btn-link p-0 text-start w-100" style="border: none; background: none;">
-													<i class="ki-duotone ki-entrance-left fs-6 me-2">
-														<span class="path1"></span>
-														<span class="path2"></span>
-													</i>
-													Sign Out
-												</button>
-											</form>
-										</div>
-										<!--end::Menu item-->
-									</div>
-									<!--end::User account menu-->
+									@await Component.InvokeAsync("UserProfile")
 								</div>
 							</div>
 							<!--end::Navbar-->
@@ -247,6 +144,51 @@
 	@await RenderSectionAsync("Plugins", required: false)
 	<script src="~/js/site.js" asp-append-version="true"></script>
 	@await RenderSectionAsync("Scripts", required: false)
+	
+	<!-- Logout handling script -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			// Ensure all logout forms work correctly
+			document.querySelectorAll('form[action*="Logout"]').forEach(function(form) {
+				form.addEventListener('submit', function(e) {
+					// Prevent multiple submissions
+					const submitBtn = this.querySelector('button[type="submit"]');
+					if (submitBtn) {
+						submitBtn.disabled = true;
+						setTimeout(() => {
+							if (submitBtn) submitBtn.disabled = false;
+						}, 3000); // Re-enable after 3 seconds as fallback
+					}
+				});
+			});
+			
+			// Handle logout links that should be forms
+			document.querySelectorAll('a[href*="Logout"]').forEach(function(link) {
+				link.addEventListener('click', function(e) {
+					e.preventDefault();
+					console.warn('Logout link clicked - should use POST form instead');
+					
+					// Create and submit a temporary form for logout
+					const form = document.createElement('form');
+					form.method = 'POST';
+					form.action = '/Auth/Logout';
+					
+					// Add antiforgery token if available
+					const token = document.querySelector('input[name="__RequestVerificationToken"]');
+					if (token) {
+						const tokenInput = document.createElement('input');
+						tokenInput.type = 'hidden';
+						tokenInput.name = '__RequestVerificationToken';
+						tokenInput.value = token.value;
+						form.appendChild(tokenInput);
+					}
+					
+					document.body.appendChild(form);
+					form.submit();
+				});
+			});
+		});
+	</script>
 	<!--end::Javascript-->
 
 	<style>

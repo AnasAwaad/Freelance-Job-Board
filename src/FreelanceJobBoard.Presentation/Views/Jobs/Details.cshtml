@@ -63,6 +63,40 @@
                             </div>
                         </div>
                         <div class="card-body">
+                            @if (Model.Status == "Pending")
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="ki-duotone ki-warning-2 fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <strong>Pending Approval:</strong> Your job is currently under review by our admin team. 
+                                    Once approved, it will be visible to freelancers and you can start receiving proposals.
+                                </div>
+                            }
+                            else if (Model.Status == "Cancelled")
+                            {
+                                <div class="alert alert-danger">
+                                    <i class="ki-duotone ki-cross-circle fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <strong>Job Rejected:</strong> Your job posting has been rejected. 
+                                    Please review any feedback and make necessary changes before resubmitting.
+                                </div>
+                            }
+                            else if (Model.Status == "Open")
+                            {
+                                <div class="alert alert-success">
+                                    <i class="ki-duotone ki-check-circle fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <strong>Job Active:</strong> Your job is now live and visible to freelancers!
+                                </div>
+                            }
+
                             <div class="mb-8">
                                 <h4 class="fs-5 fw-bold text-gray-900 mb-3">Description</h4>
                                 <div class="text-gray-700 fs-6">

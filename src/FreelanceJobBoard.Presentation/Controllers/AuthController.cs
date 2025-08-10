@@ -242,12 +242,26 @@ public class AuthController : Controller
 	{
 		try
 		{
+			_logger.LogInformation("User {UserEmail} is attempting to logout", User.Identity?.Name);
+			
 			await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+			
+			// Clear session data if sessions are enabled
+			try
+			{
+				HttpContext.Session?.Clear();
+			}
+			catch (Exception sessionEx)
+			{
+				_logger.LogWarning(sessionEx, "Failed to clear session during logout - sessions may not be configured");
+			}
+			
+			_logger.LogInformation("User {UserEmail} logged out successfully", User.Identity?.Name);
 			TempData["Success"] = "You have been successfully logged out.";
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred during logout");
+			_logger.LogError(ex, "Error occurred during logout for user {UserEmail}", User.Identity?.Name);
 			TempData["Error"] = "An error occurred during logout.";
 		}
 
