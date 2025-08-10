@@ -41,40 +41,8 @@
                 </div>
 
             </div>
-
-            <!-- Apply for Job Form -->
-            <div class="container-detail-box mt-4">
-                <h5>Apply for this Job</h5>
-                <form asp-action="Create" asp-controller="Proposals" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="JobId" value="@Model.Id" />
-
-                    <div class="mb-3">
-                        <label class="form-label">Bid Amount ($)</label>
-                        <input type="number" name="BidAmount" class="form-control" step="0.01" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Estimated Timeline (Days)</label>
-                        <input type="number" name="EstimatedTimelineDays" class="form-control" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Cover Letter</label>
-                        <textarea name="CoverLetter" class="form-control" rows="4" placeholder="Write your proposal..." required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Portfolio Files</label>
-                        <input type="file" name="PortfolioFiles" class="form-control" multiple />
-                        <small class="text-muted">You can upload multiple files</small>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Submit Proposal</button>
-                </form>
-            </div>
-
             <!-- Similar Jobs -->
-            <partial name="_SimilarJobs" />
+            <partial name="_SimilarJobs" model="Model.RelatedJobs" />
         </div>
 
 
@@ -84,7 +52,7 @@
 			<!-- Job Detail -->
 			<div class="sidebar-container">
 				<div class="sidebar-box">
-					<span class="sidebar-status">@Model.Status</span>
+					<span class="sidebar-status bg-primary">@Model.Status</span>
 
 					<h4 class="flc-rate">@Model.BudgetMin.ToString("C0") - @Model.BudgetMax.ToString("C0")</h4>
 					<div class="sidebar-inner-box">
@@ -103,7 +71,7 @@
 						</ul>
 					</div>
 				</div>
-				<a href="javascript:;" class="btn btn-sidebar bt-1 bg-success " data-toggle="modal" data-target="#exampleModal" data-title="Apply for job" data-url="/Proposals/Create?JobId=@Model.Id">Apply For This</a>
+				<a class="btn btn-sidebar bt-1 bg-primary ">Apply For This</a>
 			</div>
 
 		</div>
@@ -112,6 +80,6 @@
 	</div>
 </section>
 
-					@section Scripts{
-						<partial name="_ValidationScriptsPartial"/>
-					}
+@section Scripts{
+	<partial name="_ValidationScriptsPartial"/>
+}

@@ -54,6 +54,15 @@ public class JobsProfile : Profile
 				Name = s.Skill.Name
 			})));
 
+		CreateMap<Job, PublicJobListDto>()
+			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.User.FullName))
+			.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Split(new[] { ',' }).ToList()))
+			.ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.Skills.Select(s => new SkillDto
+			{
+				Id = s.Skill.Id,
+				Name = s.Skill.Name
+			})));
+
 
 	}
 }

@@ -38,9 +38,11 @@ public class JobsController : Controller
 	}
 	[AllowAnonymous]
 
-	public IActionResult PublicJobDetails(int jobId)
+	public async Task<IActionResult> PublicJobDetails(int jobId)
 	{
 		var jobDetails = _jobService.GetPublicJobDeatils(jobId).Result;
+		jobDetails.RelatedJobs = await _jobService.GetSimilarJobs(jobId);
+
 		if (jobDetails == null)
 		{
 			return NotFound();

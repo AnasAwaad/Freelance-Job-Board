@@ -108,4 +108,14 @@ public class JobService
 
 		return null;
 	}
+
+	public async Task<IEnumerable<JobListViewModel>?> GetSimilarJobs(int jobId)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/related-jobs/{jobId}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<JobListViewModel>>();
+
+		return null;
+	}
 }

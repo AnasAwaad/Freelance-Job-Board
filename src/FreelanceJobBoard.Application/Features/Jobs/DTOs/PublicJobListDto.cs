@@ -1,6 +1,5 @@
-﻿namespace FreelanceJobBoard.Presentation.Models.ViewModels;
-
-public class RecentJobViewModel
+﻿namespace FreelanceJobBoard.Application.Features.Jobs.DTOs;
+public class PublicJobListDto
 {
 	public int Id { get; set; }
 	public string Title { get; set; }
@@ -11,7 +10,8 @@ public class RecentJobViewModel
 	public DateTime CreatedDate { get; set; }
 	public List<string> Tags { get; set; } = new();
 	public string ClientProfileImage { get; set; }
-
+	public string Status { get; set; }
+	public IEnumerable<SkillDto> Skills { get; set; }
 	public string TimeAgo
 	{
 		get

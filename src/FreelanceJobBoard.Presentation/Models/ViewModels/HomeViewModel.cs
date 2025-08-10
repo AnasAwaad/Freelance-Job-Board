@@ -2,6 +2,6 @@
 
 public class HomeViewModel
 {
-	public IEnumerable<RecentJobViewModel>? RecentJobs { get; set; }
+	public IEnumerable<JobListViewModel>? RecentJobs { get; set; }
 
 }

@@ -6,6 +6,7 @@ a, p {
     color: #707c88
 }
 
+
 body, section {
     background: #fff
 }
@@ -6896,7 +6897,7 @@ a.btn.btn-popular-jobs {
 }
 
 a.btn.btn-popular-jobs:focus, a.btn.btn-popular-jobs:hover {
-    background: #01c73d;
+    background: #1194f7;
     color: #fff
 }
 

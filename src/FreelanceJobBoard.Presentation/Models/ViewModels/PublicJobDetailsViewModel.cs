@@ -15,5 +15,5 @@ public class PublicJobDetailsViewModel
 	public PublicClientViewModel Client { get; set; }
 	public DateTime? LastUpdatedOn { get; set; }
 	public IEnumerable<PublicSkillViewModel> Skills { get; set; }
-
+	public IEnumerable<JobListViewModel> RelatedJobs { get; set; }
 }
