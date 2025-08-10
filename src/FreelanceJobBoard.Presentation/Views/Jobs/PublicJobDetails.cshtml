@@ -1,0 +1,85 @@
+﻿@model PublicJobDetailsViewModel
+@{
+	Layout = "_Layout";
+}
+
+<section>
+	<div class="container">
+
+        <div class="col-md-8 col-sm-8">
+            <div class="container-detail-box">
+
+                <div class="apply-job-header">
+                    <h4>@Model.Title</h4>
+                    <a href="company-detail.html" class="cl-success">
+                        <span><i class="fa fa-building"></i>@Model.Client.Company.Name</span>
+                    </a>
+                    <span><i class="fa fa-map-marker"></i>@Model.Client.Company.Industry</span>
+                </div>
+
+                <div class="apply-job-detail">
+                    <p>@Model.Description</p>
+                </div>
+
+                <div class="apply-job-detail">
+                    <h5>Skills</h5>
+                    <ul class="skills">
+                        @foreach (var skill in Model.Skills)
+                        {
+                            <li>@skill.Name</li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="apply-job-detail">
+                    <h5>Project Card</h5>
+                    <ul class="job-requirements">
+                        <li><span>Project status</span> @Model.Status</li>
+                        <li><span>Last Updated on</span> @Model.LastUpdatedOn</li>
+                        <li><span>Delivery time</span> @Model.Deadline.ToString("dd MMM yyyy")</li>
+                    </ul>
+                </div>
+
+            </div>
+            <!-- Similar Jobs -->
+            <partial name="_SimilarJobs" model="Model.RelatedJobs" />
+        </div>
+
+
+		<!-- Sidebar Start-->
+		<div class="col-md-4 col-sm-4">
+
+			<!-- Job Detail -->
+			<div class="sidebar-container">
+				<div class="sidebar-box">
+					<span class="sidebar-status bg-primary">@Model.Status</span>
+
+					<h4 class="flc-rate">@Model.BudgetMin.ToString("C0") - @Model.BudgetMax.ToString("C0")</h4>
+					<div class="sidebar-inner-box">
+						<div class="sidebar-box-thumb">
+							<img src="@Model.Client.ProfileImageUrl" class="img-responsive" alt="" />
+						</div>
+						<div class="sidebar-box-detail">
+							<h4>@Model.Client.FullName</h4>
+						</div>
+					</div>
+					<div class="sidebar-box-extra">
+						<ul class="status-detail">
+							<li class="br-1"><strong>@Model.Client.Company.Name</strong>Company</li>
+							<li class="br-1"><strong>748</strong>View</li>
+							<li><strong>03</strong>Post</li>
+						</ul>
+					</div>
+				</div>
+				<a class="btn btn-sidebar bt-1 bg-primary ">Apply For This</a>
+			</div>
+
+		</div>
+		<!-- End Sidebar -->
+
+	</div>
+</section>
+
+@section Scripts{
+	<partial name="_ValidationScriptsPartial"/>
+}

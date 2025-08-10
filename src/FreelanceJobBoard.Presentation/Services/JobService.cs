@@ -354,4 +354,27 @@ public class ApiClientDto
 {
 	public int Id { get; set; }
 	public string? FullName { get; set; }
+		var response = await _httpClient.DeleteAsync($"{id}");
+		return response.IsSuccessStatusCode;
+	}
+
+	public async Task<PublicJobDetailsViewModel?> GetPublicJobDeatils(int jobId)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/details/{jobId}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<PublicJobDetailsViewModel>();
+
+		return null;
+	}
+
+	public async Task<IEnumerable<JobListViewModel>?> GetSimilarJobs(int jobId)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/related-jobs/{jobId}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<JobListViewModel>>();
+
+		return null;
+	}
 }

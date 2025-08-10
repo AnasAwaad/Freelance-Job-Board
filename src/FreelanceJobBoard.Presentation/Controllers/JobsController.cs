@@ -22,22 +22,35 @@ public class JobsController : Controller
         _proposalService = proposalService;
     }
 
-    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, string? sortDirection = null)
-    {
-        var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, sortDirection);
-        
-        ViewBag.Search = search;
-        ViewBag.SortBy = sortBy;
-        ViewBag.SortDirection = sortDirection;
-        
-        return View(jobs);
-    }
+	public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, string? sortDirection = null)
+	{
+		var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, sortDirection);
 
-    public async Task<IActionResult> MyJobs()
-    {
-        var jobs = await _jobService.GetMyJobsAsync();
-        return View(jobs);
-    }
+		ViewBag.Search = search;
+		ViewBag.SortBy = sortBy;
+		ViewBag.SortDirection = sortDirection;
+
+		return View(jobs);
+	}
+
+	public async Task<IActionResult> MyJobs()
+	{
+		var jobs = await _jobService.GetMyJobsAsync();
+		return View(jobs);
+	}
+	[AllowAnonymous]
+
+	public async Task<IActionResult> PublicJobDetails(int jobId)
+	{
+		var jobDetails = _jobService.GetPublicJobDeatils(jobId).Result;
+		jobDetails.RelatedJobs = await _jobService.GetSimilarJobs(jobId);
+
+		if (jobDetails == null)
+		{
+			return NotFound();
+		}
+		return View(jobDetails);
+	}
 
     public async Task<IActionResult> Details(int id)
     {
@@ -100,51 +113,51 @@ public class JobsController : Controller
             ViewBag.HasAcceptedProposal = false;
         }
 
-        return View(job);
-    }
+		return View(job);
+	}
 
-    [Authorize(Roles = AppRoles.Client)] // Only clients can create jobs
-    public async Task<IActionResult> Create()
-    {
-        var viewModel = new CreateJobViewModel
-        {
-            AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>(),
-            AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>(),
-            Deadline = DateTime.Now.AddDays(30) // Default to 30 days from now
-        };
+	[Authorize(Roles = AppRoles.Client)] // Only clients can create jobs
+	public async Task<IActionResult> Create()
+	{
+		var viewModel = new CreateJobViewModel
+		{
+			AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>(),
+			AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>(),
+			Deadline = DateTime.Now.AddDays(30) // Default to 30 days from now
+		};
 
-        return View(viewModel);
-    }
+		return View(viewModel);
+	}
 
-    [HttpPost]
-    [Authorize(Roles = AppRoles.Client)] // Only clients can create jobs
-    public async Task<IActionResult> Create(CreateJobViewModel viewModel)
-    {
-        if (!ModelState.IsValid)
-        {
-            // Reload the dropdown data
-            viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-            viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-            return View(viewModel);
-        }
+	[HttpPost]
+	[Authorize(Roles = AppRoles.Client)] // Only clients can create jobs
+	public async Task<IActionResult> Create(CreateJobViewModel viewModel)
+	{
+		if (!ModelState.IsValid)
+		{
+			// Reload the dropdown data
+			viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+			viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+			return View(viewModel);
+		}
 
-        // Validate budget range
-        if (viewModel.BudgetMin > viewModel.BudgetMax)
-        {
-            ModelState.AddModelError("BudgetMax", "Maximum budget must be greater than or equal to minimum budget");
-            viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-            viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-            return View(viewModel);
-        }
+		// Validate budget range
+		if (viewModel.BudgetMin > viewModel.BudgetMax)
+		{
+			ModelState.AddModelError("BudgetMax", "Maximum budget must be greater than or equal to minimum budget");
+			viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+			viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+			return View(viewModel);
+		}
 
-        // Validate deadline
-        if (viewModel.Deadline <= DateTime.Now)
-        {
-            ModelState.AddModelError("Deadline", "Deadline must be in the future");
-            viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-            viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-            return View(viewModel);
-        }
+		// Validate deadline
+		if (viewModel.Deadline <= DateTime.Now)
+		{
+			ModelState.AddModelError("Deadline", "Deadline must be in the future");
+			viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+			viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+			return View(viewModel);
+		}
 
         var jobId = await _jobService.CreateJobAsync(viewModel);
         
@@ -167,113 +180,113 @@ public class JobsController : Controller
             }
         }
 
-        ModelState.AddModelError("", "Failed to create job. Please try again.");
-        viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-        viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-        return View(viewModel);
-    }
+		ModelState.AddModelError("", "Failed to create job. Please try again.");
+		viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+		viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+		return View(viewModel);
+	}
 
-    [Authorize(Roles = AppRoles.Client)] // Only clients can edit their jobs
-    public async Task<IActionResult> Edit(int id)
-    {
-        var job = await _jobService.GetJobByIdAsync(id);
-        
-        if (job == null)
-        {
-            return NotFound();
-        }
+	[Authorize(Roles = AppRoles.Client)] // Only clients can edit their jobs
+	public async Task<IActionResult> Edit(int id)
+	{
+		var job = await _jobService.GetJobByIdAsync(id);
 
-        var viewModel = new UpdateJobViewModel
-        {
-            Id = job.Id,
-            Title = job.Title ?? string.Empty,
-            Description = job.Description ?? string.Empty,
-            BudgetMin = job.BudgetMin,
-            BudgetMax = job.BudgetMax,
-            Deadline = job.Deadline,
-            Tags = job.Tags,
-            CategoryIds = job.Categories.Select(c => c.Id),
-            SkillIds = job.Skills.Select(s => s.Id),
-            AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>(),
-            AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>()
-        };
+		if (job == null)
+		{
+			return NotFound();
+		}
 
-        return View(viewModel);
-    }
+		var viewModel = new UpdateJobViewModel
+		{
+			Id = job.Id,
+			Title = job.Title ?? string.Empty,
+			Description = job.Description ?? string.Empty,
+			BudgetMin = job.BudgetMin,
+			BudgetMax = job.BudgetMax,
+			Deadline = job.Deadline,
+			Tags = job.Tags,
+			CategoryIds = job.Categories.Select(c => c.Id),
+			SkillIds = job.Skills.Select(s => s.Id),
+			AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>(),
+			AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>()
+		};
 
-    [HttpPost]
-    [Authorize(Roles = AppRoles.Client)] // Only clients can edit their jobs
-    public async Task<IActionResult> Edit(UpdateJobViewModel viewModel)
-    {
-        if (!ModelState.IsValid)
-        {
-            // Reload the dropdown data
-            viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-            viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-            return View(viewModel);
-        }
+		return View(viewModel);
+	}
 
-        // Validate budget range
-        if (viewModel.BudgetMin > viewModel.BudgetMax)
-        {
-            ModelState.AddModelError("BudgetMax", "Maximum budget must be greater than or equal to minimum budget");
-            viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-            viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-            return View(viewModel);
-        }
+	[HttpPost]
+	[Authorize(Roles = AppRoles.Client)] // Only clients can edit their jobs
+	public async Task<IActionResult> Edit(UpdateJobViewModel viewModel)
+	{
+		if (!ModelState.IsValid)
+		{
+			// Reload the dropdown data
+			viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+			viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+			return View(viewModel);
+		}
 
-        // Validate deadline
-        if (viewModel.Deadline <= DateTime.Now)
-        {
-            ModelState.AddModelError("Deadline", "Deadline must be in the future");
-            viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-            viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-            return View(viewModel);
-        }
+		// Validate budget range
+		if (viewModel.BudgetMin > viewModel.BudgetMax)
+		{
+			ModelState.AddModelError("BudgetMax", "Maximum budget must be greater than or equal to minimum budget");
+			viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+			viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+			return View(viewModel);
+		}
 
-        var success = await _jobService.UpdateJobAsync(viewModel);
-        
-        if (success)
-        {
-            TempData["Success"] = "Job updated successfully!";
-            return RedirectToAction(nameof(Details), new { id = viewModel.Id });
-        }
+		// Validate deadline
+		if (viewModel.Deadline <= DateTime.Now)
+		{
+			ModelState.AddModelError("Deadline", "Deadline must be in the future");
+			viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+			viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+			return View(viewModel);
+		}
 
-        ModelState.AddModelError("", "Failed to update job. Please try again.");
-        viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
-        viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
-        return View(viewModel);
-    }
+		var success = await _jobService.UpdateJobAsync(viewModel);
 
-    [HttpPost]
-    [Authorize(Roles = AppRoles.Client)] // Only clients can delete their jobs
-    public async Task<IActionResult> Delete(int id)
-    {
-        var success = await _jobService.DeleteJobAsync(id);
-        
-        if (success)
-        {
-            TempData["Success"] = "Job deleted successfully!";
-        }
-        else
-        {
-            TempData["Error"] = "Failed to delete job. Please try again.";
-        }
+		if (success)
+		{
+			TempData["Success"] = "Job updated successfully!";
+			return RedirectToAction(nameof(Details), new { id = viewModel.Id });
+		}
 
-        return RedirectToAction(nameof(MyJobs));
-    }
+		ModelState.AddModelError("", "Failed to update job. Please try again.");
+		viewModel.AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>();
+		viewModel.AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>();
+		return View(viewModel);
+	}
 
-    [HttpPost]
-    [Authorize(Roles = AppRoles.Client)] // Only clients can delete their jobs
-    public async Task<IActionResult> ConfirmDelete(int id)
-    {
-        var job = await _jobService.GetJobByIdAsync(id);
-        
-        if (job == null)
-        {
-            return NotFound();
-        }
+	[HttpPost]
+	[Authorize(Roles = AppRoles.Client)] // Only clients can delete their jobs
+	public async Task<IActionResult> Delete(int id)
+	{
+		var success = await _jobService.DeleteJobAsync(id);
 
-        return PartialView("_ConfirmDelete", job);
-    }
+		if (success)
+		{
+			TempData["Success"] = "Job deleted successfully!";
+		}
+		else
+		{
+			TempData["Error"] = "Failed to delete job. Please try again.";
+		}
+
+		return RedirectToAction(nameof(MyJobs));
+	}
+
+	[HttpPost]
+	[Authorize(Roles = AppRoles.Client)] // Only clients can delete their jobs
+	public async Task<IActionResult> ConfirmDelete(int id)
+	{
+		var job = await _jobService.GetJobByIdAsync(id);
+
+		if (job == null)
+		{
+			return NotFound();
+		}
+
+		return PartialView("_ConfirmDelete", job);
+	}
 }

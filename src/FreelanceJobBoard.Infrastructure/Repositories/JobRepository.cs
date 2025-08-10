@@ -115,7 +115,50 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
 			.Include(j => j.Review)
-			.Where(j => j.Id == id);
+			.Where(j => j.Id == id && j.Status == JobStatus.Open);
 
+	}
+
+	public IQueryable<Job> GetRecentJobsQueryable(int numOfJobs)
+	{
+		return _context.Jobs.
+			Include(j => j.Client)
+			.ThenInclude(c => c.User)
+			.OrderByDescending(j => j.CreatedOn)
+			.Where(j => j.IsActive)
+			.Take(numOfJobs);
+	}
+
+	public IQueryable<Job> getPublicJobDetails(int jobId)
+	{
+		return _context.Jobs
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
+			.Include(j => j.Skills)
+				.ThenInclude(js => js.Skill)
+			.Include(j => j.Categories)
+				.ThenInclude(jc => jc.Category)
+			.Where(j => j.IsActive && j.Id == jobId);
+
+
+	}
+
+	public IQueryable<Job> GetRelatedJobsQueryable(int jobId)
+	{
+		var job = _context.Jobs
+			.Include(j => j.Categories)
+				.ThenInclude(c => c.Category)
+			.FirstOrDefault(j => j.Id == jobId);
+
+		if (job == null)
+			return Enumerable.Empty<Job>().AsQueryable();
+
+		var jobCategories = job.Categories.Select(c => c.Category.Id).ToList();
+
+		return _context.Jobs.
+			Include(j => j.Client)
+			.ThenInclude(c => c.User)
+			.OrderByDescending(j => j.CreatedOn)
+			.Where(j => j.IsActive && j.Id != jobId && j.Categories.Any(c => jobCategories.Contains(c.CategoryId)));
 	}
 }

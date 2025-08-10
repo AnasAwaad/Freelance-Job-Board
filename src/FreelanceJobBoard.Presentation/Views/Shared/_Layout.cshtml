@@ -4,14 +4,33 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-</head>
-<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled">
+    <link rel="stylesheet" href="~/css/home-plugins.css">
+    <link href="~/css/home.css" rel="stylesheet">
+	<link type="text/css" rel="stylesheet" id="jssDefault" href="~/css/colors/green-style.css">
+	<link href="~/css/top-categories.css" rel="stylesheet" />
+	<link href="~/css/recent-jobs.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+	<link href="~/css/custome.css" rel="stylesheet" />
+    @RenderSection("Styles", required: false)
 
-    <main class="d-flex flex-column flex-root">
-        <section class="page d-flex flex-column flex-column-fluid">
-			@RenderBody()
-        </section>
-    </main>
+</head>
+<body>
+
+    @* <div class="Loader"></div> *@
+    <div class="wrapper">
+        <partial name="~/Views/Shared/Header/_HomeHeader.cshtml"/>
+        <div class="clearfix"></div>
+
+        @RenderBody()
+
+	</div>
+	<script src="~/js/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+	@* <script src="~/js/loader.js"></script> *@
+    <script src="~/js/owl.carousel.min.js"></script>
+    <script src="~/js/bootsnav.js"></script>
+	<script src="~/js/site.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

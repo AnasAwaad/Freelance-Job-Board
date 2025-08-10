@@ -4,6 +4,9 @@ using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetAllJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobById;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobsByCurrentClient;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetPublicJobDeatils;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRecentJobs;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRelatedJobs;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +17,14 @@ namespace FreelanceJobBoard.API.Controllers;
 [ApiController]
 public class JobsController(IMediator mediator) : ControllerBase
 {
+
+	[HttpGet("recent-jobs/{numOfJobs}")]
+	public async Task<IActionResult> GetRecentJobs(int numOfJobs)
+	{
+		var jobs = await mediator.Send(new GetRecentJobsQuery(numOfJobs));
+		return Ok(jobs);
+	}
+
 	[HttpPost]
 	//[Authorize(Roles = AppRoles.Client)]
 	public async Task<IActionResult> Create([FromBody] CreateJobCommand command)
@@ -61,6 +72,22 @@ public class JobsController(IMediator mediator) : ControllerBase
 	public async Task<IActionResult> GetById([FromRoute] int id)
 	{
 		return Ok(await mediator.Send(new GetJobByIdQuery(id)));
+	}
+
+	[HttpGet("details/{jobId}")]
+	[AllowAnonymous]
+	public async Task<IActionResult> GetPublicJobDetails(int jobId)
+	{
+		var job = await mediator.Send(new GetPublicJobDetailsByIdQuery(jobId));
+		return Ok(job);
+	}
+
+
+	[HttpGet("related-jobs/{jobId}")]
+	public async Task<IActionResult> GetRelatedJobsForJob(int jobId)
+	{
+		var job = await mediator.Send(new GetRetatedJobsForJobQuery(jobId));
+		return Ok(job);
 	}
 
 }

@@ -9,15 +9,13 @@ namespace FreelanceJobBoard.Presentation.Services;
 
 public class ProposalService
 {
-    private readonly HttpClient _httpClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ILogger<ProposalService> _logger;
+	private readonly HttpClient _httpClient;
 
     public ProposalService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, ILogger<ProposalService> logger)
-    {
-        _httpClient = httpClient;
+	{
+		_httpClient = httpClient;
         _httpContextAccessor = httpContextAccessor;
-        _logger = logger;
+		_logger = logger;
         _httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
     }
 
@@ -351,19 +349,14 @@ public class ProposalService
                 }
             }
 
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while retrieving proposal details for {ProposalId}", proposalId);
-            throw;
-        }
-    }
+		{
+		}
+	}
 
     public async Task<bool> DeleteProposalAsync(int proposalId)
-    {
-        try
-        {
+	{
+		try
+		{
             SetAuthorizationHeader();
             var response = await _httpClient.DeleteAsync($"Proposals/{proposalId}");
             return response.IsSuccessStatusCode;
@@ -391,10 +384,10 @@ public class ProposalService
             return false;
         }
         catch (Exception ex)
-        {
+			{
             _logger.LogError(ex, "Error occurred while checking if freelancer has applied to job {JobId}", jobId);
-            return false;
-        }
+				return false;
+			}
     }
 
     public async Task<bool> HasJobAcceptedProposalAsync(int jobId)
@@ -404,19 +397,19 @@ public class ProposalService
             SetAuthorizationHeader();
             var response = await _httpClient.GetAsync($"Proposals/job/{jobId}/has-accepted");
             
-            if (response.IsSuccessStatusCode)
-            {
+			if (response.IsSuccessStatusCode)
+			{
                 var result = await response.Content.ReadAsStringAsync();
                 return bool.TryParse(result, out var hasAccepted) && hasAccepted;
-            }
-            
+			}
+
             return false;
-        }
-        catch (Exception ex)
-        {
+		}
+		catch (Exception ex)
+		{
             _logger.LogError(ex, "Error occurred while checking if job {JobId} has accepted proposal", jobId);
-            return false;
-        }
+			return false;
+		}
     }
 
     public async Task<ServiceResult> RejectOtherProposalsAsync(int jobId, int acceptedProposalId)
@@ -447,5 +440,5 @@ public class ProposalService
             _logger.LogError(ex, "Unexpected error occurred while rejecting other proposals for job {JobId}", jobId);
             return ServiceResult.Failure("An unexpected error occurred. Please try again.", 0);
         }
-    }
+	}
 }

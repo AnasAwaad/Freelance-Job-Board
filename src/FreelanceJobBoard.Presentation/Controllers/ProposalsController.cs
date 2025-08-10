@@ -10,7 +10,7 @@ namespace FreelanceJobBoard.Presentation.Controllers;
 [Authorize]
 public class ProposalsController : Controller
 {
-    private readonly ProposalService _proposalService;
+	private readonly ProposalService _proposalService;
     private readonly JobService _jobService;
     private readonly ILogger<ProposalsController> _logger;
 
@@ -120,19 +120,16 @@ public class ProposalsController : Controller
             return View(viewModel);
         }
         catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading proposal submission form for job {JobId}", jobId);
-            TempData["Error"] = "Unable to load proposal form. Please try again.";
-            return RedirectToAction("Index", "Jobs");
-        }
-    }
+	{
+	}
 
-    [HttpPost]
+	[ValidateAntiForgeryToken]
+	[HttpPost]
     [Authorize(Roles = AppRoles.Freelancer)]
     public async Task<IActionResult> Submit(SubmitProposalViewModel viewModel)
-    {
-        if (!ModelState.IsValid)
-        {
+	{
+		if (!ModelState.IsValid)
+		{
             try
             {
                 var job = await _jobService.GetJobByIdAsync(viewModel.JobId);
@@ -279,7 +276,7 @@ public class ProposalsController : Controller
             TempData["Error"] = "Unable to load proposal details. Please try again.";
             return RedirectToAction("MyProposals");
         }
-    }
+		}
 
     // Freelancer deletes their proposal
     [HttpPost]
@@ -289,7 +286,7 @@ public class ProposalsController : Controller
         try
         {
             var success = await _proposalService.DeleteProposalAsync(id);
-            
+
             if (success)
             {
                 TempData["Success"] = "Proposal deleted successfully!";
@@ -300,11 +297,11 @@ public class ProposalsController : Controller
             }
         }
         catch (Exception ex)
-        {
+		{
             _logger.LogError(ex, "Error deleting proposal {ProposalId}", id);
             TempData["Error"] = "An error occurred while deleting the proposal. Please try again.";
-        }
+		}
 
         return RedirectToAction("MyProposals");
-    }
+	}
 }
