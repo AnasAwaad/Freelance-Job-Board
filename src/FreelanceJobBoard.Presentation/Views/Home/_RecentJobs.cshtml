@@ -36,7 +36,7 @@
                         </div>
                         <div class="col-md-2 col-sm-2">
                             <div class="brows-job-link">
-                                <a href="job-apply-detail.html" class="btn btn-default">Apply Now</a>
+                                <a asp-controller="Jobs" asp-action="PublicJobDetails" asp-route-jobId="@job.Id" class="btn btn-default">Apply Now</a>
                             </div>
                         </div>
                     </div>
@@ -47,4 +47,3 @@
     </div>
 </section>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />

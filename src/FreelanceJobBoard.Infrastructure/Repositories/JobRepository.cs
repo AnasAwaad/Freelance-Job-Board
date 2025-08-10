@@ -119,4 +119,16 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Where(j => j.IsActive)
 			.Take(numOfJobs);
 	}
+
+	public IQueryable<Job> getPublicJobDetails(int jobId)
+	{
+		return _context.Jobs
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
+			.Include(j => j.Skills)
+				.ThenInclude(js => js.Skill)
+			.Where(j => j.IsActive && j.Id == jobId);
+
+
+	}
 }

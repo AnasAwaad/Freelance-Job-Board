@@ -4,6 +4,7 @@ using FreelanceJobBoard.Application.Features.Jobs.Commands.UpdateJob;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetAllJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobById;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobsByCurrentClient;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetPublicJobDeatils;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRecentJobs;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
@@ -70,6 +71,14 @@ public class JobsController(IMediator mediator) : ControllerBase
 	public async Task<IActionResult> GetById([FromRoute] int id)
 	{
 		return Ok(await mediator.Send(new GetJobByIdQuery(id)));
+	}
+
+	[HttpGet("details/{jobId}")]
+	[AllowAnonymous]
+	public async Task<IActionResult> GetPublicJobDetails(int jobId)
+	{
+		var job = await mediator.Send(new GetPublicJobDetailsByIdQuery(jobId));
+		return Ok(job);
 	}
 
 }

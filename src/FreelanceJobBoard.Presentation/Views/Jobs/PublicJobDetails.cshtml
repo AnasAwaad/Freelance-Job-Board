@@ -1,0 +1,198 @@
+﻿@model PublicJobDetailsViewModel
+@{
+	Layout = "_Layout";
+}
+
+<section>
+	<div class="container">
+
+		<div class="col-md-8 col-sm-8">
+			<div class="container-detail-box">
+
+				<div class="apply-job-header">
+					<h4>@Model.Title</h4>
+					<a href="company-detail.html" class="cl-success"><span><i class="fa fa-building"></i>@Model.Client.Company.Name</span></a>
+					<span><i class="fa fa-map-marker"></i>@Model.Client.Company.Industry</span>
+				</div>
+
+				<div class="apply-job-detail">
+					<p>@Model.Description</p>
+				</div>
+
+				<div class="apply-job-detail">
+					<h5>Skills</h5>
+					<ul class="skills">
+						@foreach (var skill in Model.Skills)
+						{
+							<li>@skill.Name</li>
+						}
+					</ul>
+				</div>
+
+				<div class="apply-job-detail">
+					<h5>Project Card</h5>
+					<ul class="job-requirements">
+						<li><span>Project status</span> @Model.Status</li>
+						<li><span>Last Updated on</span> @Model.LastUpdatedOn</li>
+						<li><span>Delivery time</span> @Model.Deadline.ToString("dd MMM yyyy")</li>
+					</ul>
+				</div>
+
+
+			</div>
+
+			<!-- Similar Jobs -->
+			<div class="container-detail-box">
+
+				<div class="row">
+					<div class="col-md-12">
+						<h4>Similar Jobs</h4>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="grid-slide-2">
+
+						<!-- Single Freelancer & Premium job -->
+						<div class="freelance-box">
+							<div class="popular-jobs-container">
+								<div class="popular-jobs-box">
+									<span class="popular-jobs-status bg-success">hourly</span>
+									<h4 class="flc-rate">$17/hr</h4>
+									<div class="popular-jobs-box">
+										<div class="popular-jobs-box-detail">
+											<h4>Google Inc</h4>
+											<span class="desination">Software Designer</span>
+										</div>
+									</div>
+									<div class="popular-jobs-box-extra">
+										<ul>
+											<li>Php</li>
+											<li>Android</li>
+											<li>Html</li>
+											<li class="more-skill bg-primary">+3</li>
+										</ul>
+										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui.</p>
+									</div>
+								</div>
+								<a href="#" class="btn btn-popular-jobs bt-1">View Detail</a>
+							</div>
+						</div>
+
+						<!-- Single Freelancer & Premium job -->
+						<div class="freelance-box">
+							<div class="popular-jobs-container">
+								<div class="popular-jobs-box">
+									<span class="popular-jobs-status bg-warning">Monthly</span>
+									<h4 class="flc-rate">$570/Mo</h4>
+									<div class="popular-jobs-box">
+										<div class="popular-jobs-box-detail">
+											<h4>Duff Beer</h4>
+											<span class="desination">Marketting</span>
+										</div>
+									</div>
+									<div class="popular-jobs-box-extra">
+										<ul>
+											<li>Php</li>
+											<li>Android</li>
+											<li>Html</li>
+											<li class="more-skill bg-primary">+3</li>
+										</ul>
+										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui.</p>
+									</div>
+								</div>
+								<a href="#" class="btn btn-popular-jobs bt-1">View Detail</a>
+							</div>
+						</div>
+
+						<!-- Single Freelancer & Premium job -->
+						<div class="freelance-box">
+							<div class="popular-jobs-container">
+								<div class="popular-jobs-box">
+									<span class="popular-jobs-status bg-info">Weekly</span>
+									<h4 class="flc-rate">$200/We</h4>
+									<div class="popular-jobs-box">
+										<div class="popular-jobs-box-detail">
+											<h4>Cyberdyne Systems</h4>
+											<span class="desination">Human Resource</span>
+										</div>
+									</div>
+									<div class="popular-jobs-box-extra">
+										<ul>
+											<li>Php</li>
+											<li>Android</li>
+											<li>Html</li>
+											<li class="more-skill bg-primary">+3</li>
+										</ul>
+										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui.</p>
+									</div>
+								</div>
+								<a href="#" class="btn btn-popular-jobs bt-1">View Detail</a>
+							</div>
+						</div>
+
+						<!-- Single Freelancer & Premium job -->
+						<div class="freelance-box">
+							<div class="popular-jobs-container">
+								<div class="popular-jobs-box">
+									<span class="popular-jobs-status bg-danger">Yearly</span>
+									<h4 class="flc-rate">$2000/Pa</h4>
+									<div class="popular-jobs-box">
+										<div class="popular-jobs-box-detail">
+											<h4>Wayne Enterprises</h4>
+											<span class="desination">App Designer</span>
+										</div>
+									</div>
+									<div class="popular-jobs-box-extra">
+										<ul>
+											<li>Php</li>
+											<li>Android</li>
+											<li>Html</li>
+											<li class="more-skill bg-primary">+3</li>
+										</ul>
+										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui.</p>
+									</div>
+								</div>
+								<a href="#" class="btn btn-popular-jobs bt-1">View Detail</a>
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<!-- Sidebar Start-->
+		<div class="col-md-4 col-sm-4">
+
+			<!-- Job Detail -->
+			<div class="sidebar-container">
+				<div class="sidebar-box">
+					<span class="sidebar-status">@Model.Status</span>
+
+					<h4 class="flc-rate">@Model.BudgetMin.ToString("C0") - @Model.BudgetMax.ToString("C0")</h4>
+					<div class="sidebar-inner-box">
+						<div class="sidebar-box-thumb">
+							<img src="@Model.Client.ProfileImageUrl" class="img-responsive" alt="" />
+						</div>
+						<div class="sidebar-box-detail">
+							<h4>@Model.Client.FullName</h4>
+						</div>
+					</div>
+					<div class="sidebar-box-extra">
+						<ul class="status-detail">
+							<li class="br-1"><strong>@Model.Client.Company.Name</strong>Company</li>
+							<li class="br-1"><strong>748</strong>View</li>
+							<li><strong>03</strong>Post</li>
+						</ul>
+					</div>
+				</div>
+				<a href="#" class="btn btn-sidebar bt-1 bg-success">Apply For This</a>
+			</div>
+
+		</div>
+		<!-- End Sidebar -->
+
+	</div>
+</section>

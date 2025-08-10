@@ -13,8 +13,10 @@ public class HomeController(HomeService homeService) : Controller
 		var homeViewModel = new HomeViewModel
 		{
 			RecentJobs = await homeService.GetRecentJobsAsync()
+
 		};
 
 		return View(homeViewModel);
 	}
+
 }

@@ -3,4 +3,5 @@
 public class HomeViewModel
 {
 	public IEnumerable<RecentJobViewModel>? RecentJobs { get; set; }
+
 }

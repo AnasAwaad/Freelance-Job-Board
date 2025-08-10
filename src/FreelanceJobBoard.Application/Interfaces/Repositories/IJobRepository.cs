@@ -12,4 +12,5 @@ public interface IJobRepository : IGenericRepository<Job>
 	IQueryable<Job> GetAllWithClientQueryable(string? status);
 	Task<IEnumerable<Job>> GetJobsByClientIdAsync(int clientId);
 	IQueryable<Job> GetRecentJobsQueryable(int numOfJobs);
+	IQueryable<Job> getPublicJobDetails(int jobId);
 }

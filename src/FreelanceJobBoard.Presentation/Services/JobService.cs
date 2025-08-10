@@ -98,4 +98,14 @@ public class JobService
 		var response = await _httpClient.DeleteAsync($"{id}");
 		return response.IsSuccessStatusCode;
 	}
+
+	public async Task<PublicJobDetailsViewModel?> GetPublicJobDeatils(int jobId)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/details/{jobId}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<PublicJobDetailsViewModel>();
+
+		return null;
+	}
 }
