@@ -26,6 +26,7 @@ public class Program
 		builder.Services.AddHttpClient<JobService>();
 		builder.Services.AddHttpClient<SkillService>();
 		builder.Services.AddHttpClient<HomeService>();
+		builder.Services.AddHttpClient<ProposalService>();
 
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
