@@ -7,6 +7,10 @@
         transform: translateY(-3px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+.brows-job-list:hover .apply-now-btn {
+    background-color: #0095E8;
+    color: white;
+}
 
 .profile-img {
     width: 100%;
@@ -29,3 +33,4 @@
 .job-client-wrapper {
     margin-top: 25px;
 }
+

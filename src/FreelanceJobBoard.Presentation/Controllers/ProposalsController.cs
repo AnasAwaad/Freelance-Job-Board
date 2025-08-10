@@ -25,12 +25,10 @@ public class ProposalsController : Controller
 
 		if (!result)
 		{
-			// Add error from service to model state
 			ModelState.AddModelError(string.Empty, "Error occurred while creating proposal");
 			return PartialView("_Form", dto);
 		}
 
-		// Option 1: Return a success message partial or reload the form cleared
 		TempData["SuccessMessage"] = "Appointment created successfully.";
 		return RedirectToAction("Index", "Home");
 	}
