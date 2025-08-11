@@ -1,3 +1,4 @@
+using FreelanceJobBoard.API.Hubs;
 using FreelanceJobBoard.API.Middlewares;
 using FreelanceJobBoard.Application.Extensions;
 using FreelanceJobBoard.Application.Interfaces;
@@ -33,6 +34,17 @@ namespace FreelanceJobBoard.API
 
 				var builder = WebApplication.CreateBuilder(args);
 
+
+				builder.Services.AddCors(options =>
+				{
+					options.AddPolicy("Default", policy =>
+					{
+						policy.WithOrigins("https://localhost:7117")
+							  .AllowAnyHeader()
+							  .AllowAnyMethod()
+							  .AllowCredentials();
+					});
+				});
 				builder.Logging.ClearProviders();
 				builder.Logging.AddSerilog(Log.Logger);
 
@@ -51,7 +63,7 @@ namespace FreelanceJobBoard.API
 				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
 				builder.Services.AddScoped<IAuthService, AuthService>();
 				builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-
+				builder.Services.AddSignalR();
 				builder.Services
 					.AddApplication()
 					.AddInfrastructure(builder.Configuration);
@@ -144,6 +156,9 @@ namespace FreelanceJobBoard.API
 				app.UseAuthorization();
 
 				app.MapControllers();
+				app.UseCors("Default");
+
+				app.MapHub<NotificationHub>("/notifyHub");
 
 				Log.Information("FreelanceJobBoard API started successfully");
 				app.Run();

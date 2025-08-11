@@ -19,7 +19,7 @@ public class Program
 
 		// Add services to the container.
 		builder.Services.AddControllersWithViews();
-		
+
 		// Configure Session (optional, for future use)
 		builder.Services.AddDistributedMemoryCache();
 		builder.Services.AddSession(options =>
@@ -29,7 +29,7 @@ public class Program
 			options.Cookie.IsEssential = true;
 			options.Cookie.Name = "FreelanceJobBoard.Session";
 		});
-		
+
 		// Register HttpClients with IWebHostEnvironment for file handling
 		builder.Services.AddHttpClient<Presentation.Services.AuthService>();
 		builder.Services.AddHttpClient<Presentation.Services.UserService>();
@@ -38,6 +38,7 @@ public class Program
 		builder.Services.AddHttpClient<SkillService>();
 		builder.Services.AddHttpClient<HomeService>();
 		builder.Services.AddHttpClient<ProposalService>();
+		builder.Services.AddHttpClient<NotificationService>();
 
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
@@ -176,10 +177,10 @@ public class Program
 		app.UseStaticFiles();
 
 		app.UseRouting();
-		
+
 		// Add session middleware (optional)
 		app.UseSession();
-		
+
 		// Order is important: Authentication before Authorization
 		app.UseAuthentication();
 		app.UseAuthorization();
