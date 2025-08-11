@@ -111,6 +111,50 @@
 					}
 					<!--end:Menu item-->
 
+					<!--begin:Menu item - Contracts-->
+					@if (User.IsInRole(AppRoles.Client) || User.IsInRole(AppRoles.Freelancer))
+					{
+						<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Contracts" ? "here show" : "")" >
+							<!--begin:Menu link-->
+							<span class="menu-link" role="button" tabindex="0">
+								<span class="menu-icon">
+									<i class="ki-duotone ki-handshake fs-2">
+										<span class="path1"></span>
+										<span class="path2"></span>
+									</i>
+								</span>
+								<span class="menu-title">Contracts</span>
+								<span class="menu-arrow"></span>
+							</span>
+							<!--end:Menu link-->
+							<!--begin:Menu sub-->
+							<div class="menu-sub menu-sub-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Contracts" ? "show" : "")">
+								<!--begin:Menu item-->
+								<div class="menu-item">
+									<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" && ViewContext.RouteData.Values["Controller"]?.ToString() == "Contracts" ? "active" : "")" asp-controller="Contracts" asp-action="Index">
+										<span class="menu-bullet">
+											<span class="bullet bullet-dot"></span>
+										</span>
+										<span class="menu-title">My Contracts</span>
+									</a>
+								</div>
+								<!--end:Menu item-->
+								<!--begin:Menu item-->
+								<div class="menu-item">
+									<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "PendingChanges" ? "active" : "")" asp-controller="Contracts" asp-action="PendingChanges">
+										<span class="menu-bullet">
+											<span class="bullet bullet-dot"></span>
+										</span>
+										<span class="menu-title">Pending Changes</span>
+									</a>
+								</div>
+								<!--end:Menu item-->
+							</div>
+							<!--end:Menu sub-->
+						</div>
+					}
+					<!--end:Menu item-->
+
 					<!--begin:Menu item - Categories-->
 					<div class="menu-item">
 						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">
@@ -249,7 +293,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Handle menu accordions
-    const menuTriggers = document.querySelectorAll('[]');
+    const menuTriggers = document.querySelectorAll('[role="button"][tabindex="0"]');
     
     menuTriggers.forEach(trigger => {
         trigger.addEventListener('click', function(e) {

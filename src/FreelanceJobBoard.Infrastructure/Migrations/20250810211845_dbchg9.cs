@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FreelanceJobBoard.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class dbch : Migration
+    public partial class dbchg9 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -730,6 +730,111 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ContractAttachments",
+                columns: table => new
+                {
+                    ContractId = table.Column<int>(type: "int", nullable: false),
+                    AttachmentId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContractAttachments", x => new { x.ContractId, x.AttachmentId });
+                    table.ForeignKey(
+                        name: "FK_ContractAttachments_Attachments_AttachmentId",
+                        column: x => x.AttachmentId,
+                        principalTable: "Attachments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ContractAttachments_Contracts_ContractId",
+                        column: x => x.ContractId,
+                        principalTable: "Contracts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ContractVersions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ContractId = table.Column<int>(type: "int", nullable: false),
+                    VersionNumber = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    PaymentAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PaymentType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ProjectDeadline = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Deliverables = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    TermsAndConditions = table.Column<string>(type: "nvarchar(max)", maxLength: 5000, nullable: true),
+                    AdditionalNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    CreatedByRole = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsCurrentVersion = table.Column<bool>(type: "bit", nullable: false),
+                    ChangeReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContractVersions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ContractVersions_Contracts_ContractId",
+                        column: x => x.ContractId,
+                        principalTable: "Contracts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ContractChangeRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ContractId = table.Column<int>(type: "int", nullable: false),
+                    FromVersionId = table.Column<int>(type: "int", nullable: false),
+                    ProposedVersionId = table.Column<int>(type: "int", nullable: false),
+                    RequestedByUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    RequestedByRole = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ChangeDescription = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ResponseByUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    ResponseByRole = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ResponseDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ResponseNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    RequestDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContractChangeRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ContractChangeRequests_ContractVersions_FromVersionId",
+                        column: x => x.FromVersionId,
+                        principalTable: "ContractVersions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ContractChangeRequests_ContractVersions_ProposedVersionId",
+                        column: x => x.ProposedVersionId,
+                        principalTable: "ContractVersions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ContractChangeRequests_Contracts_ContractId",
+                        column: x => x.ContractId,
+                        principalTable: "Contracts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "ContractStatuses",
                 columns: new[] { "Id", "Name" },
@@ -793,6 +898,41 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 filter: "[UserId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ContractAttachments_AttachmentId",
+                table: "ContractAttachments",
+                column: "AttachmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractChangeRequests_ContractId",
+                table: "ContractChangeRequests",
+                column: "ContractId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractChangeRequests_FromVersionId",
+                table: "ContractChangeRequests",
+                column: "FromVersionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractChangeRequests_ProposedVersionId",
+                table: "ContractChangeRequests",
+                column: "ProposedVersionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractChangeRequests_RequestDate",
+                table: "ContractChangeRequests",
+                column: "RequestDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractChangeRequests_RequestedByUserId",
+                table: "ContractChangeRequests",
+                column: "RequestedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractChangeRequests_Status",
+                table: "ContractChangeRequests",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Contracts_ClientId",
                 table: "Contracts",
                 column: "ClientId");
@@ -811,6 +951,22 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 name: "IX_Contracts_ProposalId",
                 table: "Contracts",
                 column: "ProposalId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractVersions_ContractId",
+                table: "ContractVersions",
+                column: "ContractId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractVersions_ContractId_IsCurrentVersion",
+                table: "ContractVersions",
+                columns: new[] { "ContractId", "IsCurrentVersion" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ContractVersions_ContractId_VersionNumber",
+                table: "ContractVersions",
+                columns: new[] { "ContractId", "VersionNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -945,7 +1101,10 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 name: "Certifications");
 
             migrationBuilder.DropTable(
-                name: "Contracts");
+                name: "ContractAttachments");
+
+            migrationBuilder.DropTable(
+                name: "ContractChangeRequests");
 
             migrationBuilder.DropTable(
                 name: "FreelancerSkills");
@@ -975,7 +1134,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
-                name: "ContractStatuses");
+                name: "ContractVersions");
 
             migrationBuilder.DropTable(
                 name: "Categories");
@@ -990,13 +1149,19 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 name: "Attachments");
 
             migrationBuilder.DropTable(
-                name: "Proposals");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Permissions");
+
+            migrationBuilder.DropTable(
+                name: "Contracts");
+
+            migrationBuilder.DropTable(
+                name: "ContractStatuses");
+
+            migrationBuilder.DropTable(
+                name: "Proposals");
 
             migrationBuilder.DropTable(
                 name: "Freelancers");

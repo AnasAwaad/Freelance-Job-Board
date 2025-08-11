@@ -17,6 +17,10 @@ internal class UnitOfWork : IUnitOfWork
 	public IFreelancerSkillRepository FreelancerSkills { get; }
 	public INotificationRepository Notifications { get; }
 	public IReviewRepository Reviews { get; }
+	public IContractRepository Contracts { get; }
+	public IContractVersionRepository ContractVersions { get; }
+	public IContractChangeRequestRepository ContractChangeRequests { get; }
+	public IAttachmentRepository Attachments { get; }
 
     public UnitOfWork(ApplicationDbContext context)
 	{
@@ -32,6 +36,10 @@ internal class UnitOfWork : IUnitOfWork
 		FreelancerSkills = new FreelancerSkillRepository(context);
 		Notifications = new NotificationRepository(context);
 		Reviews = new ReviewRepository(context);
+		Contracts = new ContractRepository(context);
+		ContractVersions = new ContractVersionRepository(context);
+		ContractChangeRequests = new ContractChangeRequestRepository(context);
+		Attachments = new AttachmentRepository(context);
 	}
 
 	public void Dispose()

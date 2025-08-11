@@ -37,6 +37,7 @@ public class Program
 		builder.Services.AddHttpClient<JobService>();
 		builder.Services.AddHttpClient<SkillService>();
 		builder.Services.AddHttpClient<ProposalService>();
+		builder.Services.AddHttpClient<ContractService>();
 
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
@@ -51,9 +52,12 @@ public class Program
 			throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 		}
 
+		// Log the connection string for debugging (remove in production)
+		Console.WriteLine($"🔗 Database Connection: {connectionString}");
+
 		builder.Services.AddDbContext<ApplicationDbContext>(options =>
 		{
-			options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FreelanceJobBoard.API"));
+			options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FreelanceJobBoard.Infrastructure"));
 			if (builder.Environment.IsDevelopment())
 			{
 				options.EnableSensitiveDataLogging();
@@ -206,102 +210,173 @@ public class Program
 			var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 			var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-			logger.LogInformation("Starting database initialization...");
+			logger.LogInformation("🔄 Starting database initialization...");
 
 			// Check if database exists and can be connected to
 			var canConnect = await context.Database.CanConnectAsync();
-			logger.LogInformation("Database connection check: {CanConnect}", canConnect);
+			logger.LogInformation("📊 Database connection check: {CanConnect}", canConnect);
 
 			if (!canConnect)
 			{
-				logger.LogInformation("Database does not exist, creating database...");
+				logger.LogInformation("🆕 Database does not exist, creating database...");
 				await context.Database.EnsureCreatedAsync();
-				logger.LogInformation("Database created successfully using EnsureCreatedAsync");
+				logger.LogInformation("✅ Database created successfully using EnsureCreatedAsync");
 			}
 			else
 			{
 				// Database exists, check for pending migrations
-				var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-				var pendingMigrationsList = pendingMigrations.ToList();
-				
-				if (pendingMigrationsList.Any())
+				try
 				{
-					logger.LogInformation("Found {Count} pending migrations: {Migrations}", 
-						pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
+					var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+					var pendingMigrationsList = pendingMigrations.ToList();
+					
+					if (pendingMigrationsList.Any())
+					{
+						logger.LogInformation("📋 Found {Count} pending migrations: {Migrations}", 
+							pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
 
-					try
-					{
-						logger.LogInformation("Applying pending migrations...");
-						await context.Database.MigrateAsync();
-						logger.LogInformation("Migrations applied successfully");
-					}
-					catch (Exception migrationEx)
-					{
-						logger.LogWarning(migrationEx, "Migration failed, checking if tables already exist...");
-						
-						// Check if Identity tables exist (indicating database was created without migrations)
-						var hasIdentityTables = await CheckIfIdentityTablesExistAsync(context);
-						
-						if (hasIdentityTables)
+						try
 						{
-							logger.LogInformation("Identity tables already exist, marking all migrations as applied...");
+							logger.LogInformation("⚡ Applying pending migrations...");
+							await context.Database.MigrateAsync();
+							logger.LogInformation("✅ Migrations applied successfully");
+						}
+						catch (Exception migrationEx)
+						{
+							logger.LogWarning(migrationEx, "⚠️ Migration failed, checking if tables already exist...");
 							
-							// Get all migrations from the assembly
-							var allMigrations = context.Database.GetMigrations();
+							// Check if Identity tables exist (indicating database was created without migrations)
+							var hasIdentityTables = await CheckIfIdentityTablesExistAsync(context);
 							
-							// Add migration history entries for existing migrations
-							foreach (var migration in allMigrations)
+							if (hasIdentityTables)
 							{
-								await context.Database.ExecuteSqlRawAsync(
-									"IF NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = {0}) " +
-									"INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ({0}, {1})",
-									migration, "8.0.0");
+								logger.LogInformation("📊 Identity tables already exist, marking all migrations as applied...");
+								
+								// Get all migrations from the assembly
+								var allMigrations = context.Database.GetMigrations();
+								
+								// Add migration history entries for existing migrations
+								foreach (var migration in allMigrations)
+								{
+									await context.Database.ExecuteSqlRawAsync(
+										"IF NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = {0}) " +
+										"INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ({0}, {1})",
+										migration, "8.0.0");
+								}
+								
+								logger.LogInformation("✅ Migration history updated successfully");
 							}
-							
-							logger.LogInformation("Migration history updated successfully");
+							else
+							{
+								// If no Identity tables, re-throw the original exception
+								throw;
+							}
 						}
-						else
-						{
-							// If no Identity tables, re-throw the original exception
-							throw;
-						}
+					}
+					else
+					{
+						logger.LogInformation("📋 No pending migrations found");
 					}
 				}
-				else
+				catch (System.IO.FileNotFoundException ex) when (ex.Message.Contains("FreelanceJobBoard.API"))
 				{
-					logger.LogInformation("No pending migrations found");
+					logger.LogError(ex, "❌ Migration assembly not found. This may indicate a configuration issue.");
+					logger.LogInformation("📋 Continuing without migration check - database should be manually updated if needed");
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "❌ Error checking migrations");
+					logger.LogInformation("📋 Continuing without migration check - database should be manually updated if needed");
 				}
 			}
+
+			// Verify contract tables exist
+			await VerifyContractTablesAsync(context, logger);
 
 			// Create roles and admin user
 			await CreateRolesAndAdminUserAsync(userManager, roleManager, logger);
 
-			logger.LogInformation("Database initialization completed successfully");
+			logger.LogInformation("🎉 Database initialization completed successfully");
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "An error occurred while initializing the database");
+			logger.LogError(ex, "❌ An error occurred while initializing the database");
 			
-			// In development, we can try to recover from certain database issues
-			if (app.Environment.IsDevelopment())
+			// Get database settings from configuration
+			var config = app.Configuration;
+			var preserveData = config.GetValue<bool>("DatabaseSettings:PreserveDataOnStartup", false);
+			var resetDatabase = config.GetValue<bool>("DatabaseSettings:ResetDatabaseOnStartup", true);
+			
+			// ONLY reset database in development if explicitly configured
+			if (app.Environment.IsDevelopment() && resetDatabase && !preserveData)
 			{
-				logger.LogWarning("Development environment detected, attempting recovery...");
+				logger.LogWarning("🔧 Development environment detected with ResetDatabaseOnStartup=true, attempting recovery...");
 				try
 				{
 					await RecoverDatabaseAsync(services, logger);
+					logger.LogInformation("✅ Database recovery completed successfully");
+					return; // Exit successfully after recovery
 				}
 				catch (Exception recoveryEx)
 				{
-					logger.LogError(recoveryEx, "Database recovery failed");
+					logger.LogError(recoveryEx, "❌ Database recovery failed");
 					throw new InvalidOperationException(
-						"Database initialization failed. Please check the connection string and database permissions.", ex);
+						"Database initialization and recovery both failed. Please check the connection string and database permissions.", recoveryEx);
 				}
 			}
 			else
 			{
+				// Log helpful error message for production or when reset is not requested
+				if (app.Environment.IsDevelopment())
+				{
+					logger.LogError("💡 To reset the database in development, set 'DatabaseSettings:ResetDatabaseOnStartup' to true and 'DatabaseSettings:PreserveDataOnStartup' to false in appsettings.Development.json");
+				}
 				throw new InvalidOperationException(
 					"Database initialization failed. Please check the connection string and database permissions.", ex);
 			}
+		}
+	}
+
+	private static async Task VerifyContractTablesAsync(ApplicationDbContext context, ILogger logger)
+	{
+		try
+		{
+			logger.LogInformation("🔍 Verifying contract tables exist...");
+			
+			// Use safer method to check if tables exist
+			var tablesExist = true;
+			try
+			{
+				// Try to query the tables to see if they exist
+				await context.Database.ExecuteSqlRawAsync("SELECT COUNT(*) FROM ContractVersions WHERE 1=0");
+				await context.Database.ExecuteSqlRawAsync("SELECT COUNT(*) FROM ContractChangeRequests WHERE 1=0");
+				logger.LogInformation("✅ Contract tables verified successfully");
+			}
+			catch (Exception)
+			{
+				tablesExist = false;
+				logger.LogWarning("⚠️ Contract tables do not exist or are not accessible");
+			}
+			
+			if (!tablesExist)
+			{
+				logger.LogWarning("🔧 Contract tables missing, applying latest migration...");
+				try
+				{
+					await context.Database.MigrateAsync();
+					logger.LogInformation("✅ Contract tables created successfully");
+				}
+				catch (Exception migrationEx)
+				{
+					logger.LogError(migrationEx, "❌ Failed to create contract tables via migration");
+					// Don't throw here - let the application continue and handle this at runtime
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			logger.LogError(ex, "❌ Error verifying contract tables - this may cause issues with contract functionality");
+			// Don't throw here - let the application start and handle missing tables gracefully
 		}
 	}
 
@@ -326,27 +401,27 @@ public class Program
 		var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 		var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-		logger.LogInformation("Attempting database recovery...");
+		logger.LogInformation("🔧 Attempting database recovery...");
 
 		try
 		{
 			// Try to delete and recreate the database in development
-			logger.LogWarning("Deleting existing database for clean recreation...");
+			logger.LogWarning("🗑️ Deleting existing database for clean recreation...");
 			await context.Database.EnsureDeletedAsync();
 			
-			logger.LogInformation("Creating fresh database...");
+			logger.LogInformation("🆕 Creating fresh database...");
 			await context.Database.EnsureCreatedAsync();
 			
-			logger.LogInformation("Database recreated successfully");
+			logger.LogInformation("✅ Database recreated successfully");
 
 			// Create roles and admin user
 			await CreateRolesAndAdminUserAsync(userManager, roleManager, logger);
 			
-			logger.LogInformation("Database recovery completed successfully");
+			logger.LogInformation("🎉 Database recovery completed successfully");
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Database recovery failed");
+			logger.LogError(ex, "❌ Database recovery failed");
 			throw;
 		}
 	}
@@ -358,7 +433,7 @@ public class Program
 	{
 		try
 		{
-			logger.LogInformation("Starting roles and admin user creation...");
+			logger.LogInformation("👤 Starting roles and admin user creation...");
 
 			// Create roles if they don't exist
 			var roles = new[] { AppRoles.Admin, AppRoles.Client, AppRoles.Freelancer };
@@ -372,17 +447,17 @@ public class Program
 					
 					if (result.Succeeded)
 					{
-						logger.LogInformation("Role '{RoleName}' created successfully", roleName);
+						logger.LogInformation("✅ Role '{RoleName}' created successfully", roleName);
 					}
 					else
 					{
-						logger.LogError("Failed to create role '{RoleName}': {Errors}", 
+						logger.LogError("❌ Failed to create role '{RoleName}': {Errors}", 
 							roleName, string.Join(", ", result.Errors.Select(e => e.Description)));
 					}
 				}
 				else
 				{
-					logger.LogInformation("Role '{RoleName}' already exists", roleName);
+					logger.LogInformation("📋 Role '{RoleName}' already exists", roleName);
 				}
 			}
 
@@ -409,20 +484,20 @@ public class Program
 					var roleResult = await userManager.AddToRoleAsync(adminUser, AppRoles.Admin);
 					if (roleResult.Succeeded)
 					{
-						logger.LogInformation("Default admin user created successfully");
-						logger.LogInformation("Admin Credentials - Email: {Email}, Password: {Password}", 
+						logger.LogInformation("✅ Default admin user created successfully");
+						logger.LogInformation("🔑 Admin Credentials - Email: {Email}, Password: {Password}", 
 							adminEmail, adminPassword);
-						logger.LogWarning("IMPORTANT: Change the default admin password after first login!");
+						logger.LogWarning("⚠️ IMPORTANT: Change the default admin password after first login!");
 					}
 					else
 					{
-						logger.LogError("Failed to assign admin role: {Errors}", 
+						logger.LogError("❌ Failed to assign admin role: {Errors}", 
 							string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 					}
 				}
 				else
 				{
-					logger.LogError("Failed to create default admin user: {Errors}", 
+					logger.LogError("❌ Failed to create default admin user: {Errors}", 
 						string.Join(", ", createResult.Errors.Select(e => e.Description)));
 				}
 			}
@@ -434,17 +509,17 @@ public class Program
 					var roleResult = await userManager.AddToRoleAsync(existingAdmin, AppRoles.Admin);
 					if (roleResult.Succeeded)
 					{
-						logger.LogInformation("Admin role assigned to existing user: {Email}", adminEmail);
+						logger.LogInformation("✅ Admin role assigned to existing user: {Email}", adminEmail);
 					}
 					else
 					{
-						logger.LogError("Failed to assign admin role to existing user: {Errors}", 
+						logger.LogError("❌ Failed to assign admin role to existing user: {Errors}", 
 							string.Join(", ", roleResult.Errors.Select(e => e.Description)));
 					}
 				}
 				else
 				{
-					logger.LogInformation("Admin user already exists and has correct role: {Email}", adminEmail);
+					logger.LogInformation("📋 Admin user already exists and has correct role: {Email}", adminEmail);
 				}
 			}
 
@@ -454,12 +529,12 @@ public class Program
 				var isInAdminRole = await userManager.IsInRoleAsync(verifyAdmin, AppRoles.Admin);
 				var userRoles = await userManager.GetRolesAsync(verifyAdmin);
 				
-				logger.LogInformation("Admin user verification - Email: {Email}, IsAdmin: {IsAdmin}, Roles: {Roles}", 
+				logger.LogInformation("🔍 Admin user verification - Email: {Email}, IsAdmin: {IsAdmin}, Roles: {Roles}", 
 					verifyAdmin.Email, isInAdminRole, string.Join(", ", userRoles));
 				
 				if (isInAdminRole)
 				{
-					logger.LogInformation("✅ Admin role configuration completed successfully!");
+					logger.LogInformation("🎉 ✅ Admin role configuration completed successfully!");
 				}
 				else
 				{
@@ -468,12 +543,12 @@ public class Program
 			}
 			else
 			{
-				logger.LogError("❌ Admin user verification failed - user not found!");
+				logger.LogError("❌ Admin user verification.failed - user not found!");
 			}
 		}
 		catch (Exception ex)
 		{
-			logger.LogError(ex, "Error occurred while creating roles and admin user");
+			logger.LogError(ex, "❌ Error occurred while creating roles and admin user");
 			throw;
 		}
 	}

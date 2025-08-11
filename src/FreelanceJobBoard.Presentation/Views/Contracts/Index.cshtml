@@ -1,0 +1,356 @@
+@model FreelanceJobBoard.Application.Features.Contracts.Queries.GetUserContracts.GetUserContractsResult
+@{
+    ViewData["Title"] = "My Contracts";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">My Contracts</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Contracts</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <a asp-action="PendingChanges" class="btn btn-sm fw-bold btn-light-warning">
+                    <i class="ki-duotone ki-abstract-28 fs-4"></i>
+                    Pending Changes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-check-circle fs-2 me-3">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-cross-circle fs-2 me-3">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header border-0 pt-6">
+                    <div class="card-title">
+                        <div class="d-flex align-items-center position-relative my-1">
+                            <i class="ki-duotone ki-magnifier fs-3 position-absolute ms-5">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            <input type="text" data-kt-contracts-table-filter="search" class="form-control form-control-solid w-250px ps-13" placeholder="Search contracts" />
+                        </div>
+                    </div>
+                    <div class="card-toolbar">
+                        <div class="d-flex justify-content-end" data-kt-contracts-table-toolbar="base">
+                            <button type="button" class="btn btn-light-primary me-3" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                <i class="ki-duotone ki-filter fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Filter
+                            </button>
+                            <div class="menu menu-sub menu-sub-dropdown w-300px w-md-325px" data-kt-menu="true">
+                                <div class="px-7 py-5">
+                                    <div class="fs-5 text-dark fw-bold">Filter Options</div>
+                                </div>
+                                <div class="separator border-gray-200"></div>
+                                <div class="px-7 py-5" data-kt-contracts-table-filter="form">
+                                    <div class="mb-10">
+                                        <label class="form-label fs-6 fw-semibold">Status:</label>
+                                        <select class="form-select form-select-solid fw-bold" data-kt-select2="true" data-placeholder="Select option" data-allow-clear="true" data-kt-contracts-table-filter="status" data-hide-search="true">
+                                            <option></option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="Active">Active</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="reset" class="btn btn-light btn-active-light-primary fw-semibold me-2 px-6" data-kt-menu-dismiss="true" data-kt-contracts-table-filter="reset">Reset</button>
+                                        <button type="submit" class="btn btn-primary fw-semibold px-6" data-kt-menu-dismiss="true" data-kt-contracts-table-filter="filter">Apply</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body py-4">
+                    @if (Model.Contracts?.Any() == true)
+                    {
+                        <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_contracts_table">
+                            <thead>
+                                <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
+                                    <th class="min-w-125px">Job Title</th>
+                                    <th class="min-w-125px">@(User.IsInRole("Client") ? "Freelancer" : "Client")</th>
+                                    <th class="min-w-125px">Payment Amount</th>
+                                    <th class="min-w-125px">Start Date</th>
+                                    <th class="min-w-125px">Status</th>
+                                    <th class="text-end min-w-100px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-600 fw-semibold">
+                                @foreach (var contract in Model.Contracts)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <a asp-action="Details" asp-route-id="@contract.Id" class="text-gray-800 text-hover-primary mb-1">@contract.JobTitle</a>
+                                                <span class="text-muted fs-7">Contract #@contract.Id</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span class="text-gray-800">@(User.IsInRole("Client") ? contract.FreelancerName : contract.ClientName)</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-dark fw-bold">$@contract.PaymentAmount.ToString("N2")</span>
+                                            @if (!string.IsNullOrEmpty(contract.AgreedPaymentType))
+                                            {
+                                                <span class="text-muted fs-7 d-block">@contract.AgreedPaymentType</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="text-gray-800">@contract.StartTime.ToString("MMM dd, yyyy")</span>
+                                            @if (contract.EndTime.HasValue)
+                                            {
+                                                <span class="text-muted fs-7 d-block">Ended: @contract.EndTime.Value.ToString("MMM dd, yyyy")</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @{
+                                                var statusClass = contract.ContractStatus switch
+                                                {
+                                                    "Pending" => "badge-light-warning",
+                                                    "Active" => "badge-light-success",
+                                                    "Completed" => "badge-light-primary",
+                                                    "Cancelled" => "badge-light-danger",
+                                                    _ => "badge-light-secondary"
+                                                };
+                                            }
+                                            <span class="badge @statusClass">@contract.ContractStatus</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="#" class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+                                                Actions
+                                                <i class="ki-duotone ki-down fs-5 ms-1"></i>
+                                            </a>
+                                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-150px py-4" data-kt-menu="true">
+                                                <div class="menu-item px-3">
+                                                    <a asp-action="Details" asp-route-id="@contract.Id" class="menu-link px-3">
+                                                        <i class="ki-duotone ki-eye fs-6 me-2">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                            <span class="path3"></span>
+                                                        </i>
+                                                        View Details
+                                                    </a>
+                                                </div>
+                                                <div class="menu-item px-3">
+                                                    <a asp-action="History" asp-route-id="@contract.Id" class="menu-link px-3">
+                                                        <i class="ki-duotone ki-time fs-6 me-2">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                        </i>
+                                                        View History
+                                                    </a>
+                                                </div>
+                                                @if (contract.ContractStatus != "Completed" && contract.ContractStatus != "Cancelled")
+                                                {
+                                                    <div class="menu-item px-3">
+                                                        <a asp-action="Edit" asp-route-id="@contract.Id" class="menu-link px-3">
+                                                            <i class="ki-duotone ki-pencil fs-6 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Propose Changes
+                                                        </a>
+                                                    </div>
+                                                }
+                                                <div class="separator my-2"></div>
+                                                @if (contract.ContractStatus == "Pending")
+                                                {
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-contract-id="@contract.Id" data-action="start">
+                                                            <i class="ki-duotone ki-play fs-6 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Start Contract
+                                                        </a>
+                                                    </div>
+                                                }
+                                                @if (contract.ContractStatus == "Active")
+                                                {
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3" data-contract-id="@contract.Id" data-action="complete">
+                                                            <i class="ki-duotone ki-check fs-6 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Mark Complete
+                                                        </a>
+                                                    </div>
+                                                }
+                                                @if (contract.ContractStatus != "Completed" && contract.ContractStatus != "Cancelled")
+                                                {
+                                                    <div class="menu-item px-3">
+                                                        <a href="#" class="menu-link px-3 text-danger" data-contract-id="@contract.Id" data-action="cancel">
+                                                            <i class="ki-duotone ki-cross fs-6 me-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                            Cancel Contract
+                                                        </a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-center py-10">
+                            <i class="ki-duotone ki-questionnaire-tablet fs-5x text-gray-300 mb-5">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            <h3 class="text-gray-600 fw-semibold mb-4">No Contracts Found</h3>
+                            <p class="text-gray-400">You don't have any contracts yet. Once you accept a proposal or have one accepted, your contracts will appear here.</p>
+                            <div class="mt-6">
+                                @if (User.IsInRole("Client"))
+                                {
+                                    <a asp-controller="Jobs" asp-action="Index" class="btn btn-primary">
+                                        <i class="ki-duotone ki-plus fs-2"></i>
+                                        Post a Job
+                                    </a>
+                                }
+                                else if (User.IsInRole("Freelancer"))
+                                {
+                                    <a asp-controller="Jobs" asp-action="Index" class="btn btn-primary">
+                                        <i class="ki-duotone ki-magnifier fs-2"></i>
+                                        Browse Jobs
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle contract actions
+            document.querySelectorAll('[data-action]').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const contractId = this.getAttribute('data-contract-id');
+                    const action = this.getAttribute('data-action');
+                    
+                    let title, text, confirmText, method, url;
+                    
+                    switch(action) {
+                        case 'start':
+                            title = 'Start Contract';
+                            text = 'Are you sure you want to start this contract?';
+                            confirmText = 'Yes, Start Contract';
+                            method = 'POST';
+                            url = `/Contracts/Start`;
+                            break;
+                        case 'complete':
+                            title = 'Complete Contract';
+                            text = 'Are you sure you want to mark this contract as completed?';
+                            confirmText = 'Yes, Complete Contract';
+                            method = 'POST';
+                            url = `/Contracts/Complete`;
+                            break;
+                        case 'cancel':
+                            title = 'Cancel Contract';
+                            text = 'Are you sure you want to cancel this contract? This action cannot be undone.';
+                            confirmText = 'Yes, Cancel Contract';
+                            method = 'POST';
+                            url = `/Contracts/Cancel`;
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    if (confirm(`${title}\n\n${text}`)) {
+                        // Create a form and submit it
+                        const form = document.createElement('form');
+                        form.method = method;
+                        form.action = url;
+                        
+                        // Add CSRF token
+                        const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]');
+                        if (csrfToken) {
+                            const tokenInput = document.createElement('input');
+                            tokenInput.type = 'hidden';
+                            tokenInput.name = '__RequestVerificationToken';
+                            tokenInput.value = csrfToken.value;
+                            form.appendChild(tokenInput);
+                        }
+                        
+                        // Add contract ID
+                        const contractIdInput = document.createElement('input');
+                        contractIdInput.type = 'hidden';
+                        contractIdInput.name = 'contractId';
+                        contractIdInput.value = contractId;
+                        form.appendChild(contractIdInput);
+                        
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+
+            // Handle search
+            document.querySelector('[data-kt-contracts-table-filter="search"]').addEventListener('keyup', function(e) {
+                const searchText = e.target.value.toLowerCase();
+                document.querySelectorAll('#kt_contracts_table tbody tr').forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchText) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+}
+
+<!-- Hidden form for CSRF token -->
+<form style="display: none;">
+    @Html.AntiForgeryToken()
+</form>

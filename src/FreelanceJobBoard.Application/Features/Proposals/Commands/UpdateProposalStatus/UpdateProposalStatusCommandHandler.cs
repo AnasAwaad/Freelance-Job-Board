@@ -47,6 +47,13 @@ public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
             {
                 throw new InvalidOperationException("This job already has an accepted proposal. Only one proposal can be accepted per job.");
             }
+
+            // Check if a contract already exists for this proposal
+            var existingContract = await unitOfWork.Contracts.GetContractByProposalIdAsync(request.ProposalId);
+            if (existingContract != null)
+            {
+                throw new InvalidOperationException("A contract already exists for this proposal.");
+            }
         }
 
         // Update the main proposal
@@ -62,6 +69,23 @@ public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
             // Update job status
             job.Status = JobStatus.InProgress;
             logger.LogInformation("Updated job {JobId} status to InProgress", job.Id);
+            
+            // Create contract
+            var contract = new Contract
+            {
+                ProposalId = proposal.Id,
+                ClientId = proposal.ClientId ?? job.ClientId,
+                FreelancerId = proposal.FreelancerId ?? throw new InvalidOperationException("Proposal must have a freelancer"),
+                StartTime = DateTime.UtcNow,
+                PaymentAmount = proposal.BidAmount,
+                AgreedPaymentType = "Fixed", // Default to Fixed, can be enhanced later
+                ContractStatusId = 1, // Pending status from seeded data
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow
+            };
+
+            await unitOfWork.Contracts.CreateAsync(contract);
+            logger.LogInformation("Created contract for proposal {ProposalId}", proposal.Id);
             
             // Get all proposals for this job and reject the others
             var allProposals = await unitOfWork.Proposals.GetAllAsync();
