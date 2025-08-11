@@ -16,4 +16,13 @@ public class CategoryRepository : GenericRepository<Category>, ICategoryReposito
 			.Where(c => categoryIds.Contains(c.Id))
 			.ToListAsync();
 	}
+
+	public async Task<IEnumerable<Category>> GetTopCategoriesAsync(int numOfCategories)
+	{
+		return await _context.Categories
+			.Include(c => c.JobCategories)
+			.OrderByDescending(c => c.JobCategories.Count)
+			.Take(numOfCategories)
+			.ToListAsync();
+	}
 }

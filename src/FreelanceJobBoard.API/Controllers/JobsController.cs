@@ -7,6 +7,7 @@ using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobsByCurrentClient
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetPublicJobDeatils;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRecentJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRelatedJobs;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.SearchForJobs;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -65,6 +66,15 @@ public class JobsController(IMediator mediator) : ControllerBase
 	{
 		var jobs = await mediator.Send(query);
 		return Ok(jobs);
+	}
+
+	[HttpGet("search")]
+
+	public async Task<IActionResult> SearchJobsAsync([FromQuery] string query, [FromQuery] int limit = 20)
+	{
+		var result = await mediator.Send(new SearchJobsQuery(query, limit));
+		return Ok(result);
+
 	}
 
 	[HttpGet("{id}")]

@@ -63,6 +63,10 @@ public class JobsProfile : Profile
 				Name = s.Skill.Name
 			})));
 
+		//CreateMap<Job, JobSearchDto>()
+		//	.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.User.FullName));
+
+
 
 	}
 }

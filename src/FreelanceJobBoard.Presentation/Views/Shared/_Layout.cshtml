@@ -13,7 +13,8 @@
     
 	<link href="~/css/custome.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+	<link href="~/css/typeahead.css" rel="stylesheet" />
     @RenderSection("Styles", required: false)
 
 </head>
@@ -35,7 +36,10 @@
 	<script src="~/lib/owl-carousel/owl.carousel.min.js"></script>
 	<script src="~/js/home-site.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+	<script src="~/lib/handlebars.js/handlebars.min.js"></script>
+	<script src="~/lib/typeahead.js/typeahead.bundle.min.js"></script>
+	<script src="~/js/search.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

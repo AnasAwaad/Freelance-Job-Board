@@ -52,7 +52,9 @@ public class AuthService : IAuthService
 		{
 			Token = token,
 			Email = user.Email!,
-			Role = role
+			Role = role,
+			FullName = user.FullName,
+			ProfileImageUrl = user.ProfileImageUrl ?? "/images/default-avatar.png"
 		};
 	}
 

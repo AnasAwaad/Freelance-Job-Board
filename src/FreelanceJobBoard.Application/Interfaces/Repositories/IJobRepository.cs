@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Domain.Constants;
+﻿using FreelanceJobBoard.Application.Features.Jobs.DTOs;
+using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Domain.Entities;
 
 namespace FreelanceJobBoard.Application.Interfaces.Repositories;
@@ -14,4 +15,5 @@ public interface IJobRepository : IGenericRepository<Job>
 	IQueryable<Job> GetRecentJobsQueryable(int numOfJobs);
 	IQueryable<Job> GetRelatedJobsQueryable(int jobId);
 	IQueryable<Job> getPublicJobDetails(int jobId);
+	Task<IEnumerable<JobSearchDto>> SearchJobsAsync(string query, int limit);
 }

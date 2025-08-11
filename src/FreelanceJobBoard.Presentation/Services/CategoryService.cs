@@ -160,4 +160,14 @@ public class CategoryService
 			return null;
 		}
 	}
+
+	public async Task<IEnumerable<PublicCategoryViewModel>?> GetTopCategories(int numOfCategories)
+	{
+		var response = await _httpClient.GetAsync($"Categories/top/{numOfCategories}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<PublicCategoryViewModel>>();
+
+		return new List<PublicCategoryViewModel>();
+	}
 }

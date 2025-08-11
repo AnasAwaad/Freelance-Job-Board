@@ -199,9 +199,10 @@ public class AuthController : Controller
 		{
 			List<Claim> claims = new()
 			{
-				new Claim(ClaimTypes.Name, authResponse.Email),
+				new Claim(ClaimTypes.Name, authResponse.FullName),
 				new Claim(ClaimTypes.Email, authResponse.Email),
 				new Claim(ClaimTypes.Role, authResponse.Role),
+				new Claim("ProfileImageUrl", authResponse.ProfileImageUrl),
 				new Claim("jwt", authResponse.Token)
 			};
 
@@ -243,9 +244,9 @@ public class AuthController : Controller
 		try
 		{
 			_logger.LogInformation("User {UserEmail} is attempting to logout", User.Identity?.Name);
-			
+
 			await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-			
+
 			// Clear session data if sessions are enabled
 			try
 			{
@@ -255,7 +256,7 @@ public class AuthController : Controller
 			{
 				_logger.LogWarning(sessionEx, "Failed to clear session during logout - sessions may not be configured");
 			}
-			
+
 			_logger.LogInformation("User {UserEmail} logged out successfully", User.Identity?.Name);
 			TempData["Success"] = "You have been successfully logged out.";
 		}

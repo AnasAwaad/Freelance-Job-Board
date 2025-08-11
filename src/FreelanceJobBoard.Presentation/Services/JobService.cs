@@ -311,6 +311,16 @@ public class JobService
 
 		return null;
 	}
+
+	public async Task<IEnumerable<JobSearchResult>> SearchJobsAsync(string query)
+	{
+		var response = await _httpClient.GetAsync($"Jobs/search?query={query}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<JobSearchResult>>();
+
+		return new List<JobSearchResult>();
+	}
 }
 
 // API DTO classes (these should match what the API returns)

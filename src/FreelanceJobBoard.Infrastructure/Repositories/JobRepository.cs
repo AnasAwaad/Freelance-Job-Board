@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Application.Interfaces.Repositories;
+﻿using FreelanceJobBoard.Application.Features.Jobs.DTOs;
+using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
@@ -160,5 +161,25 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.ThenInclude(c => c.User)
 			.OrderByDescending(j => j.CreatedOn)
 			.Where(j => j.IsActive && j.Id != jobId && j.Categories.Any(c => jobCategories.Contains(c.CategoryId)));
+	}
+
+	public async Task<IEnumerable<JobSearchDto>> SearchJobsAsync(string query, int limit)
+	{
+		return await _context.Jobs
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
+			.Where(j => j.IsActive && j.Status == JobStatus.Open && (j.Title.Contains(query) || j.Description.Contains(query)))
+			.Select(j => new JobSearchDto
+			{
+				ClientName = j.Client.User.FullName,
+				BudgetMax = j.BudgetMax.ToString("C"),
+				BudgetMin = j.BudgetMin.ToString("C"),
+				Id = j.Id,
+				Title = j.Title,
+				Description = j.Description,
+				Deadline = j.Deadline.ToString("yyyy-MM-dd")
+			})
+			.Take(limit)
+			.ToListAsync();
 	}
 }
