@@ -3,6 +3,7 @@ using FreelanceJobBoard.Presentation.Models.ViewModels;
 using FreelanceJobBoard.Presentation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
 
@@ -29,13 +30,32 @@ public class JobsController : Controller
 		return Ok(jobs);
 	}
 
-	public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, string? sortDirection = null)
+	public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, string? sortDirection = null)
 	{
-		var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, sortDirection);
+		var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, category, sortDirection);
 
 		ViewBag.Search = search;
 		ViewBag.SortBy = sortBy;
 		ViewBag.SortDirection = sortDirection;
+		ViewBag.Categroy = category;
+
+		return View(jobs);
+	}
+
+	public async Task<IActionResult> AllJobs(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, string? sortDirection = null)
+	{
+		var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, category, sortDirection);
+		ViewBag.Search = search;
+		ViewBag.SortBy = sortBy;
+		ViewBag.SortDirection = sortDirection;
+
+		var categories = await _categoryService.GetAllCategoriesAsync();
+		ViewBag.Categories = categories.Select(c => new SelectListItem
+		{
+			Value = c.Id.ToString(),
+			Text = c.Name,
+			Selected = category.HasValue && category.Value == c.Id
+		}).ToList();
 
 		return View(jobs);
 	}

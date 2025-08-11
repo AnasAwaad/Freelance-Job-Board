@@ -572,3 +572,122 @@ hr {
 .dropdown-item {
     padding: 10px !important;
 }
+/* Search Filter */
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+    .filter-form label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .filter-form input,
+    .filter-form select,
+    .filter-form button {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .filter-form button {
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+        .filter-form button:hover {
+            background: #0056b3;
+        }
+/* Job Grid */
+.job-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.job-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+    .job-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .job-card h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+    }
+
+.job-meta {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.budget {
+    font-weight: bold;
+    color: #28a745;
+    margin-bottom: 10px;
+}
+
+.job-desc {
+    flex-grow: 1;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 15px;
+}
+
+.badges {
+    margin-bottom: 15px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    background: #e9ecef;
+    color: #333;
+}
+
+.badge-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-view {
+    text-align: center;
+    padding: 8px;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+    .btn-view:hover {
+        background: #0056b3;
+    }

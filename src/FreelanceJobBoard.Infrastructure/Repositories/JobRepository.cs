@@ -14,19 +14,28 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 	}
 
 
-	public async Task<(int, IEnumerable<Job>)> GetAllMatchingAsync(int pageNumber, int pageSize, string? search, string? sortBy, SortDirection sortDirection, string? statusFilter = null)
+	public async Task<(int, IEnumerable<Job>)> GetAllMatchingAsync(int pageNumber, int pageSize, string? search, string? sortBy, string sortDirection, int? category, string? statusFilter = null)
 	{
 		var searchValue = search?.ToLower().Trim();
 
+
 		var query = _context.Jobs
+			.Include(j => j.Categories)
 			.Where(j => searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
-														(j.Description!.ToLower().Contains(searchValue))));
+													(j.Description!.ToLower().Contains(searchValue))));
 
 		// Apply status filter if provided
 		if (!string.IsNullOrEmpty(statusFilter))
 		{
 			query = query.Where(j => j.Status == statusFilter);
 		}
+
+		if (category.HasValue)
+		{
+			query = query
+				.Where(jc => jc.Categories.Any(c => c.CategoryId == category.Value));
+		}
+
 
 		var totalCount = await query.CountAsync();
 

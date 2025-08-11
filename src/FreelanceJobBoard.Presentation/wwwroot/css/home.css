@@ -6839,11 +6839,12 @@ a.btn.btn-paid-candidate {
     position: absolute;
     left: 32px;
     top: 25px;
-    color: #fff;
     text-transform: capitalize;
-    padding: 4px 18px;
+}
+.job-status-item {
     border-radius: 50px;
-    font-weight: 500
+    padding: 10px;
+    font-weight: 500;
 }
 
 .popular-jobs-box-detail h4 {

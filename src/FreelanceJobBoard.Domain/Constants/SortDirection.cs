@@ -1,6 +1,6 @@
 ﻿namespace FreelanceJobBoard.Domain.Constants;
-public enum SortDirection
+public static class SortDirection
 {
-	Ascending,
-	Descending,
+	public static string Ascending = "Ascending";
+	public static string Descending = "Descending";
 }

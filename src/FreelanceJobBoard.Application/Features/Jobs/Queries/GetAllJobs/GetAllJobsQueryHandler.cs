@@ -13,7 +13,7 @@ public class GetAllJobsQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ICur
 	public async Task<PagedResult<JobDto>> Handle(GetAllJobsQuery request, CancellationToken cancellationToken)
 	{
 		string? statusFilter = null;
-		
+
 		// For now, we'll apply a simple approach:
 		// - If user is authenticated, check if they're a freelancer by trying to find their freelancer record
 		// - If not authenticated, only show open jobs
@@ -40,6 +40,7 @@ public class GetAllJobsQueryHandler(IMapper mapper, IUnitOfWork unitOfWork, ICur
 			request.Search,
 			request.SortBy,
 			request.SortDirection,
+			request.Category,
 			statusFilter);
 
 		var jobDtos = mapper.Map<IEnumerable<JobDto>>(jobs);

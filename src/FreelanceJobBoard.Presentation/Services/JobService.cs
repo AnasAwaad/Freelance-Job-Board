@@ -23,7 +23,7 @@ public class JobService
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 	}
 
-	public async Task<PagedResultDto<JobViewModel>?> GetAllJobsAsync(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, string? sortDirection = null)
+	public async Task<PagedResultDto<JobViewModel>?> GetAllJobsAsync(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, string? sortDirection = null)
 	{
 		try
 		{
@@ -40,6 +40,9 @@ public class JobService
 
 			if (!string.IsNullOrEmpty(sortDirection))
 				queryParams.Add($"sortDirection={sortDirection}");
+
+			if (category.HasValue)
+				queryParams.Add($"category={category.Value}");
 
 			var queryString = string.Join("&", queryParams);
 			// This will call GET /api/Jobs?queryString

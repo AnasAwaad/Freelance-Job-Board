@@ -1,5 +1,4 @@
-﻿using FreelanceJobBoard.API.Attributes;
-using FreelanceJobBoard.Application.Features.Categories.Commands.CreateCategory;
+﻿using FreelanceJobBoard.Application.Features.Categories.Commands.CreateCategory;
 using FreelanceJobBoard.Application.Features.Categories.Commands.DeleteCategory;
 using FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
 using FreelanceJobBoard.Application.Features.Categories.Queries.GetAllCategories;
@@ -14,7 +13,7 @@ namespace FreelanceJobBoard.API.Controllers;
 [ApiController]
 public class CategoriesController(IMediator mediator) : ControllerBase
 {
-	[RateLimit(5, 60)]
+	//[RateLimit(5, 60)]
 	[HttpGet]
 	public async Task<IActionResult> GetAll() =>
 		 Ok(await mediator.Send(new GetAllCategoriesQuery()));
