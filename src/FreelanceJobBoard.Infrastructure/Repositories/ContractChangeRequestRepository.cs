@@ -2,12 +2,13 @@ using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 
 public class ContractChangeRequestRepository : GenericRepository<ContractChangeRequest>, IContractChangeRequestRepository
 {
-    public ContractChangeRequestRepository(ApplicationDbContext context) : base(context)
+    public ContractChangeRequestRepository(ApplicationDbContext context, ILogger<GenericRepository<ContractChangeRequest>>? logger = null) : base(context, logger)
     {
     }
 
@@ -37,14 +38,14 @@ public class ContractChangeRequestRepository : GenericRepository<ContractChangeR
     {
         return await _context.ContractChangeRequests
             .Include(r => r.Contract)
-                .ThenInclude(c => c.Proposal)
-                    .ThenInclude(p => p.Job)
+                .ThenInclude(c => c!.Proposal)
+                    .ThenInclude(p => p!.Job)
             .Include(r => r.Contract)
-                .ThenInclude(c => c.Client)
-                    .ThenInclude(cl => cl.User)
+                .ThenInclude(c => c!.Client)
+                    .ThenInclude(cl => cl!.User)
             .Include(r => r.Contract)
-                .ThenInclude(c => c.Freelancer)
-                    .ThenInclude(f => f.User)
+                .ThenInclude(c => c!.Freelancer)
+                    .ThenInclude(f => f!.User)
             .Include(r => r.FromVersion)
             .Include(r => r.ProposedVersion)
             .Where(r => (r.RequestedByUserId == userId || 
@@ -59,14 +60,14 @@ public class ContractChangeRequestRepository : GenericRepository<ContractChangeR
     {
         return await _context.ContractChangeRequests
             .Include(r => r.Contract)
-                .ThenInclude(c => c.Proposal)
-                    .ThenInclude(p => p.Job)
+                .ThenInclude(c => c!.Proposal)
+                    .ThenInclude(p => p!.Job)
             .Include(r => r.Contract)
-                .ThenInclude(c => c.Client)
-                    .ThenInclude(cl => cl.User)
+                .ThenInclude(c => c!.Client)
+                    .ThenInclude(cl => cl!.User)
             .Include(r => r.Contract)
-                .ThenInclude(c => c.Freelancer)
-                    .ThenInclude(f => f.User)
+                .ThenInclude(c => c!.Freelancer)
+                    .ThenInclude(f => f!.User)
             .Include(r => r.FromVersion)
             .Include(r => r.ProposedVersion)
             .FirstOrDefaultAsync(r => r.Id == requestId && r.IsActive);

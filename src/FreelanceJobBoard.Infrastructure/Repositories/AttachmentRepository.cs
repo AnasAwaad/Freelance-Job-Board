@@ -2,12 +2,13 @@ using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 
 public class AttachmentRepository : GenericRepository<Attachment>, IAttachmentRepository
 {
-    public AttachmentRepository(ApplicationDbContext context) : base(context)
+    public AttachmentRepository(ApplicationDbContext context, ILogger<GenericRepository<Attachment>>? logger = null) : base(context, logger)
     {
     }
 

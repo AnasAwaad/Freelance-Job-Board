@@ -2,12 +2,13 @@ using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 
 public class ReviewRepository : GenericRepository<Review>, IReviewRepository
 {
-    public ReviewRepository(ApplicationDbContext context) : base(context)
+    public ReviewRepository(ApplicationDbContext context, ILogger<GenericRepository<Review>>? logger = null) : base(context, logger)
     {
     }
 

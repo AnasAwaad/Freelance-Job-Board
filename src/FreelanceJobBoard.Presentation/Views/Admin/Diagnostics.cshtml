@@ -292,6 +292,14 @@
                                     Database Diagnostics
                                 </a>
                                 
+                                <a asp-controller="Admin" asp-action="ViewLogs" class="btn btn-light-info">
+                                    <i class="ki-duotone ki-document me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    View Application Logs
+                                </a>
+                                
                                 <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-light-danger">

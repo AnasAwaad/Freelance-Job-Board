@@ -9,4 +9,5 @@ public interface IContractVersionRepository : IGenericRepository<ContractVersion
     Task<ContractVersion?> GetVersionByNumberAsync(int contractId, int versionNumber);
     Task<int> GetNextVersionNumberAsync(int contractId);
     Task<bool> UpdateCurrentVersionAsync(int contractId, int newCurrentVersionId);
+    Task CreateNewVersionAsync(ContractVersion version);
 }

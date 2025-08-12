@@ -1,400 +1,688 @@
 using FreelanceJobBoard.Application.Features.Contracts.Queries.GetContractDetails;
 using FreelanceJobBoard.Application.Features.Contracts.Queries.GetContractHistory;
-using FreelanceJobBoard.Application.Features.Contracts.Queries.GetPendingChangeRequests;
 using FreelanceJobBoard.Application.Features.Contracts.Queries.GetUserContracts;
 using FreelanceJobBoard.Presentation.Models;
+using FreelanceJobBoard.Presentation.Models.DTOs;
 using FreelanceJobBoard.Presentation.Models.ViewModels;
-using System.Text.Json;
+using System.Diagnostics;
 
 namespace FreelanceJobBoard.Presentation.Services;
 
 public class ContractService
 {
     private readonly HttpClient _httpClient;
-    private readonly ILogger<ContractService> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<ContractService> _logger;
 
-    public ContractService(HttpClient httpClient, ILogger<ContractService> logger, IHttpContextAccessor httpContextAccessor)
+    public ContractService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, ILogger<ContractService> logger)
     {
         _httpClient = httpClient;
-        _logger = logger;
         _httpContextAccessor = httpContextAccessor;
-        
-        // Set base address to API root
+        _logger = logger;
         _httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
     }
 
-    private void SetAuthorizationHeader()
+    public async Task<GetUserContractsResult?> GetAllContractsAsync()
     {
-        var context = _httpContextAccessor.HttpContext;
-        if (context?.User?.Identity?.IsAuthenticated == true)
-        {
-            var jwtToken = context.User.FindFirst("jwt")?.Value;
-            if (!string.IsNullOrEmpty(jwtToken))
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-            }
-        }
-    }
-
-    public async Task<GetUserContractsResult?> GetUserContractsAsync()
-    {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        var sessionId = _httpContextAccessor.HttpContext?.Session?.Id ?? "NoSession";
+        
         try
         {
+            _logger.LogInformation("?? Fetching all contracts | User={UserId}, Session={SessionId}", userId, sessionId);
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("GET_ALL_CONTRACTS");
+
             var response = await _httpClient.GetAsync("Contracts");
 
+            _logger.LogDebug("?? API Response | Status={StatusCode} {ReasonPhrase}, ContentType='{ContentType}'", 
+                (int)response.StatusCode, response.ReasonPhrase, 
+                response.Content.Headers.ContentType?.ToString() ?? "unknown");
+
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
+                var contracts = await response.Content.ReadFromJsonAsync<GetUserContractsResult>();
+                
+                stopwatch.Stop();
+                var contractCount = contracts?.Contracts?.Count() ?? 0;
+                _logger.LogInformation("? Contracts fetched successfully! Count={ContractCount}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractCount, userId, stopwatch.ElapsedMilliseconds);
+
+                // Log contract status breakdown
+                if (contracts?.Contracts?.Any() == true)
                 {
-                    PropertyNameCaseInsensitive = true
-                };
-                return JsonSerializer.Deserialize<GetUserContractsResult>(content, options);
+                    var statusBreakdown = contracts.Contracts.GroupBy(c => c.ContractStatus).ToDictionary(g => g.Key, g => g.Count());
+                    _logger.LogDebug("?? Contract Status Breakdown | User={UserId}, StatusBreakdown={@StatusBreakdown}", 
+                        userId, statusBreakdown);
+                }
+
+                // Log performance warning
+                if (stopwatch.ElapsedMilliseconds > 2000)
+                {
+                    _logger.LogWarning("?? Slow contract fetch | Duration={ElapsedMs}ms, User={UserId}", 
+                        stopwatch.ElapsedMilliseconds, userId);
+                }
+
+                return contracts;
             }
 
-            _logger.LogWarning("Failed to retrieve user contracts. Status: {StatusCode}", response.StatusCode);
+            stopwatch.Stop();
+            _logger.LogWarning("?? Failed to get contracts | User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+                userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+            return null;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while fetching contracts | User={UserId}, Duration={ElapsedMs}ms", 
+                userId, stopwatch.ElapsedMilliseconds);
+            return null;
+        }
+        catch (TaskCanceledException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "? Request timeout while fetching contracts | User={UserId}, Duration={ElapsedMs}ms", 
+                userId, stopwatch.ElapsedMilliseconds);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving user contracts");
-            throw;
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while fetching contracts | User={UserId}, Duration={ElapsedMs}ms", 
+                userId, stopwatch.ElapsedMilliseconds);
+            return null;
         }
     }
 
-    public async Task<ContractDetailsDto?> GetContractDetailsAsync(int contractId)
+    public async Task<ContractDetailsDto?> GetContractByIdAsync(int contractId)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        var sessionId = _httpContextAccessor.HttpContext?.Session?.Id ?? "NoSession";
+        
         try
         {
+            _logger.LogInformation("?? Fetching contract details | ContractId={ContractId}, User={UserId}, Session={SessionId}", 
+                contractId, userId, sessionId);
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("GET_CONTRACT_BY_ID");
+
             var response = await _httpClient.GetAsync($"Contracts/{contractId}");
+
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.ReasonPhrase);
 
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
+                var contract = await response.Content.ReadFromJsonAsync<ContractDetailsDto>();
+                
+                stopwatch.Stop();
+                _logger.LogInformation("? Contract details fetched successfully! ContractId={ContractId}, Status='{Status}', User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, contract?.ContractStatus ?? "Unknown", userId, stopwatch.ElapsedMilliseconds);
+
+                // Log contract insights
+                if (contract != null)
                 {
-                    PropertyNameCaseInsensitive = true
-                };
-                return JsonSerializer.Deserialize<ContractDetailsDto>(content, options);
+                    _logger.LogDebug("?? Contract Info | ContractId={ContractId}, PaymentAmount=${PaymentAmount}, Client='{ClientName}', Freelancer='{FreelancerName}'", 
+                        contractId, contract.PaymentAmount, contract.ClientName ?? "Unknown", contract.FreelancerName ?? "Unknown");
+                }
+
+                return contract;
             }
 
-            _logger.LogWarning("Failed to retrieve contract details for contract {ContractId}. Status: {StatusCode}", contractId, response.StatusCode);
+            stopwatch.Stop();
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogWarning("? Contract not found | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
+            }
+            else
+            {
+                _logger.LogWarning("?? Failed to get contract details | ContractId={ContractId}, User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+                    contractId, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+            }
+            return null;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while fetching contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while retrieving contract details for contract {ContractId}", contractId);
-            throw;
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while fetching contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            return null;
         }
     }
 
     public async Task<GetContractHistoryResult?> GetContractHistoryAsync(int contractId)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        var sessionId = _httpContextAccessor.HttpContext?.Session?.Id ?? "NoSession";
+        
         try
         {
+            _logger.LogInformation("?? Fetching contract history | ContractId={ContractId}, User={UserId}, Session={SessionId}", 
+                contractId, userId, sessionId);
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("GET_CONTRACT_HISTORY");
+
             var response = await _httpClient.GetAsync($"Contracts/{contractId}/history");
 
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                return JsonSerializer.Deserialize<GetContractHistoryResult>(content, options);
-            }
-
-            _logger.LogWarning("Failed to retrieve contract history for contract {ContractId}. Status: {StatusCode}", contractId, response.StatusCode);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while retrieving contract history for contract {ContractId}", contractId);
-            throw;
-        }
-    }
-
-    public async Task<GetPendingChangeRequestsResult?> GetPendingChangeRequestsAsync()
-    {
-        try
-        {
-            SetAuthorizationHeader();
-            var response = await _httpClient.GetAsync("Contracts/pending-changes");
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.ReasonPhrase);
 
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var options = new JsonSerializerOptions
+                var history = await response.Content.ReadFromJsonAsync<GetContractHistoryResult>();
+                
+                stopwatch.Stop();
+                var versionCount = history?.VersionHistory?.Count() ?? 0;
+                var changeRequestCount = history?.ChangeRequests?.Count() ?? 0;
+                
+                _logger.LogInformation("? Contract history fetched successfully! ContractId={ContractId}, Versions={VersionCount}, ChangeRequests={ChangeRequestCount}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, versionCount, changeRequestCount, userId, stopwatch.ElapsedMilliseconds);
+
+                // Log version details
+                if (history?.VersionHistory?.Any() == true)
                 {
-                    PropertyNameCaseInsensitive = true
-                };
-                return JsonSerializer.Deserialize<GetPendingChangeRequestsResult>(content, options);
-            }
-
-            _logger.LogWarning("Failed to retrieve pending change requests. Status: {StatusCode}", response.StatusCode);
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while retrieving pending change requests");
-            throw;
-        }
-    }
-
-    public async Task<ServiceResult> ProposeContractChangesAsync(int contractId, ProposeContractChangeViewModel viewModel)
-    {
-        try
-        {
-            SetAuthorizationHeader();
-
-            // Create multipart form data to support file uploads
-            using var formData = new MultipartFormDataContent();
-            
-            // Add text fields
-            formData.Add(new StringContent(viewModel.Title), "Title");
-            formData.Add(new StringContent(viewModel.Description), "Description");
-            formData.Add(new StringContent(viewModel.PaymentAmount.ToString()), "PaymentAmount");
-            formData.Add(new StringContent(viewModel.PaymentType), "PaymentType");
-            
-            if (viewModel.ProjectDeadline.HasValue)
-                formData.Add(new StringContent(viewModel.ProjectDeadline.Value.ToString("yyyy-MM-ddTHH:mm:ss")), "ProjectDeadline");
-            
-            if (!string.IsNullOrEmpty(viewModel.Deliverables))
-                formData.Add(new StringContent(viewModel.Deliverables), "Deliverables");
-                
-            if (!string.IsNullOrEmpty(viewModel.TermsAndConditions))
-                formData.Add(new StringContent(viewModel.TermsAndConditions), "TermsAndConditions");
-                
-            if (!string.IsNullOrEmpty(viewModel.AdditionalNotes))
-                formData.Add(new StringContent(viewModel.AdditionalNotes), "AdditionalNotes");
-                
-            formData.Add(new StringContent(viewModel.ChangeReason), "ChangeReason");
-
-            // Add files if any
-            if (viewModel.AttachmentFiles?.Any() == true)
-            {
-                foreach (var file in viewModel.AttachmentFiles)
-                {
-                    if (file.Length > 0)
-                    {
-                        var fileContent = new StreamContent(file.OpenReadStream());
-                        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-                        formData.Add(fileContent, "AttachmentFiles", file.FileName);
-                    }
+                    var currentVersion = history.CurrentVersion;
+                    _logger.LogDebug("?? Version Info | ContractId={ContractId}, CurrentVersion={CurrentVersionNumber}, TotalVersions={TotalVersions}", 
+                        contractId, currentVersion?.VersionNumber ?? 0, versionCount);
                 }
+
+                return history;
             }
 
-            var response = await _httpClient.PostAsync($"Contracts/{contractId}/propose-changes", formData);
-
-            if (response.IsSuccessStatusCode)
+            stopwatch.Stop();
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                return ServiceResult.Success();
+                _logger.LogWarning("? Contract history not found | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
             }
-
-            return await HandleErrorResponse(response, "proposing contract changes");
+            else
+            {
+                _logger.LogWarning("?? Failed to get contract history | ContractId={ContractId}, User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+                    contractId, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+            }
+            return null;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while fetching contract history | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while proposing contract changes for contract {ContractId}", contractId);
-            throw;
-        }
-    }
-
-    public async Task<ServiceResult> RespondToChangeRequestAsync(int changeRequestId, bool isApproved, string? responseNotes = null)
-    {
-        try
-        {
-            SetAuthorizationHeader();
-
-            var request = new
-            {
-                IsApproved = isApproved,
-                ResponseNotes = responseNotes
-            };
-
-            var response = await _httpClient.PostAsJsonAsync($"Contracts/change-requests/{changeRequestId}/respond", request);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return ServiceResult.Success();
-            }
-
-            return await HandleErrorResponse(response, "responding to change request");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while responding to change request {ChangeRequestId}", changeRequestId);
-            throw;
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while fetching contract history | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            return null;
         }
     }
 
     public async Task<ServiceResult> UpdateContractStatusAsync(int contractId, string status, string? notes = null)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
         try
         {
+            _logger.LogInformation("?? Updating contract status | ContractId={ContractId}, NewStatus='{Status}', User={UserId}", 
+                contractId, status, userId);
+            _logger.LogDebug("?? Status Update Details | ContractId={ContractId}, Status='{Status}', Notes='{Notes}'", 
+                contractId, status, notes ?? "None");
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("UPDATE_CONTRACT_STATUS");
 
-            var request = new
-            {
-                Status = status,
-                Notes = notes
-            };
-
+            var request = new { Status = status, Notes = notes };
             var response = await _httpClient.PutAsJsonAsync($"Contracts/{contractId}/status", request);
+
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.ReasonPhrase);
 
             if (response.IsSuccessStatusCode)
             {
+                stopwatch.Stop();
+                _logger.LogInformation("? Contract status updated successfully! ContractId={ContractId}, NewStatus='{Status}', User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, status, userId, stopwatch.ElapsedMilliseconds);
                 return ServiceResult.Success();
             }
 
-            var statusCode = (int)response.StatusCode;
-            var errorContent = await response.Content.ReadAsStringAsync();
-
-            // Handle different error types
-            if (statusCode == 400)
-            {
-                try
-                {
-                    var errorResponse = JsonSerializer.Deserialize<JsonElement>(errorContent, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-
-                    if (errorResponse.TryGetProperty("message", out var messageElement))
-                    {
-                        return ServiceResult.Failure(messageElement.GetString() ?? "Bad request", statusCode);
-                    }
-                }
-                catch
-                {
-                    return ServiceResult.Failure(string.IsNullOrEmpty(errorContent) ? "Bad request" : errorContent, statusCode);
-                }
-            }
-
-            if (statusCode == 401)
-                return ServiceResult.Failure("You are not authorized to update this contract", statusCode);
-
-            if (statusCode == 404)
-                return ServiceResult.Failure("Contract not found", statusCode);
-
-            return ServiceResult.Failure("An error occurred while updating contract status", statusCode);
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "updating contract status");
+            _logger.LogWarning("?? Failed to update contract status | ContractId={ContractId}, Status='{Status}', User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                contractId, status, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
         }
-        catch (HttpRequestException httpEx)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(httpEx, "HTTP error occurred while updating contract status for contract {ContractId}", contractId);
-            return ServiceResult.Failure("Network error occurred. Please check your connection and try again.", 0);
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while updating contract status | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while updating contract status for contract {ContractId}", contractId);
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while updating contract status | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
     }
 
     public async Task<ServiceResult> StartContractAsync(int contractId, string? notes = null)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
         try
         {
+            _logger.LogInformation("?? Starting contract | ContractId={ContractId}, User={UserId}", contractId, userId);
+            _logger.LogDebug("?? Start Details | ContractId={ContractId}, Notes='{Notes}'", contractId, notes ?? "None");
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("START_CONTRACT");
 
             var request = new { Notes = notes };
             var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/start", request);
 
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
+
             if (response.IsSuccessStatusCode)
             {
+                stopwatch.Stop();
+                _logger.LogInformation("? Contract started successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
                 return ServiceResult.Success();
             }
 
-            return await HandleErrorResponse(response, "starting contract");
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "starting contract");
+            _logger.LogWarning("?? Failed to start contract | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while starting contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while starting contract {ContractId}", contractId);
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while starting contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
     }
 
     public async Task<ServiceResult> CompleteContractAsync(int contractId, string? notes = null)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
         try
         {
+            _logger.LogInformation("? Completing contract | ContractId={ContractId}, User={UserId}", contractId, userId);
+            _logger.LogDebug("?? Completion Details | ContractId={ContractId}, Notes='{Notes}'", contractId, notes ?? "None");
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("COMPLETE_CONTRACT");
 
             var request = new { Notes = notes };
             var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/complete", request);
 
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
+
             if (response.IsSuccessStatusCode)
             {
+                stopwatch.Stop();
+                _logger.LogInformation("? Contract completed successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
                 return ServiceResult.Success();
             }
 
-            return await HandleErrorResponse(response, "completing contract");
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "completing contract");
+            _logger.LogWarning("?? Failed to complete contract | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while completing contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while completing contract {ContractId}", contractId);
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while completing contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
     }
 
     public async Task<ServiceResult> CancelContractAsync(int contractId, string? notes = null)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
         try
         {
+            _logger.LogInformation("?? Cancelling contract | ContractId={ContractId}, User={UserId}", contractId, userId);
+            _logger.LogDebug("?? Cancel Details | ContractId={ContractId}, Notes='{Notes}'", contractId, notes ?? "None");
+            
             SetAuthorizationHeader();
+            LogRequestHeaders("CANCEL_CONTRACT");
 
             var request = new { Notes = notes };
             var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/cancel", request);
 
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
+
             if (response.IsSuccessStatusCode)
             {
+                stopwatch.Stop();
+                _logger.LogInformation("? Contract cancelled successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
                 return ServiceResult.Success();
             }
 
-            return await HandleErrorResponse(response, "cancelling contract");
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "cancelling contract");
+            _logger.LogWarning("?? Failed to cancel contract | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while cancelling contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while cancelling contract {ContractId}", contractId);
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while cancelling contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
     }
 
-    private async Task<ServiceResult> HandleErrorResponse(HttpResponseMessage response, string action)
+    // Compatibility aliases for existing controller methods
+    public async Task<GetUserContractsResult?> GetUserContractsAsync()
     {
-        var statusCode = (int)response.StatusCode;
-        var errorContent = await response.Content.ReadAsStringAsync();
+        return await GetAllContractsAsync();
+    }
 
-        if (statusCode == 400)
+    public async Task<ContractDetailsDto?> GetContractDetailsAsync(int contractId)
+    {
+        return await GetContractByIdAsync(contractId);
+    }
+
+    // TODO: These methods need to be implemented based on the actual API endpoints
+    public async Task<ServiceResult> ProposeContractChangesAsync(int contractId, ProposeContractChangeViewModel model)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
+        try
         {
-            try
-            {
-                var errorResponse = JsonSerializer.Deserialize<JsonElement>(errorContent, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            _logger.LogInformation("?? Proposing contract changes | ContractId={ContractId}, User={UserId}", contractId, userId);
+            
+            SetAuthorizationHeader();
+            LogRequestHeaders("PROPOSE_CONTRACT_CHANGES");
 
-                if (errorResponse.TryGetProperty("message", out var messageElement))
-                {
-                    return ServiceResult.Failure(messageElement.GetString() ?? $"Bad request while {action}", statusCode);
-                }
-            }
-            catch
+            var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/changes", model);
+
+            if (response.IsSuccessStatusCode)
             {
-                return ServiceResult.Failure(string.IsNullOrEmpty(errorContent) ? $"Bad request while {action}" : errorContent, statusCode);
+                stopwatch.Stop();
+                _logger.LogInformation("? Contract changes proposed successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
+                return ServiceResult.Success();
+            }
+
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "proposing contract changes");
+            _logger.LogWarning("?? Failed to propose contract changes | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while proposing contract changes | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while proposing contract changes | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+    }
+
+    public async Task<object?> GetPendingChangeRequestsAsync()
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
+        try
+        {
+            _logger.LogInformation("? Fetching pending change requests | User={UserId}", userId);
+            
+            SetAuthorizationHeader();
+            LogRequestHeaders("GET_PENDING_CHANGE_REQUESTS");
+
+            var response = await _httpClient.GetAsync("Contracts/pending-changes");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<object>();
+                stopwatch.Stop();
+                _logger.LogInformation("? Pending change requests fetched successfully! User={UserId}, Duration={ElapsedMs}ms", 
+                    userId, stopwatch.ElapsedMilliseconds);
+                return result;
+            }
+
+            stopwatch.Stop();
+            _logger.LogWarning("?? Failed to get pending change requests | User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+                userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while fetching pending change requests | User={UserId}, Duration={ElapsedMs}ms", 
+                userId, stopwatch.ElapsedMilliseconds);
+            return null;
+        }
+    }
+
+    public async Task<ServiceResult> RespondToChangeRequestAsync(int changeRequestId, bool isApproved, string? responseNotes = null)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
+        try
+        {
+            _logger.LogInformation("?? Responding to change request | ChangeRequestId={ChangeRequestId}, IsApproved={IsApproved}, User={UserId}", 
+                changeRequestId, isApproved, userId);
+            
+            SetAuthorizationHeader();
+            LogRequestHeaders("RESPOND_TO_CHANGE_REQUEST");
+
+            var request = new { IsApproved = isApproved, ResponseNotes = responseNotes };
+            var response = await _httpClient.PostAsJsonAsync($"Contracts/change-requests/{changeRequestId}/respond", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                stopwatch.Stop();
+                _logger.LogInformation("? Change request response submitted successfully! ChangeRequestId={ChangeRequestId}, IsApproved={IsApproved}, User={UserId}, Duration={ElapsedMs}ms", 
+                    changeRequestId, isApproved, userId, stopwatch.ElapsedMilliseconds);
+                return ServiceResult.Success();
+            }
+
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "responding to change request");
+            _logger.LogWarning("?? Failed to respond to change request | ChangeRequestId={ChangeRequestId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                changeRequestId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while responding to change request | ChangeRequestId={ChangeRequestId}, User={UserId}, Duration={ElapsedMs}ms", 
+                changeRequestId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while responding to change request | ChangeRequestId={ChangeRequestId}, User={UserId}, Duration={ElapsedMs}ms", 
+                changeRequestId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+    }
+
+    private void SetAuthorizationHeader()
+    {
+        try
+        {
+            var token = _httpContextAccessor.HttpContext?.User?.FindFirst("jwt")?.Value;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                
+                _logger.LogDebug("?? Authorization header set | HasToken={HasToken}", !string.IsNullOrEmpty(token));
+            }
+            else
+            {
+                _logger.LogDebug("?? No JWT token found for authorization");
             }
         }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to set authorization header");
+        }
+    }
 
-        if (statusCode == 401)
-            return ServiceResult.Failure($"You are not authorized to perform this action", statusCode);
+    private void LogRequestHeaders(string operation)
+    {
+        try
+        {
+            var headers = new Dictionary<string, string>();
 
-        if (statusCode == 404)
-            return ServiceResult.Failure("Contract not found", statusCode);
+            // Log important headers
+            foreach (var header in _httpClient.DefaultRequestHeaders)
+            {
+                if (IsImportantHeader(header.Key))
+                {
+                    headers[header.Key] = GetSafeHeaderValue(string.Join(", ", header.Value));
+                }
+            }
 
-        return ServiceResult.Failure($"An error occurred while {action}", statusCode);
+            if (headers.Any())
+            {
+                _logger.LogDebug("?? {Operation} - Request Headers: {@Headers}", operation, headers);
+            }
+
+            // Log authorization status
+            var hasAuth = _httpClient.DefaultRequestHeaders.Authorization != null;
+            _logger.LogDebug("?? Authorization Status | Operation={Operation}, HasAuth={HasAuth}, Scheme={Scheme}", 
+                operation, hasAuth, _httpClient.DefaultRequestHeaders.Authorization?.Scheme ?? "none");
+
+            // Log user context
+            var userClaims = _httpContextAccessor.HttpContext?.User?.Claims?.Where(c => !c.Type.Contains("nbf") && !c.Type.Contains("exp") && !c.Type.Contains("iat"))
+                .ToDictionary(c => c.Type.Split('/').Last(), c => c.Value);
+            
+            if (userClaims?.Any() == true)
+            {
+                _logger.LogDebug("?? User Context | Operation={Operation}, Claims={@Claims}", operation, userClaims);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to log request headers for operation {Operation}", operation);
+        }
+    }
+
+    private static bool IsImportantHeader(string headerName)
+    {
+        var important = new[] 
+        {
+            "Authorization", "Accept", "Content-Type", "User-Agent"
+        };
+        return important.Contains(headerName, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string GetSafeHeaderValue(string headerValue)
+    {
+        if (string.IsNullOrEmpty(headerValue))
+            return "";
+
+        // Redact sensitive headers
+        if (headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return "Bearer [REDACTED]";
+
+        return headerValue.Length > 100 ? headerValue[..100] + "[TRUNCATED]" : headerValue;
+    }
+
+    private async Task<ServiceResult> HandleErrorResponse(HttpResponseMessage response, string operation)
+    {
+        try
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            var statusCode = (int)response.StatusCode;
+            
+            _logger.LogDebug("?? Error Response Content | Operation={Operation}, StatusCode={StatusCode}, Content='{Content}'", 
+                operation, statusCode, errorContent.Length > 200 ? errorContent[..200] + "..." : errorContent);
+
+            return statusCode switch
+            {
+                400 => ServiceResult.Failure("Invalid request data provided"),
+                401 => ServiceResult.Failure("You are not authorized to perform this action"),
+                403 => ServiceResult.Failure("You do not have permission to perform this action"),
+                404 => ServiceResult.Failure("The requested resource was not found"),
+                409 => ServiceResult.Failure("This action conflicts with the current state"),
+                _ => ServiceResult.Failure($"An error occurred: {response.ReasonPhrase}")
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse error response for operation {Operation}", operation);
+            return ServiceResult.Failure("An unexpected error occurred");
+        }
     }
 }

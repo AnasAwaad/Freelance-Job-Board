@@ -2,12 +2,13 @@
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 
 internal class FreelancerRepository : GenericRepository<Freelancer>, IFreelancerRepository
 {
-	public FreelancerRepository(ApplicationDbContext context) : base(context)
+	public FreelancerRepository(ApplicationDbContext context, ILogger<GenericRepository<Freelancer>>? logger = null) : base(context, logger)
 	{
 	}
 

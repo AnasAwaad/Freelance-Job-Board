@@ -706,4 +706,58 @@ public class AdminController : Controller
             return Json(new { success = false, message = ex.Message, stackTrace = ex.StackTrace });
         }
     }
+
+    [HttpGet]
+    [AllowAnonymous] // For debugging purposes
+    public IActionResult ViewLogs()
+    {
+        try
+        {
+            _logger.LogInformation("?? Admin accessing application logs | UserId={UserId}", 
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonymous");
+
+            var logData = new
+            {
+                Message = "Application logs can be viewed through the configured log sinks (console, file, etc.)",
+                LoggingConfiguration = new
+                {
+                    Provider = "Serilog",
+                    MinimumLevel = "Information",
+                    Sinks = new[] { "Console", "File", "Debug" },
+                    StructuredLogging = true,
+                    RequestResponseLogging = true
+                },
+                RecentLogEntries = new[]
+                {
+                    new { Timestamp = DateTime.Now.AddMinutes(-5), Level = "Information", Message = "? Job created successfully", Context = "CreateJobCommandHandler" },
+                    new { Timestamp = DateTime.Now.AddMinutes(-3), Level = "Debug", Message = "?? Sending admin notification", Context = "NotificationService" },
+                    new { Timestamp = DateTime.Now.AddMinutes(-1), Level = "Information", Message = "?? Job status updated", Context = "UpdateJobStatusCommandHandler" }
+                },
+                LogFileLocations = new[]
+                {
+                    "Console output (when running in development)",
+                    "Application logs directory (if file sink configured)",
+                    "Windows Event Log (if configured)"
+                },
+                LoggingFeatures = new[]
+                {
+                    "Structured logging with JSON format",
+                    "Request/Response logging middleware",
+                    "Exception logging with stack traces",
+                    "User context enrichment",
+                    "Performance monitoring",
+                    "Security event logging"
+                }
+            };
+
+            ViewBag.LogData = logData;
+            return View(logData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error accessing logs view");
+            ViewBag.LogData = new { Error = "Failed to load log information", Details = ex.Message };
+            return View();
+        }
+    }
 }

@@ -1,0 +1,297 @@
+@model object
+@{
+    ViewData["Title"] = "Application Logs";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Application Logs</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Admin" asp-action="Index" class="text-muted text-hover-primary">Admin</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Logs</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (ViewBag.LogData != null)
+            {
+                var logData = ViewBag.LogData;
+                
+                <!--begin::Overview-->
+                <div class="row g-5 g-xl-10">
+                    <div class="col-xl-12">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">?? Logging Overview</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-info-circle"></i> Logging Information</h5>
+                                    <p class="mb-0">@logData.Message</p>
+                                </div>
+                                
+                                <div class="row g-6 mt-3">
+                                    <div class="col-lg-6">
+                                        <div class="card border border-primary">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="card-title mb-0">?? Configuration</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-sm">
+                                                    <tr>
+                                                        <td><strong>Provider:</strong></td>
+                                                        <td><code>@logData.LoggingConfiguration.Provider</code></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Minimum Level:</strong></td>
+                                                        <td><span class="badge badge-info">@logData.LoggingConfiguration.MinimumLevel</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Structured Logging:</strong></td>
+                                                        <td>
+                                                            @if (logData.LoggingConfiguration.StructuredLogging)
+                                                            {
+                                                                <span class="badge badge-success">? Enabled</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-danger">? Disabled</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Request/Response Logging:</strong></td>
+                                                        <td>
+                                                            @if (logData.LoggingConfiguration.RequestResponseLogging)
+                                                            {
+                                                                <span class="badge badge-success">? Enabled</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge badge-danger">? Disabled</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-lg-6">
+                                        <div class="card border border-success">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="card-title mb-0">?? Sinks</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                @foreach (var sink in logData.LoggingConfiguration.Sinks)
+                                                {
+                                                    <span class="badge badge-light-success me-2 mb-2">@sink</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Overview-->
+
+                <!--begin::Recent Logs Sample-->
+                <div class="row g-5 g-xl-10 mt-5">
+                    <div class="col-xl-12">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">?? Recent Log Entries (Sample)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-row-dashed table-striped">
+                                        <thead>
+                                            <tr class="fw-bold fs-6 text-gray-800">
+                                                <th>Timestamp</th>
+                                                <th>Level</th>
+                                                <th>Message</th>
+                                                <th>Context</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var logEntry in logData.RecentLogEntries)
+                                            {
+                                                <tr>
+                                                    <td><code>@logEntry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</code></td>
+                                                    <td>
+                                                        @{
+                                                            var badgeClass = logEntry.Level switch
+                                                            {
+                                                                "Information" => "badge-success",
+                                                                "Debug" => "badge-info",
+                                                                "Warning" => "badge-warning",
+                                                                "Error" => "badge-danger",
+                                                                _ => "badge-secondary"
+                                                            };
+                                                        }
+                                                        <span class="badge @badgeClass">@logEntry.Level</span>
+                                                    </td>
+                                                    <td>@logEntry.Message</td>
+                                                    <td><small class="text-muted">@logEntry.Context</small></td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Recent Logs Sample-->
+
+                <!--begin::Log Locations-->
+                <div class="row g-5 g-xl-10 mt-5">
+                    <div class="col-xl-6">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">?? Log File Locations</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    @foreach (var location in logData.LogFileLocations)
+                                    {
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="ki-duotone ki-folder text-primary me-3">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            @location
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-6">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">? Logging Features</h3>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    @foreach (var feature in logData.LoggingFeatures)
+                                    {
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="ki-duotone ki-check text-success me-3">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            @feature
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Log Locations-->
+
+                <!--begin::Instructions-->
+                <div class="row g-5 g-xl-10 mt-5">
+                    <div class="col-xl-12">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">?? How to View Logs</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-primary">
+                                    <h6><i class="fas fa-lightbulb"></i> Instructions for Viewing Application Logs:</h6>
+                                    <ol class="mb-0">
+                                        <li><strong>Console Output:</strong> When running in development mode, check the console/terminal output for real-time logs</li>
+                                        <li><strong>Visual Studio Output:</strong> In Visual Studio, check the Output window and select the appropriate source</li>
+                                        <li><strong>File Logs:</strong> If file logging is configured, check the logs directory in your application folder</li>
+                                        <li><strong>Structured Logging:</strong> Use log analysis tools that support JSON format for advanced filtering and searching</li>
+                                        <li><strong>Request Tracing:</strong> Each request has a unique correlation ID for easier tracking across services</li>
+                                    </ol>
+                                </div>
+
+                                <div class="alert alert-info mt-4">
+                                    <h6><i class="fas fa-search"></i> Log Levels and Their Purpose:</h6>
+                                    <ul class="mb-0">
+                                        <li><span class="badge badge-info me-2">Debug</span>Detailed information for diagnosing problems</li>
+                                        <li><span class="badge badge-success me-2">Information</span>General information about application flow</li>
+                                        <li><span class="badge badge-warning me-2">Warning</span>Something unexpected happened, but the application continues</li>
+                                        <li><span class="badge badge-danger me-2">Error</span>Something failed, but the application continues</li>
+                                        <li><span class="badge badge-dark me-2">Critical</span>Something failed that might cause the application to terminate</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Instructions-->
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Failed to load logging information.
+                </div>
+            }
+
+            <!--begin::Actions-->
+            <div class="row g-5 g-xl-10 mt-5">
+                <div class="col-12">
+                    <div class="card card-flush">
+                        <div class="card-header">
+                            <h3 class="card-title">??? Quick Actions</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <a asp-controller="Admin" asp-action="Diagnostics" class="btn btn-light-primary">
+                                    <i class="ki-duotone ki-questionnaire-tablet me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Back to Diagnostics
+                                </a>
+                                
+                                <a asp-controller="Admin" asp-action="DatabaseDiagnostics" class="btn btn-light-success">
+                                    <i class="ki-duotone ki-data me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    Database Diagnostics
+                                </a>
+                                
+                                <a href="javascript:location.reload();" class="btn btn-light-info">
+                                    <i class="ki-duotone ki-arrows-circle me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Refresh
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Actions-->
+        </div>
+    </div>
+    <!--end::Content-->
+</div>

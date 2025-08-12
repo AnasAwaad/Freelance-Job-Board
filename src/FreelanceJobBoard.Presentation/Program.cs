@@ -10,6 +10,8 @@ using FreelanceJobBoard.Presentation.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Events;
 
 namespace FreelanceJobBoard.Presentation;
 
@@ -17,180 +19,219 @@ public class Program
 {
 	public static async Task Main(string[] args)
 	{
-		var builder = WebApplication.CreateBuilder(args);
+		// Configure Serilog early in the startup process
+		var configuration = new ConfigurationBuilder()
+			.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("appsettings.json")
+			.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+			.Build();
 
-		// Add services to the container.
-		builder.Services.AddControllersWithViews();
-		
-		// Add Application and Infrastructure layers
-		builder.Services.AddApplication();
-		builder.Services.AddInfrastructure(builder.Configuration, configureIdentity: false);
+		Log.Logger = new LoggerConfiguration()
+			.ReadFrom.Configuration(configuration)
+			.Enrich.FromLogContext()
+			.Enrich.WithCorrelationId()
+			.CreateLogger();
 
-		// Configure Session (optional, for future use)
-		builder.Services.AddDistributedMemoryCache();
-		builder.Services.AddSession(options =>
+		try
 		{
-			options.IdleTimeout = TimeSpan.FromMinutes(30);
-			options.Cookie.HttpOnly = true;
-			options.Cookie.IsEssential = true;
-			options.Cookie.Name = "FreelanceJobBoard.Session";
-		});
-		
-		// Register HttpClients with IWebHostEnvironment for file handling
-		builder.Services.AddHttpClient<Presentation.Services.AuthService>();
-		builder.Services.AddHttpClient<Presentation.Services.UserService>();
-		builder.Services.AddHttpClient<CategoryService>();
-		builder.Services.AddHttpClient<JobService>();
-		builder.Services.AddHttpClient<SkillService>();
-		builder.Services.AddHttpClient<ProposalService>();
-		builder.Services.AddHttpClient<ContractService>();
+			Log.Information("🚀 Starting FreelanceJobBoard Presentation application");
 
-		// Configure Email Settings
-		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-		
-		
-		// Configure Database
-		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-		if (string.IsNullOrEmpty(connectionString))
-		{
-			throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+			var builder = WebApplication.CreateBuilder(args);
+
+			// Use Serilog for logging
+			builder.Host.UseSerilog();
+
+			// Add services to the container.
+			builder.Services.AddControllersWithViews();
+			
+			// Add Application and Infrastructure layers
+			builder.Services.AddApplication();
+			builder.Services.AddInfrastructure(builder.Configuration, configureIdentity: false);
+
+			// Configure Session (optional, for future use)
+			builder.Services.AddDistributedMemoryCache();
+			builder.Services.AddSession(options =>
+			{
+				options.IdleTimeout = TimeSpan.FromMinutes(30);
+				options.Cookie.HttpOnly = true;
+				options.Cookie.IsEssential = true;
+				options.Cookie.Name = "FreelanceJobBoard.Session";
+			});
+			
+			// Register HttpClients with IWebHostEnvironment for file handling
+			builder.Services.AddHttpClient<Presentation.Services.AuthService>();
+			builder.Services.AddHttpClient<Presentation.Services.UserService>();
+			builder.Services.AddHttpClient<CategoryService>();
+			builder.Services.AddHttpClient<JobService>();
+			builder.Services.AddHttpClient<SkillService>();
+			builder.Services.AddHttpClient<ProposalService>();
+			builder.Services.AddHttpClient<ContractService>();
+
+			// Configure Email Settings
+			builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+			
+			
+			// Configure Database
+			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+			if (string.IsNullOrEmpty(connectionString))
+			{
+				Log.Fatal("❌ Connection string 'DefaultConnection' not found");
+				throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+			}
+
+			// Log the connection string for debugging (remove in production)
+			Log.Information("🔗 Database Connection configured: {ConnectionType}", 
+				connectionString.Contains("localdb") ? "LocalDB" : "SQL Server");
+
+			// Note: ApplicationDbContext is already configured in AddInfrastructure()
+			// Remove duplicate registration to avoid conflicts
+
+			builder.Services.AddHttpContextAccessor();
+
+			// Configure Identity with proper options for cookie authentication
+			// This is separate from the Infrastructure Identity configuration
+			builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+			{
+				// Configure password requirements (if needed)
+				options.Password.RequireDigit = true;
+				options.Password.RequireLowercase = true;
+				options.Password.RequireNonAlphanumeric = true;
+				options.Password.RequireUppercase = true;
+				options.Password.RequiredLength = 8;
+				options.Password.RequiredUniqueChars = 3;
+
+				// Configure lockout settings
+				options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+				options.Lockout.MaxFailedAccessAttempts = 5;
+
+				// Configure user settings
+				options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+
+				// Configure sign-in settings
+				options.SignIn.RequireConfirmedAccount = true;
+				options.SignIn.RequireConfirmedEmail = true;
+			})
+			.AddEntityFrameworkStores<ApplicationDbContext>()
+			.AddDefaultTokenProviders();
+
+			// Configure Cookie Authentication
+			builder.Services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+				options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+			})
+			.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+			{
+				options.LoginPath = "/Auth/Login";
+				options.LogoutPath = "/Auth/Logout";
+				options.AccessDeniedPath = "/Auth/AccessDenied";
+				options.ExpireTimeSpan = TimeSpan.FromHours(1);
+				options.SlidingExpiration = true;
+				options.Cookie.HttpOnly = true;
+				options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+				options.Cookie.SameSite = SameSiteMode.Lax;
+				options.Cookie.Name = "FreelanceJobBoard.Auth";
+				
+				// Handle authentication failures
+				options.Events.OnRedirectToAccessDenied = context =>
+				{
+					Log.Warning("🚫 Access denied for user {UserId} to path {Path}", 
+						context.HttpContext.User?.Identity?.Name ?? "Anonymous", 
+						context.Request.Path);
+					context.Response.Redirect("/Auth/AccessDenied");
+					return Task.CompletedTask;
+				};
+
+				options.Events.OnRedirectToLogin = context =>
+				{
+					Log.Information("🔑 Redirecting unauthenticated user to login from path {Path}", 
+						context.Request.Path);
+					context.Response.Redirect("/Auth/Login");
+					return Task.CompletedTask;
+				};
+			});
+
+			// Configure Authorization with proper policies
+			builder.Services.AddAuthorization(options =>
+			{
+				// Add authorization policies
+				options.AddPolicy("RequireAdminRole", policy => 
+				{
+					policy.RequireAuthenticatedUser();
+					policy.RequireRole(AppRoles.Admin);
+				});
+				
+				options.AddPolicy("RequireClientRole", policy => 
+				{
+					policy.RequireAuthenticatedUser();
+					policy.RequireRole(AppRoles.Client);
+				});
+				
+				options.AddPolicy("RequireFreelancerRole", policy => 
+				{
+					policy.RequireAuthenticatedUser();
+					policy.RequireRole(AppRoles.Freelancer);
+				});
+				
+				options.AddPolicy("RequireClientOrFreelancer", policy => 
+				{
+					policy.RequireAuthenticatedUser();
+					policy.RequireRole(AppRoles.Client, AppRoles.Freelancer);
+				});
+			});
+
+			// Add antiforgery
+			builder.Services.AddAntiforgery();
+
+			Log.Information("📦 Services configuration completed");
+
+			var app = builder.Build();
+
+			// Ensure database is created and seed data
+			await InitializeDatabaseAsync(app);
+
+			// Configure the HTTP request pipeline.
+			if (!app.Environment.IsDevelopment())
+			{
+				app.UseExceptionHandler("/Home/Error");
+				app.UseHsts();
+			}
+			else
+			{
+				app.UseDeveloperExceptionPage();
+			}
+
+			app.UseHttpsRedirection();
+			app.UseStaticFiles();
+
+			app.UseRouting();
+			
+			// Add session middleware (optional)
+			app.UseSession();
+			
+			// Order is important: Authentication before Authorization
+			app.UseAuthentication();
+			app.UseAuthorization();
+
+			// Add antiforgery middleware
+			app.UseAntiforgery();
+
+			app.MapControllerRoute(
+				name: "default",
+				pattern: "{controller=Home}/{action=Index}/{id?}");
+
+			Log.Information("🌐 FreelanceJobBoard Presentation application started successfully");
+			app.Run();
 		}
-
-		// Log the connection string for debugging (remove in production)
-		Console.WriteLine($"🔗 Database Connection: {connectionString}");
-
-		// Note: ApplicationDbContext is already configured in AddInfrastructure()
-		// Remove duplicate registration to avoid conflicts
-
-		builder.Services.AddHttpContextAccessor();
-
-		// Configure Identity with proper options for cookie authentication
-		// This is separate from the Infrastructure Identity configuration
-		builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+		catch (Exception ex)
 		{
-			// Configure password requirements (if needed)
-			options.Password.RequireDigit = true;
-			options.Password.RequireLowercase = true;
-			options.Password.RequireNonAlphanumeric = true;
-			options.Password.RequireUppercase = true;
-			options.Password.RequiredLength = 8;
-			options.Password.RequiredUniqueChars = 3;
-
-			// Configure lockout settings
-			options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-			options.Lockout.MaxFailedAccessAttempts = 5;
-
-			// Configure user settings
-			options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-
-			// Configure sign-in settings
-			options.SignIn.RequireConfirmedAccount = true;
-			options.SignIn.RequireConfirmedEmail = true;
-		})
-		.AddEntityFrameworkStores<ApplicationDbContext>()
-		.AddDefaultTokenProviders();
-
-		// Configure Cookie Authentication
-		builder.Services.AddAuthentication(options =>
-		{
-			options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-			options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-			options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-		})
-		.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-		{
-			options.LoginPath = "/Auth/Login";
-			options.LogoutPath = "/Auth/Logout";
-			options.AccessDeniedPath = "/Auth/AccessDenied";
-			options.ExpireTimeSpan = TimeSpan.FromHours(1);
-			options.SlidingExpiration = true;
-			options.Cookie.HttpOnly = true;
-			options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-			options.Cookie.SameSite = SameSiteMode.Lax;
-			options.Cookie.Name = "FreelanceJobBoard.Auth";
-			
-			// Handle authentication failures
-			options.Events.OnRedirectToAccessDenied = context =>
-			{
-				context.Response.Redirect("/Auth/AccessDenied");
-				return Task.CompletedTask;
-			};
-
-			options.Events.OnRedirectToLogin = context =>
-			{
-				context.Response.Redirect("/Auth/Login");
-				return Task.CompletedTask;
-			};
-		});
-
-		// Configure Authorization with proper policies
-		builder.Services.AddAuthorization(options =>
-		{
-			// Add authorization policies
-			options.AddPolicy("RequireAdminRole", policy => 
-			{
-				policy.RequireAuthenticatedUser();
-				policy.RequireRole(AppRoles.Admin);
-			});
-			
-			options.AddPolicy("RequireClientRole", policy => 
-			{
-				policy.RequireAuthenticatedUser();
-				policy.RequireRole(AppRoles.Client);
-			});
-			
-			options.AddPolicy("RequireFreelancerRole", policy => 
-			{
-				policy.RequireAuthenticatedUser();
-				policy.RequireRole(AppRoles.Freelancer);
-			});
-			
-			options.AddPolicy("RequireClientOrFreelancer", policy => 
-			{
-				policy.RequireAuthenticatedUser();
-				policy.RequireRole(AppRoles.Client, AppRoles.Freelancer);
-			});
-		});
-
-		// Add antiforgery
-		builder.Services.AddAntiforgery();
-
-		var app = builder.Build();
-
-		// Ensure database is created and seed data
-		await InitializeDatabaseAsync(app);
-
-		// Configure the HTTP request pipeline.
-		if (!app.Environment.IsDevelopment())
-		{
-			app.UseExceptionHandler("/Home/Error");
-			app.UseHsts();
+			Log.Fatal(ex, "💥 FreelanceJobBoard Presentation application terminated unexpectedly");
 		}
-		else
+		finally
 		{
-			app.UseDeveloperExceptionPage();
+			await Log.CloseAndFlushAsync();
 		}
-
-		app.UseHttpsRedirection();
-		app.UseStaticFiles();
-
-		app.UseRouting();
-		
-		// Add session middleware (optional)
-		app.UseSession();
-		
-		// Order is important: Authentication before Authorization
-		app.UseAuthentication();
-		app.UseAuthorization();
-
-		// Add antiforgery middleware
-		app.UseAntiforgery();
-
-		app.MapControllerRoute(
-			name: "default",
-			pattern: "{controller=Home}/{action=Index}/{id?}");
-
-		app.Run();
 	}
 
 	private static async Task InitializeDatabaseAsync(WebApplication app)
@@ -333,7 +374,7 @@ public class Program
 		}
 	}
 
-	private static async Task VerifyContractTablesAsync(ApplicationDbContext context, ILogger logger)
+	private static async Task VerifyContractTablesAsync(ApplicationDbContext context, Microsoft.Extensions.Logging.ILogger logger)
 	{
 		try
 		{
@@ -391,7 +432,7 @@ public class Program
 		}
 	}
 
-	private static async Task RecoverDatabaseAsync(IServiceProvider services, ILogger logger)
+	private static async Task RecoverDatabaseAsync(IServiceProvider services, Microsoft.Extensions.Logging.ILogger logger)
 	{
 		var context = services.GetRequiredService<ApplicationDbContext>();
 		var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
@@ -425,7 +466,7 @@ public class Program
 	private static async Task CreateRolesAndAdminUserAsync(
 		UserManager<ApplicationUser> userManager, 
 		RoleManager<IdentityRole> roleManager, 
-		ILogger logger)
+		Microsoft.Extensions.Logging.ILogger logger)
 	{
 		try
 		{

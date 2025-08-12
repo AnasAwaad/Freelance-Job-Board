@@ -2,12 +2,13 @@ using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 
 internal class NotificationRepository : GenericRepository<Notification>, INotificationRepository
 {
-    public NotificationRepository(ApplicationDbContext context) : base(context)
+    public NotificationRepository(ApplicationDbContext context, ILogger<GenericRepository<Notification>>? logger = null) : base(context, logger)
     {
     }
 

@@ -1,5 +1,6 @@
 using FreelanceJobBoard.Presentation.Models.DTOs;
 using FreelanceJobBoard.Presentation.Models.ViewModels;
+using System.Diagnostics;
 
 namespace FreelanceJobBoard.Presentation.Services;
 
@@ -25,8 +26,15 @@ public class JobService
 
 	public async Task<PagedResultDto<JobViewModel>?> GetAllJobsAsync(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, string? sortDirection = null)
 	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
 		try
 		{
+			_logger.LogInformation("?? Fetching jobs | User={UserId}, Session={SessionId}, Page={PageNumber}, Size={PageSize}, Search='{Search}', Sort={SortBy}:{SortDirection}", 
+				userId, sessionId, pageNumber, pageSize, search ?? "none", sortBy ?? "none", sortDirection ?? "none");
+
 			var queryParams = new List<string>();
 
 			queryParams.Add($"pageNumber={pageNumber}");
@@ -42,8 +50,21 @@ public class JobService
 				queryParams.Add($"sortDirection={sortDirection}");
 
 			var queryString = string.Join("&", queryParams);
+			var apiUrl = $"Jobs?{queryString}";
+			
+			_logger.LogDebug("?? Making API request | URL='{ApiUrl}', BaseAddress='{BaseAddress}'", apiUrl, _httpClient.BaseAddress);
+
+			// Log request headers
+			LogRequestHeaders("GET_ALL_JOBS");
+
 			// This will call GET /api/Jobs?queryString
-			var response = await _httpClient.GetAsync($"Jobs?{queryString}");
+			var response = await _httpClient.GetAsync(apiUrl);
+
+			// Log response details
+			_logger.LogDebug("?? API Response | Status={StatusCode} {ReasonPhrase}, ContentType='{ContentType}', ContentLength={ContentLength}", 
+				(int)response.StatusCode, response.StatusCode, response.ReasonPhrase, 
+				response.Content.Headers.ContentType?.ToString() ?? "unknown", 
+				response.Content.Headers.ContentLength ?? 0);
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -52,7 +73,7 @@ public class JobService
 				if (apiResponse != null)
 				{
 					var viewModels = apiResponse.Items.Select(MapJobDtoToViewModel);
-					return new PagedResultDto<JobViewModel>
+					var result = new PagedResultDto<JobViewModel>
 					{
 						Items = viewModels,
 						TotalCount = apiResponse.TotalCount,
@@ -62,113 +83,247 @@ public class JobService
 						HasNextPage = apiResponse.HasNextPage,
 						HasPreviousPage = apiResponse.HasPreviousPage
 					};
+
+					stopwatch.Stop();
+					_logger.LogInformation("? Jobs fetched successfully! Count={JobCount}/{TotalCount}, Pages={PageNumber}/{TotalPages}, User={UserId}, Duration={ElapsedMs}ms", 
+						result.Items?.Count() ?? 0, result.TotalCount, result.PageNumber, result.TotalPages, userId, stopwatch.ElapsedMilliseconds);
+
+					// Log performance metrics
+					if (stopwatch.ElapsedMilliseconds > 1000)
+					{
+						_logger.LogWarning("?? Slow API response | Operation=GetAllJobs, Duration={ElapsedMs}ms, User={UserId}", 
+							stopwatch.ElapsedMilliseconds, userId);
+					}
+
+					return result;
 				}
 			}
 
-			_logger.LogWarning("Failed to get jobs. Status: {StatusCode}", response.StatusCode);
+			stopwatch.Stop();
+			_logger.LogWarning("?? Failed to get jobs | User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+				userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			return null;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? HTTP error while fetching jobs | User={UserId}, Duration={ElapsedMs}ms, Error={ErrorMessage}", 
+				userId, stopwatch.ElapsedMilliseconds, ex.Message);
+			return null;
+		}
+		catch (TaskCanceledException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "? Request timeout while fetching jobs | User={UserId}, Duration={ElapsedMs}ms", 
+				userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred while fetching jobs");
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? Unexpected error while fetching jobs | User={UserId}, Duration={ElapsedMs}ms, Error={ErrorMessage}", 
+				userId, stopwatch.ElapsedMilliseconds, ex.Message);
 			return null;
 		}
 	}
 
 	public async Task<IEnumerable<JobViewModel>?> GetMyJobsAsync()
 	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
 		try
 		{
 			// Check if user is a client or freelancer
 			var isClient = _httpContext?.User?.IsInRole("Client") ?? false;
 			var isFreelancer = _httpContext?.User?.IsInRole("Freelancer") ?? false;
 
+			_logger.LogInformation("?? Fetching user-specific jobs | User={UserId}, Session={SessionId}, IsClient={IsClient}, IsFreelancer={IsFreelancer}", 
+				userId, sessionId, isClient, isFreelancer);
+
 			string endpoint;
+			string userType;
 			if (isClient)
 			{
-				// This will call GET /api/Jobs/my-jobs for clients
 				endpoint = "Jobs/my-jobs";
+				userType = "Client";
 			}
 			else if (isFreelancer)
 			{
-				// This will call GET /api/Jobs/my-freelancer-jobs for freelancers
 				endpoint = "Jobs/my-freelancer-jobs";
+				userType = "Freelancer";
 			}
 			else
 			{
-				_logger.LogWarning("User is neither client nor freelancer");
+				stopwatch.Stop();
+				_logger.LogWarning("?? User has no valid role | User={UserId}, Roles={Roles}, Duration={ElapsedMs}ms", 
+					userId, string.Join(",", _httpContext?.User?.Claims?.Where(c => c.Type.Contains("role"))?.Select(c => c.Value) ?? new[] { "none" }), 
+					stopwatch.ElapsedMilliseconds);
 				return null;
 			}
 
+			_logger.LogDebug("?? Making user-specific API request | User={UserId}, UserType={UserType}, Endpoint='{Endpoint}'", 
+				userId, userType, endpoint);
+
+			LogRequestHeaders($"GET_MY_JOBS_{userType.ToUpperInvariant()}");
+
 			var response = await _httpClient.GetAsync(endpoint);
+
+			_logger.LogDebug("?? API Response | Status={StatusCode} {ReasonPhrase}, UserType={UserType}", 
+				(int)response.StatusCode, response.StatusCode, response.ReasonPhrase, userType);
 
 			if (response.IsSuccessStatusCode)
 			{
-				// API returns IEnumerable<JobDto>, we need IEnumerable<JobViewModel>
 				var apiJobs = await response.Content.ReadFromJsonAsync<IEnumerable<ApiJobDto>>();
 				if (apiJobs != null)
 				{
-					return apiJobs.Select(MapJobDtoToViewModel);
+					var result = apiJobs.Select(MapJobDtoToViewModel);
+					
+					stopwatch.Stop();
+					_logger.LogInformation("? User jobs fetched successfully! Count={JobCount}, UserType={UserType}, User={UserId}, Duration={ElapsedMs}ms", 
+						result.Count(), userType, userId, stopwatch.ElapsedMilliseconds);
+
+					// Log job status breakdown
+					var statusBreakdown = result.GroupBy(j => j.Status).ToDictionary(g => g.Key, g => g.Count());
+					_logger.LogDebug("?? Job Status Breakdown | User={UserId}, StatusBreakdown={@StatusBreakdown}", 
+						userId, statusBreakdown);
+
+					return result;
 				}
 			}
 
-			_logger.LogWarning("Failed to get my jobs. Status: {StatusCode}", response.StatusCode);
+			stopwatch.Stop();
+			_logger.LogWarning("?? Failed to get user jobs | User={UserId}, UserType={UserType}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+				userId, userType, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			return null;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? HTTP error while fetching user jobs | User={UserId}, Duration={ElapsedMs}ms", 
+				userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred while fetching my jobs");
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? Unexpected error while fetching user jobs | User={UserId}, Duration={ElapsedMs}ms", 
+				userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 	}
 
 	public async Task<JobViewModel?> GetJobByIdAsync(int id)
 	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
 		try
 		{
-			// This will call GET /api/Jobs/{id}
+			_logger.LogInformation("?? Fetching job details | JobId={JobId}, User={UserId}, Session={SessionId}", id, userId, sessionId);
+
+			LogRequestHeaders("GET_JOB_BY_ID");
+
 			var response = await _httpClient.GetAsync($"Jobs/{id}");
+
+			_logger.LogDebug("?? API Response | JobId={JobId}, Status={StatusCode} {ReasonPhrase}", 
+				id, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
 
 			if (response.IsSuccessStatusCode)
 			{
-				// API returns JobDetailsDto, we need JobViewModel
 				var apiJob = await response.Content.ReadFromJsonAsync<ApiJobDetailsDto>();
 				if (apiJob != null)
 				{
-					return MapJobDetailsDtoToViewModel(apiJob);
+					var result = MapJobDetailsDtoToViewModel(apiJob);
+					
+					stopwatch.Stop();
+					_logger.LogInformation("? Job details fetched successfully! JobId={JobId}, Title='{JobTitle}', Status='{Status}', User={UserId}, Duration={ElapsedMs}ms", 
+						id, result.Title, result.Status, userId, stopwatch.ElapsedMilliseconds);
+
+					// Log job insights
+					_logger.LogDebug("?? Job Budget | JobId={JobId}, Min=${BudgetMin}, Max=${BudgetMax}, Deadline={Deadline}", 
+						id, result.BudgetMin, result.BudgetMax, result.Deadline);
+
+					return result;
 				}
 			}
 
-			_logger.LogWarning("Failed to get job by ID {Id}. Status: {StatusCode}", id, response.StatusCode);
+			stopwatch.Stop();
+			if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+				_logger.LogWarning("? Job not found | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+					id, userId, stopwatch.ElapsedMilliseconds);
+			}
+			else
+			{
+				_logger.LogWarning("?? Failed to get job details | JobId={JobId}, User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+					id, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			}
+			return null;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? HTTP error while fetching job | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+				id, userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred while fetching job by ID {Id}", id);
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? Unexpected error while fetching job | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+				id, userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 	}
 
 	public async Task<int?> CreateJobAsync(CreateJobViewModel viewModel)
 	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
 		try
 		{
-			// This will call POST /api/Jobs
+			_logger.LogInformation("?? Creating job | Title='{JobTitle}', User={UserId}, Session={SessionId}", viewModel.Title, userId, sessionId);
+			_logger.LogInformation("?? Job Details | Budget=${BudgetMin}-${BudgetMax}, Deadline={Deadline}, Skills={SkillCount}, Categories={CategoryCount}", 
+				viewModel.BudgetMin, viewModel.BudgetMax, viewModel.Deadline, 
+				viewModel.SkillIds?.Count() ?? 0, viewModel.CategoryIds?.Count() ?? 0);
+			
+			LogRequestHeaders("CREATE_JOB");
+			_logger.LogDebug("?? Job creation data: {@JobData}", new { 
+				viewModel.Title, 
+				viewModel.BudgetMin, 
+				viewModel.BudgetMax, 
+				viewModel.Deadline, 
+				viewModel.Description?.Length,
+				SkillCount = viewModel.SkillIds?.Count() ?? 0,
+				CategoryCount = viewModel.CategoryIds?.Count() ?? 0
+			});
+
 			var response = await _httpClient.PostAsJsonAsync("Jobs", viewModel);
+
+			_logger.LogDebug("?? API Response | Status={StatusCode} {ReasonPhrase}, ContentLength={ContentLength}", 
+				(int)response.StatusCode, response.StatusCode, response.ReasonPhrase, 
+				response.Content.Headers.ContentLength ?? 0);
 
 			if (response.IsSuccessStatusCode)
 			{
-				// Try to read the job ID from the response body
-				// The API returns the job ID as JSON integer
 				try
 				{
 					var jobIdFromJson = await response.Content.ReadFromJsonAsync<int>();
-					_logger.LogInformation("Job created successfully with ID {JobId}", jobIdFromJson);
+					
+					stopwatch.Stop();
+					_logger.LogInformation("? Job created successfully! JobId={JobId}, Title='{JobTitle}', User={UserId}, Duration={ElapsedMs}ms", 
+						jobIdFromJson, viewModel.Title, userId, stopwatch.ElapsedMilliseconds);
+					
 					return jobIdFromJson;
 				}
 				catch (Exception parseEx)
 				{
-					_logger.LogWarning(parseEx, "Failed to parse job ID from JSON response");
+					_logger.LogWarning(parseEx, "?? Failed to parse job ID from JSON response | User={UserId}", userId);
 					
 					// Fallback: try parsing as plain text
 					try
@@ -176,13 +331,15 @@ public class JobService
 						var content = await response.Content.ReadAsStringAsync();
 						if (int.TryParse(content, out int jobId))
 						{
-							_logger.LogInformation("Job created successfully with ID {JobId} (parsed as text)", jobId);
+							stopwatch.Stop();
+							_logger.LogInformation("? Job created successfully (text parsed)! JobId={JobId}, Title='{JobTitle}', User={UserId}, Duration={ElapsedMs}ms", 
+								jobId, viewModel.Title, userId, stopwatch.ElapsedMilliseconds);
 							return jobId;
 						}
 					}
 					catch (Exception textParseEx)
 					{
-						_logger.LogWarning(textParseEx, "Failed to parse job ID from text response");
+						_logger.LogWarning(textParseEx, "?? Failed to parse job ID from text response | User={UserId}", userId);
 					}
 					
 					// Last resort: extract from location header
@@ -192,70 +349,202 @@ public class JobService
 						var segments = locationPath.Split('/');
 						if (segments.Length > 0 && int.TryParse(segments.Last(), out int idFromLocation))
 						{
-							_logger.LogInformation("Job created successfully, ID extracted from location header: {JobId}", idFromLocation);
+							stopwatch.Stop();
+							_logger.LogInformation("? Job created successfully (location header)! JobId={JobId}, Title='{JobTitle}', User={UserId}, Duration={ElapsedMs}ms", 
+								idFromLocation, viewModel.Title, userId, stopwatch.ElapsedMilliseconds);
 							return idFromLocation;
 						}
 					}
 				}
 			}
 
-			_logger.LogWarning("Failed to create job. Status: {StatusCode}", response.StatusCode);
+			stopwatch.Stop();
+			_logger.LogWarning("?? Failed to create job | Title='{JobTitle}', User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+				viewModel.Title, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			return null;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? HTTP error while creating job | Title='{JobTitle}', User={UserId}, Duration={ElapsedMs}ms", 
+				viewModel.Title, userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred while creating job");
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? Unexpected error while creating job | Title='{JobTitle}', User={UserId}, Duration={ElapsedMs}ms", 
+				viewModel.Title, userId, stopwatch.ElapsedMilliseconds);
 			return null;
 		}
 	}
 
 	public async Task<bool> UpdateJobAsync(UpdateJobViewModel viewModel)
 	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
 		try
 		{
-			// This will call PUT /api/Jobs/{id}
+			_logger.LogInformation("?? Updating job | JobId={JobId}, Title='{JobTitle}', User={UserId}, Session={SessionId}", 
+				viewModel.Id, viewModel.Title, userId, sessionId);
+			_logger.LogDebug("?? Updated Job Details | Budget=${BudgetMin}-${BudgetMax}, Deadline={Deadline}, Skills={SkillCount}, Categories={CategoryCount}", 
+				viewModel.BudgetMin, viewModel.BudgetMax, viewModel.Deadline, 
+				viewModel.SkillIds?.Count() ?? 0, viewModel.CategoryIds?.Count() ?? 0);
+
+			LogRequestHeaders("UPDATE_JOB");
+
 			var response = await _httpClient.PutAsJsonAsync($"Jobs/{viewModel.Id}", viewModel);
+
+			_logger.LogDebug("?? API Response | JobId={JobId}, Status={StatusCode} {ReasonPhrase}", 
+				viewModel.Id, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
 			
 			if (response.IsSuccessStatusCode)
 			{
-				_logger.LogInformation("Job updated successfully with ID {JobId}", viewModel.Id);
+				stopwatch.Stop();
+				_logger.LogInformation("? Job updated successfully! JobId={JobId}, Title='{JobTitle}', User={UserId}, Duration={ElapsedMs}ms", 
+					viewModel.Id, viewModel.Title, userId, stopwatch.ElapsedMilliseconds);
 				return true;
 			}
 
-			_logger.LogWarning("Failed to update job {Id}. Status: {StatusCode}", viewModel.Id, response.StatusCode);
+			stopwatch.Stop();
+			_logger.LogWarning("?? Failed to update job | JobId={JobId}, Title='{JobTitle}', User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+				viewModel.Id, viewModel.Title, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			return false;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? HTTP error while updating job | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+				viewModel.Id, userId, stopwatch.ElapsedMilliseconds);
 			return false;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred while updating job {Id}", viewModel.Id);
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? Unexpected error while updating job | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+				viewModel.Id, userId, stopwatch.ElapsedMilliseconds);
 			return false;
 		}
 	}
 
 	public async Task<bool> DeleteJobAsync(int id)
 	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
 		try
 		{
-			// This will call DELETE /api/Jobs/{id}
+			_logger.LogInformation("??? Deleting job | JobId={JobId}, User={UserId}, Session={SessionId}", id, userId, sessionId);
+
+			LogRequestHeaders("DELETE_JOB");
+
 			var response = await _httpClient.DeleteAsync($"Jobs/{id}");
+
+			_logger.LogDebug("?? API Response | JobId={JobId}, Status={StatusCode} {ReasonPhrase}", 
+				id, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
 			
 			if (response.IsSuccessStatusCode)
 			{
-				_logger.LogInformation("Job deleted successfully with ID {JobId}", id);
+				stopwatch.Stop();
+				_logger.LogInformation("? Job deleted successfully! JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+					id, userId, stopwatch.ElapsedMilliseconds);
 				return true;
 			}
 
-			_logger.LogWarning("Failed to delete job {Id}. Status: {StatusCode}", id, response.StatusCode);
+			stopwatch.Stop();
+			if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+				_logger.LogWarning("? Job not found for deletion | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+					id, userId, stopwatch.ElapsedMilliseconds);
+			}
+			else
+			{
+				_logger.LogWarning("?? Failed to delete job | JobId={JobId}, User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+					id, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			}
+			return false;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? HTTP error while deleting job | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+				id, userId, stopwatch.ElapsedMilliseconds);
 			return false;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Error occurred while deleting job {Id}", id);
+			stopwatch.Stop();
+			_logger.LogError(ex, "?? Unexpected error while deleting job | JobId={JobId}, User={UserId}, Duration={ElapsedMs}ms", 
+				id, userId, stopwatch.ElapsedMilliseconds);
 			return false;
 		}
 	}
 
-	// Mapping methods to convert API DTOs to ViewModels
+	private void LogRequestHeaders(string operation)
+	{
+		try
+		{
+			var headers = new Dictionary<string, string>();
+
+			// Log important headers
+			foreach (var header in _httpClient.DefaultRequestHeaders)
+			{
+				if (IsImportantHeader(header.Key))
+				{
+					headers[header.Key] = GetSafeHeaderValue(string.Join(", ", header.Value));
+				}
+			}
+
+			if (headers.Any())
+			{
+				_logger.LogDebug("?? {Operation} - Request Headers: {@Headers}", operation, headers);
+			}
+
+			// Log authorization status
+			var hasAuth = _httpClient.DefaultRequestHeaders.Authorization != null;
+			_logger.LogDebug("?? Authorization Status | Operation={Operation}, HasAuth={HasAuth}, Scheme={Scheme}", 
+				operation, hasAuth, _httpClient.DefaultRequestHeaders.Authorization?.Scheme ?? "none");
+
+			// Log user context
+			var userClaims = _httpContext?.User?.Claims?.Where(c => !c.Type.Contains("nbf") && !c.Type.Contains("exp") && !c.Type.Contains("iat"))
+				.ToDictionary(c => c.Type.Split('/').Last(), c => c.Value);
+			
+			if (userClaims?.Any() == true)
+			{
+				_logger.LogDebug("?? User Context | Operation={Operation}, Claims={@Claims}", operation, userClaims);
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogDebug(ex, "Failed to log request headers for operation {Operation}", operation);
+		}
+	}
+
+	private static bool IsImportantHeader(string headerName)
+	{
+		var important = new[] 
+		{
+			"Authorization", "Accept", "Content-Type", "User-Agent"
+		};
+		return important.Contains(headerName, StringComparer.OrdinalIgnoreCase);
+	}
+
+	private static string GetSafeHeaderValue(string headerValue)
+	{
+		if (string.IsNullOrEmpty(headerValue))
+			return "";
+
+		// Redact sensitive headers
+		if (headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+			return "Bearer [REDACTED]";
+
+		return headerValue.Length > 100 ? headerValue[..100] + "[TRUNCATED]" : headerValue;
+	}
+
+	// Mapping methods remain the same...
 	private static JobViewModel MapJobDtoToViewModel(ApiJobDto dto)
 	{
 		return new JobViewModel
@@ -278,14 +567,14 @@ public class JobService
 				Id = c.Id,
 				Name = c.Name,
 				Description = c.Description,
-				IsActive = true // Default value since not available in DTO
+				IsActive = true
 			}).ToList() ?? new List<CategoryViewModel>(),
 			Skills = dto.Skills?.Select(s => new SkillViewModel
 			{
 				Id = s.Id,
 				Name = s.Name,
-				IsActive = true, // Default value since not available in DTO
-				CreatedOn = DateTime.Now // Default value since not available in DTO
+				IsActive = true,
+				CreatedOn = DateTime.Now
 			}).ToList() ?? new List<SkillViewModel>()
 		};
 	}
@@ -295,25 +584,25 @@ public class JobService
 		return new JobViewModel
 		{
 			Id = dto.Id,
-			ClientId = dto.Client?.Id, // Assuming Client has Id property
+			ClientId = dto.Client?.Id,
 			Title = dto.Title,
 			Description = dto.Description,
 			BudgetMin = dto.BudgetMin,
 			BudgetMax = dto.BudgetMax,
 			Deadline = dto.Deadline,
 			Status = dto.Status,
-			RequiredSkills = null, // Not available in JobDetailsDto
-			Tags = null, // Not available in JobDetailsDto
-			ViewsCount = 0, // Not available in JobDetailsDto
-			IsApproved = dto.Status != "Pending", // Infer from status
-			ApprovedBy = null, // Not available in JobDetailsDto
-			Categories = new List<CategoryViewModel>(), // Not available in JobDetailsDto
-			Skills = new List<SkillViewModel>() // Not available in JobDetailsDto
+			RequiredSkills = null,
+			Tags = null,
+			ViewsCount = 0,
+			IsApproved = dto.Status != "Pending",
+			ApprovedBy = null,
+			Categories = new List<CategoryViewModel>(),
+			Skills = new List<SkillViewModel>()
 		};
 	}
 }
 
-// API DTO classes (these should match what the API returns)
+// API DTO classes remain the same...
 public class ApiPagedResult<T>
 {
 	public IEnumerable<T> Items { get; set; } = new List<T>();
@@ -354,7 +643,6 @@ public class ApiJobDetailsDto
 	public string Status { get; set; } = null!;
 	public DateTime Deadline { get; set; }
 	public ApiClientDto? Client { get; set; }
-	// Other properties from JobDetailsDto that we don't map for now
 }
 
 public class ApiCategoryDto
