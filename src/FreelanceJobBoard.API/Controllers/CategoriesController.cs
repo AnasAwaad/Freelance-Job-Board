@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Application.Features.Categories.Commands.CreateCategory;
+﻿using FreelanceJobBoard.API.Attributes;
+using FreelanceJobBoard.Application.Features.Categories.Commands.CreateCategory;
 using FreelanceJobBoard.Application.Features.Categories.Commands.DeleteCategory;
 using FreelanceJobBoard.Application.Features.Categories.Commands.UpdateCategory;
 using FreelanceJobBoard.Application.Features.Categories.Queries.GetAllCategories;
@@ -67,7 +68,7 @@ public class CategoriesController : ControllerBase
 	[HttpGet("top/{numOfCategories}")]
 	public async Task<IActionResult> GetTopCategories([FromRoute] int numOfCategories)
 	{
-		var result = await mediator.Send(new GetTopCategoriesQuery(numOfCategories));
+		var result = await _mediator.Send(new GetTopCategoriesQuery(numOfCategories));
 		return Ok(result);
 	}
 	[HttpGet("{id}")]

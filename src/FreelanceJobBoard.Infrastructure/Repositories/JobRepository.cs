@@ -17,7 +17,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 	public async Task<(int, IEnumerable<Job>)> GetAllMatchingAsync(int pageNumber, int pageSize, string? search, string? sortBy, string sortDirection, int? category, string? statusFilter = null)
 	{
-		_logger?.LogDebug("🔍 Getting jobs with pagination | PageNumber={PageNumber}, PageSize={PageSize}, Search={Search}, SortBy={SortBy}, SortDirection={SortDirection}, StatusFilter={StatusFilter}", 
+		_logger?.LogDebug("🔍 Getting jobs with pagination | PageNumber={PageNumber}, PageSize={PageSize}, Search={Search}, SortBy={SortBy}, SortDirection={SortDirection}, StatusFilter={StatusFilter}",
 			pageNumber, pageSize, search ?? "None", sortBy ?? "None", sortDirection, statusFilter ?? "None");
 
 		try
@@ -25,10 +25,10 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			var searchValue = search?.ToLower().Trim();
 
 
-		var query = _context.Jobs
-			.Include(j => j.Categories)
-			.Where(j => searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
-													(j.Description!.ToLower().Contains(searchValue))));
+			var query = _context.Jobs
+				.Include(j => j.Categories)
+				.Where(j => searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
+														(j.Description!.ToLower().Contains(searchValue))));
 
 			if (!string.IsNullOrEmpty(statusFilter))
 			{
@@ -36,11 +36,11 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 				_logger?.LogDebug("📊 Applied status filter | StatusFilter={StatusFilter}", statusFilter);
 			}
 
-		if (category.HasValue)
-		{
-			query = query
-				.Where(jc => jc.Categories.Any(c => c.CategoryId == category.Value));
-		}
+			if (category.HasValue)
+			{
+				query = query
+					.Where(jc => jc.Categories.Any(c => c.CategoryId == category.Value));
+			}
 
 			var totalCount = await query.CountAsync();
 			_logger?.LogDebug("📊 Total jobs found | TotalCount={TotalCount}", totalCount);
@@ -124,7 +124,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 			if (job != null)
 			{
-				_logger?.LogDebug("✅ Job with categories and skills found | JobId={JobId}, CategoryCount={CategoryCount}, SkillCount={SkillCount}", 
+				_logger?.LogDebug("✅ Job with categories and skills found | JobId={JobId}, CategoryCount={CategoryCount}, SkillCount={SkillCount}",
 					id, job.Categories?.Count ?? 0, job.Skills?.Count ?? 0);
 			}
 			else
@@ -157,7 +157,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 			if (job != null)
 			{
-				_logger?.LogDebug("✅ Job with details found | JobId={JobId}, ClientId={ClientId}, ProposalCount={ProposalCount}", 
+				_logger?.LogDebug("✅ Job with details found | JobId={JobId}, ClientId={ClientId}, ProposalCount={ProposalCount}",
 					id, job.ClientId, job.Proposals?.Count ?? 0);
 			}
 			else
@@ -240,7 +240,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 					.ThenInclude(a => a.Attachment)
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
-			.Include(j => j.Review)
+			.Include(j => j.Reviews)
 			.Where(j => j.Id == id && j.Status == JobStatus.Open);
 
 	}
@@ -306,13 +306,5 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			})
 			.Take(limit)
 			.ToListAsync();
-			_logger?.LogDebug("✅ Job details query created successfully | JobId={JobId}", id);
-			return query;
-		}
-		catch (Exception ex)
-		{
-			_logger?.LogError(ex, "❌ Failed to create job details query | JobId={JobId}", id);
-			throw;
-		}
 	}
 }

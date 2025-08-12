@@ -4,6 +4,7 @@ using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Infrastructure.Extensions;
+using FreelanceJobBoard.Infrastructure.Hubs;
 using FreelanceJobBoard.Infrastructure.Services;
 using FreelanceJobBoard.Infrastructure.Settings;
 using FreelanceJobBoard.Presentation.Services;
@@ -11,8 +12,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using Serilog.Events;
-using FreelanceJobBoard.Infrastructure.Hubs;
 
 namespace FreelanceJobBoard.Presentation;
 
@@ -39,46 +38,42 @@ public class Program
 
 			var builder = WebApplication.CreateBuilder(args);
 
-		// Add services to the container.
-		builder.Services.AddControllersWithViews();
-		
-		// Configure Session (optional, for future use)
-		builder.Services.AddDistributedMemoryCache();
-		builder.Services.AddSession(options =>
-		{
-			options.IdleTimeout = TimeSpan.FromMinutes(30);
-			options.Cookie.HttpOnly = true;
-			options.Cookie.IsEssential = true;
-			options.Cookie.Name = "FreelanceJobBoard.Session";
-		});
-		
-		// Register HttpClients with IWebHostEnvironment for file handling
-		builder.Services.AddHttpClient<Presentation.Services.AuthService>();
-		builder.Services.AddHttpClient<Presentation.Services.UserService>();
-		builder.Services.AddHttpClient<CategoryService>();
-		builder.Services.AddHttpClient<JobService>();
-		builder.Services.AddHttpClient<SkillService>();
-		builder.Services.AddHttpClient<HomeService>();
-		builder.Services.AddHttpClient<ProposalService>();
+			// Add services to the container.
+			builder.Services.AddControllersWithViews();
 
-		// Configure Email Settings
-		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+			// Configure Session (optional, for future use)
+			builder.Services.AddDistributedMemoryCache();
+			builder.Services.AddSession(options =>
+			{
+				options.IdleTimeout = TimeSpan.FromMinutes(30);
+				options.Cookie.HttpOnly = true;
+				options.Cookie.IsEssential = true;
+				options.Cookie.Name = "FreelanceJobBoard.Session";
+			});
 
-		// Register Email Service
-		builder.Services.AddScoped<IEmailService, EmailService>();
+			// Register HttpClients with IWebHostEnvironment for file handling
+			builder.Services.AddHttpClient<Presentation.Services.AuthService>();
+			builder.Services.AddHttpClient<Presentation.Services.UserService>();
+			builder.Services.AddHttpClient<CategoryService>();
+			builder.Services.AddHttpClient<JobService>();
+			builder.Services.AddHttpClient<SkillService>();
+			builder.Services.AddHttpClient<HomeService>();
+			builder.Services.AddHttpClient<ProposalService>();
 
-		// Configure Database
-		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-		if (string.IsNullOrEmpty(connectionString))
-		{
-			throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-		}
+			// Configure Email Settings
+			builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+			// Register Email Service
+			builder.Services.AddScoped<IEmailService, EmailService>();
+
+			// Configure Database
+
 			// Use Serilog for logging
 			builder.Host.UseSerilog();
 
 			// Add services to the container.
 			builder.Services.AddControllersWithViews();
-			
+
 			// Add SignalR
 			builder.Services.AddSignalR(options =>
 			{
@@ -88,7 +83,7 @@ public class Program
 				options.KeepAliveInterval = TimeSpan.FromSeconds(15);
 				options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
 			});
-			
+
 			// Add Application and Infrastructure layers
 			builder.Services.AddApplication();
 			builder.Services.AddInfrastructure(builder.Configuration, configureIdentity: false);
@@ -102,7 +97,7 @@ public class Program
 				options.Cookie.IsEssential = true;
 				options.Cookie.Name = "FreelanceJobBoard.Session";
 			});
-			
+
 			// Register HttpClients with IWebHostEnvironment for file handling
 			builder.Services.AddHttpClient<Presentation.Services.AuthService>();
 			builder.Services.AddHttpClient<Presentation.Services.UserService>();
@@ -111,12 +106,13 @@ public class Program
 			builder.Services.AddHttpClient<SkillService>();
 			builder.Services.AddHttpClient<ProposalService>();
 			builder.Services.AddHttpClient<ContractService>();
-            // Configure Email Settings
-            builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-			
-			
+			// Configure Email Settings
+			builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+
 			// Configure Database
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 			if (string.IsNullOrEmpty(connectionString))
 			{
 				Log.Fatal("❌ Connection string 'DefaultConnection' not found");
@@ -124,7 +120,7 @@ public class Program
 			}
 
 			// Log the connection string for debugging (remove in production)
-			Log.Information("🔗 Database Connection configured: {ConnectionType}", 
+			Log.Information("🔗 Database Connection configured: {ConnectionType}",
 				connectionString.Contains("localdb") ? "LocalDB" : "SQL Server");
 
 			// Note: ApplicationDbContext is already configured in AddInfrastructure()
@@ -176,12 +172,12 @@ public class Program
 				options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 				options.Cookie.SameSite = SameSiteMode.Lax;
 				options.Cookie.Name = "FreelanceJobBoard.Auth";
-				
+
 				// Handle authentication failures
 				options.Events.OnRedirectToAccessDenied = context =>
 				{
-					Log.Warning("🚫 Access denied for user {UserId} to path {Path}", 
-						context.HttpContext.User?.Identity?.Name ?? "Anonymous", 
+					Log.Warning("🚫 Access denied for user {UserId} to path {Path}",
+						context.HttpContext.User?.Identity?.Name ?? "Anonymous",
 						context.Request.Path);
 					context.Response.Redirect("/Auth/AccessDenied");
 					return Task.CompletedTask;
@@ -189,7 +185,7 @@ public class Program
 
 				options.Events.OnRedirectToLogin = context =>
 				{
-					Log.Information("🔑 Redirecting unauthenticated user to login from path {Path}", 
+					Log.Information("🔑 Redirecting unauthenticated user to login from path {Path}",
 						context.Request.Path);
 					context.Response.Redirect("/Auth/Login");
 					return Task.CompletedTask;
@@ -200,25 +196,25 @@ public class Program
 			builder.Services.AddAuthorization(options =>
 			{
 				// Add authorization policies
-				options.AddPolicy("RequireAdminRole", policy => 
+				options.AddPolicy("RequireAdminRole", policy =>
 				{
 					policy.RequireAuthenticatedUser();
 					policy.RequireRole(AppRoles.Admin);
 				});
-				
-				options.AddPolicy("RequireClientRole", policy => 
+
+				options.AddPolicy("RequireClientRole", policy =>
 				{
 					policy.RequireAuthenticatedUser();
 					policy.RequireRole(AppRoles.Client);
 				});
-				
-				options.AddPolicy("RequireFreelancerRole", policy => 
+
+				options.AddPolicy("RequireFreelancerRole", policy =>
 				{
 					policy.RequireAuthenticatedUser();
 					policy.RequireRole(AppRoles.Freelancer);
 				});
-				
-				options.AddPolicy("RequireClientOrFreelancer", policy => 
+
+				options.AddPolicy("RequireClientOrFreelancer", policy =>
 				{
 					policy.RequireAuthenticatedUser();
 					policy.RequireRole(AppRoles.Client, AppRoles.Freelancer);
@@ -250,10 +246,10 @@ public class Program
 			app.UseStaticFiles();
 
 			app.UseRouting();
-			
+
 			// Add session middleware (optional)
 			app.UseSession();
-			
+
 			// Order is important: Authentication before Authorization
 			app.UseAuthentication();
 			app.UseAuthorization();
@@ -313,10 +309,10 @@ public class Program
 				{
 					var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
 					var pendingMigrationsList = pendingMigrations.ToList();
-					
+
 					if (pendingMigrationsList.Any())
 					{
-						logger.LogInformation("📋 Found {Count} pending migrations: {Migrations}", 
+						logger.LogInformation("📋 Found {Count} pending migrations: {Migrations}",
 							pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
 
 						try
@@ -328,7 +324,7 @@ public class Program
 						catch (Exception migrationEx)
 						{
 							logger.LogError(migrationEx, "❌ Failed to apply migrations");
-							
+
 							// If migrations fail, try to ensure database is created
 							logger.LogInformation("🔧 Attempting to ensure database is created as fallback...");
 							await context.Database.EnsureCreatedAsync();
@@ -351,6 +347,7 @@ public class Program
 			// TODO: Re-implement DataSeeder
 			// await DataSeeder.SeedAsync(context, userManager, roleManager, logger);
 			logger.LogInformation("✅ Database initialization completed successfully");
+			var adminEmail = "Admin@gmail.com";
 			var verifyAdmin = await userManager.FindByEmailAsync(adminEmail);
 			if (verifyAdmin != null)
 			{

@@ -2,9 +2,13 @@ using FreelanceJobBoard.API.Middlewares;
 using FreelanceJobBoard.Application.Extensions;
 using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Services;
+using FreelanceJobBoard.Domain.Identity;
+using FreelanceJobBoard.Infrastructure.Data;
+using FreelanceJobBoard.Infrastructure.Data.Seed;
 using FreelanceJobBoard.Infrastructure.Extensions;
 using FreelanceJobBoard.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -15,7 +19,7 @@ namespace FreelanceJobBoard.API
 {
 	public class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			var configuration = new ConfigurationBuilder()
 				.SetBasePath(Directory.GetCurrentDirectory())
@@ -52,11 +56,11 @@ namespace FreelanceJobBoard.API
 				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
 				builder.Services.AddScoped<IAuthService, AuthService>();
 				builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-                builder.Services.AddSignalR();
+				builder.Services.AddSignalR();
 
-                // your app services
-                builder.Services.AddScoped<INotificationService, NotificationService>();
-                builder.Services
+				// your app services
+				builder.Services.AddScoped<INotificationService, NotificationService>();
+				builder.Services
 					.AddApplication()
 					.AddInfrastructure(builder.Configuration);
 
@@ -146,6 +150,19 @@ namespace FreelanceJobBoard.API
 
 				app.UseAuthentication();
 				app.UseAuthorization();
+
+				#region Seed Roles and Users
+				var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+				using var scope = scopeFactory.CreateScope();
+
+				var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+				var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+				var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+				await DefaultRoles.SeedRoles(roleManager);
+				await DefaultUsers.SeedUsers(userManager, dbContext);
+				#endregion
+
 
 				app.MapControllers();
 

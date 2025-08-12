@@ -12,15 +12,15 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 {
 	public async Task<int> Handle(CreateJobCommand request, CancellationToken cancellationToken)
 	{
-		var userId = currentUserService.UserId;
+		var userId = request.UserId;
 		logger.LogInformation("🆕 Starting job creation process | UserId={UserId}, JobTitle={JobTitle}", userId, request.Title);
 
-		var client = await unitOfWork.Clients.GetByUserIdAsync(currentUserService.UserId!);
+		var client = await unitOfWork.Clients.GetByUserIdAsync(userId!);
 
 		if (client == null)
 		{
 			logger.LogWarning("❌ Client not found during job creation | UserId={UserId}", userId);
-			throw new NotFoundException(nameof(Client), currentUserService.UserId!);
+			throw new NotFoundException(nameof(Client), userId!);
 		}
 
 		logger.LogDebug("✅ Client found | ClientId={ClientId}, UserId={UserId}", client.Id, userId);
@@ -30,7 +30,7 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 
 		if (request.CategoryIds is not null && request.CategoryIds.Any())
 		{
-			logger.LogDebug("🏷️ Processing categories | CategoryCount={CategoryCount}, CategoryIds={CategoryIds}", 
+			logger.LogDebug("🏷️ Processing categories | CategoryCount={CategoryCount}, CategoryIds={CategoryIds}",
 				request.CategoryIds.Count(), string.Join(",", request.CategoryIds));
 
 			var categories = await unitOfWork.Categories.GetCategoriesByIdsAsync(request.CategoryIds);
@@ -39,7 +39,7 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 			{
 				var foundIds = categories.Select(c => c.Id);
 				var missingIds = request.CategoryIds.Except(foundIds);
-				logger.LogWarning("❌ Some categories not found | RequestedIds={RequestedIds}, FoundIds={FoundIds}, MissingIds={MissingIds}", 
+				logger.LogWarning("❌ Some categories not found | RequestedIds={RequestedIds}, FoundIds={FoundIds}, MissingIds={MissingIds}",
 					string.Join(",", request.CategoryIds), string.Join(",", foundIds), string.Join(",", missingIds));
 				throw new MissingCategoriesException("Some selected categories could not be found.");
 			}
@@ -54,7 +54,7 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 
 		if (request.SkillIds is not null && request.SkillIds.Any())
 		{
-			logger.LogDebug("🎯 Processing skills | SkillCount={SkillCount}, SkillIds={SkillIds}", 
+			logger.LogDebug("🎯 Processing skills | SkillCount={SkillCount}, SkillIds={SkillIds}",
 				request.SkillIds.Count(), string.Join(",", request.SkillIds));
 
 			var skills = await unitOfWork.Skills.GetSkillsByIdsAsync(request.SkillIds);
@@ -63,7 +63,7 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 			{
 				var foundIds = skills.Select(s => s.Id);
 				var missingIds = request.SkillIds.Except(foundIds);
-				logger.LogWarning("❌ Some skills not found | RequestedIds={RequestedIds}, FoundIds={FoundIds}, MissingIds={MissingIds}", 
+				logger.LogWarning("❌ Some skills not found | RequestedIds={RequestedIds}, FoundIds={FoundIds}, MissingIds={MissingIds}",
 					string.Join(",", request.SkillIds), string.Join(",", foundIds), string.Join(",", missingIds));
 				throw new MissingSkillsException("Some selected skills could not be found.");
 			}
@@ -76,13 +76,13 @@ public class CreateJobCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICu
 			logger.LogDebug("✅ Skills processed successfully | AddedSkillCount={SkillCount}", skills.Count);
 		}
 
-		logger.LogDebug("💾 Saving job to database | ClientId={ClientId}, Budget=${BudgetMin}-${BudgetMax}, Deadline={Deadline}", 
+		logger.LogDebug("💾 Saving job to database | ClientId={ClientId}, Budget=${BudgetMin}-${BudgetMax}, Deadline={Deadline}",
 			job.ClientId, request.BudgetMin, request.BudgetMax, request.Deadline);
 
 		await unitOfWork.Jobs.CreateAsync(job);
 		await unitOfWork.SaveChangesAsync();
 
-		logger.LogInformation("✅ Job created successfully | JobId={JobId}, ClientId={ClientId}, Title={JobTitle}", 
+		logger.LogInformation("✅ Job created successfully | JobId={JobId}, ClientId={ClientId}, Title={JobTitle}",
 			job.Id, job.ClientId, request.Title);
 
 		// Notify admins about new job submission

@@ -1,11 +1,12 @@
 ﻿@model HomeViewModel
 @{
     ViewData["Title"] = "Dashboard";
-    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    // Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    
 }
 
 <!--begin::Content-->
-<div class="d-flex flex-column flex-column-fluid">
+@* <div class="d-flex flex-column flex-column-fluid">
     <!--begin::Toolbar-->
     <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
         <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
@@ -380,7 +381,7 @@
         }
     </script>
 }
-}
+} *@
 <partial name="_HomeBanner" />
 <partial name="_TopCategories" model="Model.TopCategories" />
 <partial name="_RecentJobs" model="Model.RecentJobs" />

@@ -20,7 +20,7 @@ public class AuthService
 		_logger = logger;
 		_emailService = emailService;
 		_httpContextAccessor = httpContextAccessor;
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Auth/");
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Auth/");
 	}
 
 	public async Task<AuthResponseDto?> LoginAsync(LoginViewModel viewModel)
