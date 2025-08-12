@@ -1,0 +1,465 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.PendingReviewsViewModel
+@{
+    ViewData["Title"] = "Pending Reviews";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                    <i class="ki-duotone ki-star fs-2 text-warning me-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    Pending Reviews
+                </h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Pending Reviews</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                @if (Model.TotalPending > 0)
+                {
+                    <span class="badge badge-light-warning fs-6">
+                        @Model.TotalPending pending review@(Model.TotalPending == 1 ? "" : "s")
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-check fs-2hx text-success me-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-cross fs-2hx text-danger me-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (Model.TotalPending == 0)
+            {
+                <!--begin::Empty State-->
+                <div class="card">
+                    <div class="card-body text-center py-20">
+                        <div class="mb-10">
+                            <i class="ki-duotone ki-star fs-4x text-muted">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                        </div>
+                        <h3 class="text-gray-800 fw-bold mb-3">No Pending Reviews</h3>
+                        <p class="text-gray-600 fs-6 mb-8">
+                            You're all caught up! When you complete jobs, you'll be able to leave reviews here.
+                        </p>
+                        <a asp-controller="Jobs" asp-action="Index" class="btn btn-primary">
+                            <i class="ki-duotone ki-briefcase fs-4 me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Browse Jobs
+                        </a>
+                    </div>
+                </div>
+                <!--end::Empty State-->
+            }
+            else
+            {
+                <!--begin::Pending Reviews List-->
+                <div class="row g-6 g-xl-9">
+                    @foreach (var review in Model.PendingReviews)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card h-100 @(review.IsUrgent ? "border-danger" : "")">
+                                @if (review.IsUrgent)
+                                {
+                                    <div class="ribbon ribbon-top ribbon-vertical">
+                                        <div class="ribbon-label bg-danger">
+                                            <i class="ki-duotone ki-notification-bing fs-2x text-white">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                            <span class="ribbon-inner bg-danger"></span>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="card-header border-0 pt-6">
+                                    <div class="card-title">
+                                        <h3 class="fw-bold text-dark fs-6">@review.JobTitle</h3>
+                                    </div>
+                                    @if (review.IsUrgent)
+                                    {
+                                        <div class="card-toolbar">
+                                            <span class="badge badge-light-danger">Urgent</span>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-body pt-0">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <div class="symbol symbol-40px me-3">
+                                            <div class="symbol-label bg-light-primary">
+                                                <i class="ki-duotone ki-profile-circle fs-2 text-primary">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-gray-800">@review.RevieweeName</div>
+                                            <div class="text-gray-600 fs-7">
+                                                @(review.ReviewType == "ClientToFreelancer" ? "Freelancer" : "Client")
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <div class="text-gray-600 fs-7 mb-1">Completed:</div>
+                                        <div class="fw-semibold">@review.CompletedDateFormatted</div>
+                                        <div class="text-muted fs-8">@review.DaysAgo</div>
+                                    </div>
+
+                                    <!-- Quick Rating Section -->
+                                    <div class="mb-4">
+                                        <label class="form-label fs-7 fw-bold text-gray-700">Quick Rating:</label>
+                                        <div class="rating-quick" 
+                                             data-job-id="@review.JobId" 
+                                             data-reviewee-id="@review.RevieweeId" 
+                                             data-review-type="@review.ReviewType" 
+                                             data-reviewee-name="@review.RevieweeName"
+                                             data-selected-rating="0"
+                                             role="group"
+                                             aria-label="Quick rating for @review.RevieweeName">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <div class="rating-label-quick" 
+                                                     data-value="@i"
+                                                     tabindex="0"
+                                                     role="button"
+                                                     aria-label="Rate @i star@(i == 1 ? "" : "s")">
+                                                    <i class="ki-duotone ki-star fs-1 cursor-pointer star-icon">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="quick-rating-feedback mt-1">
+                                            <span class="rating-text text-muted fs-8">Select a rating</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-success btn-sm flex-fill quick-review-btn" 
+                                                data-job-id="@review.JobId" 
+                                                data-reviewee-id="@review.RevieweeId" 
+                                                data-review-type="@review.ReviewType" 
+                                                data-reviewee-name="@review.RevieweeName"
+                                                data-job-title="@review.JobTitle">
+                                            <i class="ki-duotone ki-flash fs-4">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Quick Review
+                                        </button>
+                                        <a asp-controller="Reviews" asp-action="Create" 
+                                           asp-route-jobId="@review.JobId" 
+                                           asp-route-type="@review.ReviewType" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="ki-duotone ki-notepad-edit fs-4">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Detailed
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <!--end::Pending Reviews List-->
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Review Modal -->
+<div class="modal fade" id="quickReviewModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <!-- Modal content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Rating feedback messages
+            const ratingMessages = {
+                0: "Select a rating",
+                1: "Poor - Did not meet expectations",
+                2: "Fair - Met some expectations", 
+                3: "Good - Met expectations",
+                4: "Very Good - Exceeded expectations",
+                5: "Excellent - Far exceeded expectations"
+            };
+
+            // Initialize quick rating feedback
+            function updateQuickRatingFeedback(container, value) {
+                const feedback = container.parentElement.querySelector('.quick-rating-feedback .rating-text');
+                if (feedback) {
+                    feedback.textContent = ratingMessages[value] || ratingMessages[0];
+                    feedback.className = `rating-text fs-8 ${value >= 4 ? 'text-success' : value >= 3 ? 'text-warning' : value >= 1 ? 'text-danger' : 'text-muted'}`;
+                }
+            }
+
+            // Listen for quick rating changes
+            document.addEventListener('ratingChanged', function(e) {
+                if (e.target.classList.contains('rating-quick')) {
+                    updateQuickRatingFeedback(e.target, e.detail.value);
+                }
+            });
+
+            // Initialize feedback for all quick ratings
+            document.querySelectorAll('.rating-quick').forEach(container => {
+                updateQuickRatingFeedback(container, 0);
+            });
+            
+            // Quick review button handlers
+            document.querySelectorAll('.quick-review-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const jobId = this.getAttribute('data-job-id');
+                    const revieweeId = this.getAttribute('data-reviewee-id');
+                    const reviewType = this.getAttribute('data-review-type');
+                    const revieweeName = this.getAttribute('data-reviewee-name');
+                    const jobTitle = this.getAttribute('data-job-title');
+                    
+                    // Get selected rating from the quick rating
+                    const ratingContainer = document.querySelector(`[data-job-id="${jobId}"].rating-quick`);
+                    const selectedRating = ratingContainer ? parseInt(ratingContainer.getAttribute('data-selected-rating')) || 0 : 0;
+                    
+                    if (!selectedRating || selectedRating < 1) {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.warning('Please select a rating first by clicking on the stars.');
+                        } else {
+                            alert('Please select a rating first by clicking on the stars.');
+                        }
+                        
+                        // Highlight the rating area
+                        if (ratingContainer) {
+                            ratingContainer.style.border = '2px solid #ffc107';
+                            ratingContainer.style.borderRadius = '4px';
+                            ratingContainer.style.padding = '4px';
+                            
+                            setTimeout(() => {
+                                ratingContainer.style.border = '';
+                                ratingContainer.style.borderRadius = '';
+                                ratingContainer.style.padding = '';
+                            }, 2000);
+                        }
+                        return;
+                    }
+                    
+                    openQuickReviewModal(jobId, reviewType, revieweeId, revieweeName, jobTitle, selectedRating);
+                });
+            });
+        });
+        
+        function openQuickReviewModal(jobId, reviewType, revieweeId, revieweeName, jobTitle, rating) {
+            console.log('Opening quick review modal with rating:', rating);
+            
+            // Show loading
+            const modalContent = document.querySelector('#quickReviewModal .modal-content');
+            modalContent.innerHTML = `
+                <div class="modal-body text-center py-10">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-3">Loading review form...</div>
+                </div>
+            `;
+            
+            // Show modal immediately
+            const modal = new bootstrap.Modal(document.getElementById('quickReviewModal'));
+            modal.show();
+            
+            fetch(`/Reviews/QuickReview?jobId=${jobId}&reviewType=${reviewType}&revieweeId=${revieweeId}&revieweeName=${encodeURIComponent(revieweeName)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    
+                    // Wait for the content to be loaded, then set the rating
+                    setTimeout(() => {
+                        console.log('Setting rating in modal:', rating);
+                        
+                        // Method 1: Set the hidden input value
+                        const ratingInput = document.querySelector('#quickReviewModal input[name="Rating"]');
+                        if (ratingInput) {
+                            ratingInput.value = rating;
+                            console.log('Set rating input value to:', rating);
+                        }
+                        
+                        // Method 2: Update the star display using the global function
+                        if (typeof window.setModalRating === 'function') {
+                            window.setModalRating(rating);
+                        } else {
+                            // Fallback: Update stars manually
+                            const stars = document.querySelectorAll('#quickReviewModal .star');
+                            const feedbackElement = document.querySelector('#quickReviewModal .feedback-text');
+                            
+                            if (stars.length > 0) {
+                                stars.forEach((star, index) => {
+                                    const starValue = parseInt(star.getAttribute('data-value'));
+                                    if (starValue <= rating) {
+                                        star.classList.add('filled');
+                                        star.style.color = '#ffc107';
+                                        star.style.textShadow = '0 0 5px rgba(255, 193, 7, 0.3)';
+                                    } else {
+                                        star.classList.remove('filled');
+                                        star.style.color = '#e4e6ef';
+                                        star.style.textShadow = '';
+                                    }
+                                });
+                                
+                                // Update the data attribute
+                                const starRating = document.querySelector('#quickReviewModal .star-rating');
+                                if (starRating) {
+                                    starRating.setAttribute('data-rating', rating);
+                                }
+                                
+                                console.log('Updated modal star display for rating:', rating);
+                            }
+                            
+                            // Update feedback text
+                            if (feedbackElement) {
+                                const messages = {
+                                    1: "Poor - Did not meet expectations",
+                                    2: "Fair - Met some expectations",
+                                    3: "Good - Met expectations", 
+                                    4: "Very Good - Exceeded expectations",
+                                    5: "Excellent - Far exceeded expectations"
+                                };
+                                feedbackElement.textContent = messages[rating] || "";
+                                feedbackElement.className = `feedback-text ${rating >= 4 ? 'text-success' : rating >= 3 ? 'text-warning' : 'text-danger'} fs-7`;
+                            }
+                        }
+                    }, 200); // Increased delay to ensure the modal content is fully loaded
+                })
+                .catch(error => {
+                    console.error('Error loading review form:', error);
+                    modalContent.innerHTML = `
+                        <div class="modal-body text-center py-10">
+                            <i class="ki-duotone ki-cross fs-3x text-danger mb-3">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            <div class="text-danger">Error loading review form. Please try again.</div>
+                            <button type="button" class="btn btn-light mt-3" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    `;
+                });
+        }
+
+        // Initialize quick rating systems
+        document.querySelectorAll('.rating-quick').forEach(function(ratingContainer) {
+            const stars = ratingContainer.querySelectorAll('.rating-label-quick');
+            let currentRating = 0;
+            
+            stars.forEach(function(ratingLabel) {
+                const value = parseInt(ratingLabel.getAttribute('data-value'));
+                const starIcon = ratingLabel.querySelector('.star-icon');
+                
+                ratingLabel.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    currentRating = value;
+                    ratingContainer.setAttribute('data-selected-rating', value);
+                    
+                    // Update star display
+                    updateQuickStars(ratingContainer, value);
+                    updateQuickRatingFeedback(ratingContainer, value);
+                    
+                    console.log(`Set rating ${value} for job ${ratingContainer.getAttribute('data-job-id')}`);
+                    
+                    // Visual feedback
+                    starIcon.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        starIcon.style.transform = '';
+                    }, 150);
+                });
+                
+                // Hover effects
+                ratingLabel.addEventListener('mouseenter', function() {
+                    updateQuickStars(ratingContainer, value, true);
+                });
+            });
+            
+            // Reset to current rating on mouse leave
+            ratingContainer.addEventListener('mouseleave', function() {
+                updateQuickStars(ratingContainer, currentRating);
+            });
+            
+            // Initialize display
+            updateQuickStars(ratingContainer, 0);
+        });
+        
+        // Function to update quick rating stars
+        function updateQuickStars(container, rating, isHover = false) {
+            const stars = container.querySelectorAll('.rating-label-quick .star-icon');
+            
+            stars.forEach(function(starIcon, index) {
+                const starValue = index + 1;
+                
+                if (starValue <= rating) {
+                    starIcon.style.color = '#ffc107';
+                    if (isHover) {
+                        starIcon.style.transform = 'scale(1.1)';
+                        starIcon.style.filter = 'drop-shadow(0 0 5px rgba(255, 193, 7, 0.8))';
+                    } else {
+                        starIcon.style.filter = 'drop-shadow(0 0 2px rgba(255, 193, 7, 0.3))';
+                    }
+                } else {
+                    starIcon.style.color = '#e4e6ef';
+                    starIcon.style.transform = '';
+                    starIcon.style.filter = '';
+                }
+            });
+        }
+    </script>
+}

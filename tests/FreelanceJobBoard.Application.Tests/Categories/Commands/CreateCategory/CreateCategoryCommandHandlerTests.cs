@@ -5,13 +5,16 @@ using FreelanceJobBoard.Application.Features.Categories.DTOs;
 using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
+using Microsoft.Extensions.Logging;
 using Moq;
+
 namespace FreelanceJobBoard.Application.Tests.Categories.Commands.CreateCategory;
 public class CreateCategoryCommandHandlerTests
 {
 
 	private readonly Mock<IUnitOfWork> _unitOfWorkMock;
 	private readonly Mock<ICategoryRepository> _categoryRepositoryMock;
+	private readonly Mock<ILogger<CreateCategoryCommandHandler>> _loggerMock;
 	private readonly IMapper _mapper;
 
 	public CreateCategoryCommandHandlerTests()
@@ -20,6 +23,7 @@ public class CreateCategoryCommandHandlerTests
 
 		_unitOfWorkMock = new();
 		_categoryRepositoryMock = new();
+		_loggerMock = new();
 		_mapper = new Mapper(config);
 	}
 
@@ -33,7 +37,7 @@ public class CreateCategoryCommandHandlerTests
 			Description = "test"
 		};
 
-		var handler = new CreateCategoryCommandHandler(_unitOfWorkMock.Object, _mapper);
+		var handler = new CreateCategoryCommandHandler(_unitOfWorkMock.Object, _mapper, _loggerMock.Object);
 
 		_unitOfWorkMock.Setup(u => u.Categories)
 			.Returns(_categoryRepositoryMock.Object);

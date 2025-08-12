@@ -18,6 +18,9 @@
 	<link href="~/css/plugins.bundle.css" rel="stylesheet" />
 	<link href="~/css/style.bundle.css" rel="stylesheet" type="text/css" />
 	<!--end::Global Stylesheets Bundle-->
+	<!--begin::Rating System CSS-->
+	<link href="~/css/rating.css" rel="stylesheet" type="text/css" />
+	<!--end::Rating System CSS-->
 
 	@await RenderSectionAsync("Styles", required: false)
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -138,6 +141,12 @@
 	<script src="~/js/plugins.bundle.js"></script>
 	<script src="~/js/scripts.bundle.js"></script>
 	<!--end::Global Javascript Bundle-->
+	<!--begin::Rating System JS-->
+	<script src="~/js/rating.js"></script>
+	<!--end::Rating System JS-->
+	<!--begin::Quick Review Modal JS-->
+	<script src="~/js/quick-review-modal.js" asp-append-version="true"></script>
+	<!--end::Quick Review Modal JS-->
 	<!--begin::Bootbox-->
 	<script src="~/lib/bootbox.js/bootbox.min.js"></script>
 	<!--end::Bootbox-->

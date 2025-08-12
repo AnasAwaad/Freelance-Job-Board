@@ -2,6 +2,9 @@
 
 @if (User.Identity?.IsAuthenticated == true)
 {
+    <!-- Include the notification dropdown first -->
+    @await Html.PartialAsync("Header/_Notifications")
+    
     <!--begin::User menu-->
     <div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
         @if (Model.HasProfilePhoto)
@@ -65,6 +68,18 @@
                     <span class="path2"></span>
                     <span class="path3"></span>
                 </i>My Profile
+            </a>
+        </div>
+        <!--end::Menu item-->
+        
+        <!--begin::Menu item-->
+        <div class="menu-item px-5">
+            <a asp-controller="Notifications" asp-action="Index" class="menu-link px-5">
+                <i class="ki-duotone ki-notification-bing fs-6 me-2">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>Notification Center
             </a>
         </div>
         <!--end::Menu item-->

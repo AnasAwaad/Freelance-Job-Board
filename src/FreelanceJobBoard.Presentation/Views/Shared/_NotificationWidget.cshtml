@@ -1,0 +1,747 @@
+<!--begin::Notification Widget-->
+<div class="card card-flush mb-6 mb-xl-9">
+    <div class="card-header border-0 pt-5">
+        <h3 class="card-title align-items-start flex-column">
+            <span class="card-label fw-bold text-dark">Recent Notifications</span>
+            <span class="text-muted mt-1 fw-semibold fs-7">Stay updated with your activities</span>
+        </h3>
+        <div class="card-toolbar">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge badge-light-primary" id="notification-count">0</span>
+                <a href="/Notifications" class="btn btn-sm btn-light-primary">
+                    <i class="ki-duotone ki-eye fs-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                        <span class="path3"></span>
+                    </i>
+                    View All
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body pt-5">
+        <!-- Notifications Container -->
+        <div id="notifications-list" class="scroll-y mh-300px">
+            <!-- Loading State -->
+            <div id="notifications-loading" class="text-center py-5">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2 mb-0">Loading notifications...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="notifications-empty" class="text-center py-5" style="display: none;">
+                <i class="ki-duotone ki-notification-bing fs-3x text-gray-400 mb-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                <h4 class="text-gray-600 fw-semibold mb-2">No notifications yet</h4>
+                <p class="text-gray-400 mb-0">When you have new notifications, they'll appear here</p>
+            </div>
+            
+            <!-- Notifications will be loaded here -->
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="separator my-5"></div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-light-success" id="mark-all-read-btn" style="display: none;">
+                    <i class="ki-duotone ki-check fs-4 me-1">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    Mark All Read
+                </button>
+                
+                <button type="button" class="btn btn-sm btn-light-primary" id="refresh-notifications-btn">
+                    <i class="ki-duotone ki-arrows-circle fs-4 me-1">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    Refresh
+                </button>
+            </div>
+            
+            <div class="d-flex gap-2">
+                @if (Context.Request.Path != "/Notifications/Settings")
+                {
+                    <a href="/Notifications/Settings" class="btn btn-sm btn-light-secondary">
+                        <i class="ki-duotone ki-setting-2 fs-4 me-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Settings
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<!--end::Notification Widget-->
+
+<script src="https://unpkg.com/@@microsoft/signalr@@latest/dist/browser/signalr.js"></script>
+<script>
+class NotificationWidget {
+    constructor() {
+        this.connection = null;
+        this.notifications = [];
+        this.isConnected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.init();
+    }
+
+    async init() {
+        this.bindEvents();
+        await this.initializeSignalR();
+        await this.loadNotifications();
+        
+        // Refresh notifications every 30 seconds as fallback
+        setInterval(() => {
+            if (!this.isConnected) {
+                this.loadNotifications();
+            }
+        }, 30000);
+    }
+
+    bindEvents() {
+        // Refresh button
+        document.getElementById('refresh-notifications-btn').addEventListener('click', () => {
+            this.loadNotifications();
+        });
+
+        // Mark all as read button
+        document.getElementById('mark-all-read-btn').addEventListener('click', () => {
+            this.markAllAsRead();
+        });
+    }
+
+    async initializeSignalR() {
+        try {
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/notifications")
+                .withAutomaticReconnect([0, 2000, 10000, 30000])
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Connection events
+            this.connection.onreconnecting(() => {
+                this.isConnected = false;
+                console.log('SignalR reconnecting...');
+            });
+
+            this.connection.onreconnected(() => {
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
+                this.loadNotifications(); // Refresh on reconnect
+                console.log('SignalR reconnected');
+            });
+
+            this.connection.onclose((error) => {
+                this.isConnected = false;
+                if (error) {
+                    console.error('SignalR connection closed with error:', error);
+                } else {
+                    console.log('SignalR connection closed');
+                }
+            });
+
+            // Hub method handlers
+            this.connection.on("ReceiveNotification", (data) => {
+                this.handleNewNotification(data);
+            });
+
+            this.connection.on("ConnectionEstablished", (data) => {
+                console.log('SignalR connection established:', data);
+                this.isConnected = true;
+            });
+
+            this.connection.on("NotificationMarkedAsRead", (data) => {
+                this.handleNotificationRead(data.notificationId);
+                this.updateNotificationCount(data.unreadCount);
+            });
+
+            this.connection.on("AllNotificationsMarkedAsRead", (data) => {
+                this.handleAllNotificationsRead();
+                this.updateNotificationCount(0);
+            });
+
+            this.connection.on("NotificationDeleted", (data) => {
+                this.handleNotificationDeleted(data.notificationId);
+            });
+
+            this.connection.on("UpdateUnreadCount", (count) => {
+                this.updateNotificationCount(count);
+            });
+
+            // Start the connection
+            await this.connection.start();
+            console.log('SignalR connection started successfully');
+            
+            // Join personal notification group
+            await this.connection.invoke("JoinPersonalNotificationGroup");
+
+        } catch (error) {
+            console.error('SignalR connection failed:', error);
+        }
+    }
+
+    handleNewNotification(data) {
+        console.log('New notification received:', data);
+        
+        // Add to local notifications array at the beginning
+        const notification = {
+            id: data.notificationId || Date.now(),
+            title: data.title,
+            message: data.message,
+            isRead: false,
+            createdOn: data.timestamp || new Date().toISOString(),
+            type: data.type || 'notification',
+            icon: data.icon || 'ki-notification-bing',
+            color: data.color || 'primary',
+            isUrgent: data.isUrgent || false,
+            data: data.data
+        };
+
+        this.notifications.unshift(notification);
+        
+        // Re-render the notification list
+        this.renderNotifications();
+        
+        // Show browser notification if supported
+        this.showBrowserNotification(data.title, data.message, data.isUrgent);
+        
+        // Show toast notification
+        this.showToastNotification(data.title, data.message, data.color || 'primary');
+        
+        // Play notification sound for urgent notifications
+        if (data.isUrgent) {
+            this.playNotificationSound();
+        }
+
+        // Update counters
+        this.updateNotificationCount();
+    }
+
+    handleNotificationRead(notificationId) {
+        const notification = this.notifications.find(n => n.id === notificationId);
+        if (notification) {
+            notification.isRead = true;
+            this.renderNotifications();
+        }
+    }
+
+    handleAllNotificationsRead() {
+        this.notifications.forEach(n => n.isRead = true);
+        this.renderNotifications();
+    }
+
+    handleNotificationDeleted(notificationId) {
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        this.renderNotifications();
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch('/Notifications/GetDashboardNotifications');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    this.notifications = data.notifications.map(n => ({
+                        id: n.id,
+                        title: n.title,
+                        message: n.message,
+                        isRead: n.isRead,
+                        createdOn: n.createdOn,
+                        readAt: n.readAt,
+                        type: n.type || 'notification',
+                        icon: this.getNotificationIcon(n.type),
+                        color: this.getNotificationColor(n.type),
+                        isUrgent: false
+                    }));
+                    
+                    this.updateNotificationCount(data.unreadCount);
+                    this.renderNotifications();
+                    
+                    // Hide loading state
+                    document.getElementById('notifications-loading').style.display = 'none';
+                } else {
+                    this.showError('Failed to load notifications');
+                }
+            } else {
+                this.showError('Failed to load notifications');
+            }
+        } catch (error) {
+            console.error('Failed to load notifications:', error);
+            this.showError('Connection error');
+        }
+    }
+
+    renderNotifications() {
+        const container = document.getElementById('notifications-list');
+        const loading = document.getElementById('notifications-loading');
+        const empty = document.getElementById('notifications-empty');
+        
+        // Hide loading
+        loading.style.display = 'none';
+
+        // Clear existing notifications (except loading and empty states)
+        const existingNotifications = container.querySelectorAll('.notification-item');
+        existingNotifications.forEach(n => n.remove());
+
+        if (this.notifications.length === 0) {
+            empty.style.display = 'block';
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        // Render notifications (show first 5)
+        const notificationsToShow = this.notifications.slice(0, 5);
+        
+        notificationsToShow.forEach(notification => {
+            const element = this.createNotificationElement(notification);
+            container.appendChild(element);
+        });
+
+        // Show/hide mark all read button
+        const hasUnread = this.notifications.some(n => !n.isRead);
+        const markAllBtn = document.getElementById('mark-all-read-btn');
+        markAllBtn.style.display = hasUnread ? 'block' : 'none';
+    }
+
+    createNotificationElement(notification) {
+        const div = document.createElement('div');
+        div.className = `notification-item d-flex align-items-start py-3 ${!notification.isRead ? 'bg-light-primary' : ''}`;
+        div.dataset.id = notification.id;
+
+        const timeAgo = this.getTimeAgo(new Date(notification.createdOn));
+        const iconClass = notification.icon || 'ki-notification-bing';
+        const colorClass = notification.color || 'primary';
+        
+        div.innerHTML = `
+            <div class="symbol symbol-35px me-3">
+                <div class="symbol-label bg-light-${colorClass}">
+                    <i class="ki-duotone ${iconClass} fs-2 text-${colorClass}">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                        <span class="path3"></span>
+                    </i>
+                </div>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="fs-6 text-gray-800 fw-bold mb-1">${this.escapeHtml(notification.title)}</div>
+                        <div class="text-gray-600 fs-7 mb-1">${this.escapeHtml(this.truncateMessage(notification.message, 100))}</div>
+                        <div class="text-gray-500 fs-8">${timeAgo}</div>
+                    </div>
+                    ${!notification.isRead ? `
+                    <button type="button" class="btn btn-sm btn-light-primary ms-2" onclick="notificationWidget.markAsRead(${notification.id})">
+                        <i class="ki-duotone ki-check fs-4">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        // Add click handler for navigation
+        div.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                this.handleNotificationClick(notification);
+            }
+        });
+
+        return div;
+    }
+
+    handleNotificationClick(notification) {
+        // Mark as read if unread
+        if (!notification.isRead) {
+            this.markAsRead(notification.id);
+        }
+
+        // Handle navigation based on notification type
+        if (notification.data) {
+            this.navigateBasedOnNotification(notification);
+        }
+    }
+
+    navigateBasedOnNotification(notification) {
+        const data = notification.data;
+        if (!data) return;
+
+        switch (notification.type) {
+            case 'proposal_received':
+                if (data.jobId) {
+                    window.location.href = `/Jobs/Details/${data.jobId}#proposals`;
+                }
+                break;
+            case 'proposal_accepted':
+            case 'proposal_rejected':
+                if (data.jobId) {
+                    window.location.href = `/Jobs/Details/${data.jobId}`;
+                }
+                break;
+            case 'contract_created':
+            case 'contract_status_changed':
+                if (data.contractId) {
+                    window.location.href = `/Contracts/Details/${data.contractId}`;
+                }
+                break;
+            case 'job_approved':
+            case 'job_rejected':
+                if (data.jobId) {
+                    window.location.href = `/Jobs/Details/${data.jobId}`;
+                }
+                break;
+            case 'review_received':
+                if (data.reviewId) {
+                    window.location.href = `/Reviews/Details/${data.reviewId}`;
+                }
+                break;
+            default:
+                // Default navigation to notifications page
+                window.location.href = '/Notifications';
+                break;
+        }
+    }
+
+    async markAsRead(notificationId) {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+            
+            const response = await fetch('/Notifications/MarkAsRead', {
+                method: 'POST',
+                headers: headers,
+                body: `id=${notificationId}${token ? `&__RequestVerificationToken=${encodeURIComponent(token)}` : ''}`
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    this.handleNotificationRead(notificationId);
+                    this.updateNotificationCount(data.unreadCount);
+                    
+                    // Also notify via SignalR if connected
+                    if (this.isConnected && this.connection) {
+                        try {
+                            await this.connection.invoke("AcknowledgeNotificationRead", notificationId);
+                        } catch (error) {
+                            console.warn('Failed to acknowledge notification read via SignalR:', error);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    }
+
+    async markAllAsRead() {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+            
+            const response = await fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: headers,
+                body: token ? `__RequestVerificationToken=${encodeURIComponent(token)}` : ''
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    this.handleAllNotificationsRead();
+                    this.updateNotificationCount(0);
+                    
+                    // Also notify via SignalR if connected
+                    if (this.isConnected && this.connection) {
+                        try {
+                            await this.connection.invoke("AcknowledgeAllNotificationsRead");
+                        } catch (error) {
+                            console.warn('Failed to acknowledge all notifications read via SignalR:', error);
+                        }
+                    }
+                    
+                    this.showToastNotification('Success', 'All notifications marked as read', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+            this.showToastNotification('Error', 'Failed to mark notifications as read', 'danger');
+        }
+    }
+
+    updateNotificationCount(count = null) {
+        if (count === null) {
+            count = this.notifications.filter(n => !n.isRead).length;
+        }
+        
+        const countElement = document.getElementById('notification-count');
+        const sidebarCountElement = document.getElementById('sidebar-notification-count');
+        
+        // Update widget count
+        if (countElement) {
+            countElement.textContent = count;
+            countElement.style.display = count > 0 ? 'inline' : 'none';
+        }
+        
+        // Update sidebar count
+        if (sidebarCountElement) {
+            sidebarCountElement.textContent = count > 99 ? '99+' : count;
+            sidebarCountElement.style.display = count > 0 ? 'inline' : 'none';
+        }
+
+        // Update page title with unread count
+        this.updatePageTitle(count);
+    }
+
+    updatePageTitle(unreadCount) {
+        const baseTitle = document.title.replace(/^\(\d+\) /, '');
+        document.title = unreadCount > 0 ? `(${unreadCount}) ${baseTitle}` : baseTitle;
+    }
+
+    showBrowserNotification(title, message, isUrgent = false) {
+        if ("Notification" in window && Notification.permission === "granted") {
+            // Check quiet hours
+            if (this.isInQuietHours() && !isUrgent) {
+                return;
+            }
+            
+            new Notification(title, {
+                body: message,
+                icon: "/favicon.ico",
+                tag: "freelancejobboard-notification",
+                requireInteraction: isUrgent,
+                silent: false
+            });
+        }
+    }
+
+    showToastNotification(title, message, color = 'primary') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification position-fixed top-0 end-0 m-3 p-3 bg-${color} text-white rounded shadow`;
+        toast.style.zIndex = '9999';
+        toast.style.maxWidth = '350px';
+        toast.style.animation = 'slideInRight 0.3s ease-out';
+        
+        toast.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong>${this.escapeHtml(title)}</strong>
+                    <div class="mt-1">${this.escapeHtml(message)}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    playNotificationSound() {
+        try {
+            // Simple notification beep
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBzyS2PO9dyMEJn7J7+GQQQ4SX7zs6KRPDA6WwOWJSgwJV7Dk7ahVFQpSpt/zu2wkBD6X1PO2dSEEKH3K8duGNwwTYrPq5Z1MEQphmdjzunQiBC14wuiJTQ0PWK7m5qJWFAgZZsHqOTEJIGbD7WnKSgg6lNryuXciBSJh0O19a0Y+FHnC3mlQD0U4l9n01HIsBS1w4Oz4jjQJIGLH9OWhWBQNIYTUKdJ9K0k6lNn02HItBSJMnuRMNUM+HnvE5mhQD0Y6ndv1zXssRip2wuiJSkwJVqXz7KFWFQB'); 
+            audio.volume = 0.3;
+            audio.play().catch(() => {
+                // Ignore audio play errors (browser might block autoplay)
+            });
+        } catch (error) {
+            // Ignore errors
+        }
+    }
+
+    isInQuietHours() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        
+        // Default quiet hours: 10 PM to 8 AM
+        return currentHour >= 22 || currentHour <= 8;
+    }
+
+    showError(message) {
+        const loading = document.getElementById('notifications-loading');
+        loading.innerHTML = `
+            <div class="text-center py-5">
+                <i class="ki-duotone ki-warning fs-3x text-danger mb-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                </i>
+                <p class="text-danger mb-0">${message}</p>
+                <button type="button" class="btn btn-sm btn-light-primary mt-2" onclick="notificationWidget.loadNotifications()">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
+
+    getNotificationIcon(type) {
+        const iconMap = {
+            job_created: 'ki-briefcase',
+            job_approved: 'ki-check-circle',
+            job_rejected: 'ki-cross-circle',
+            proposal_received: 'ki-document',
+            proposal_accepted: 'ki-check-circle',
+            proposal_rejected: 'ki-cross-circle',
+            proposal_under_review: 'ki-time',
+            contract_created: 'ki-handshake',
+            contract_status_changed: 'ki-handshake',
+            contract_change_requested: 'ki-pencil',
+            payment_received: 'ki-dollar',
+            payment_requested: 'ki-dollar',
+            review_received: 'ki-star',
+            review_requested: 'ki-star',
+            welcome: 'ki-heart',
+            system_maintenance: 'ki-setting-2',
+            deadline_approaching: 'ki-time',
+            deadline_passed: 'ki-warning'
+        };
+        return iconMap[type] || 'ki-notification-bing';
+    }
+
+    getNotificationColor(type) {
+        const colorMap = {
+            job_approved: 'success',
+            job_rejected: 'danger',
+            proposal_accepted: 'success',
+            proposal_rejected: 'warning',
+            contract_created: 'success',
+            payment_received: 'success',
+            payment_requested: 'warning',
+            review_received: 'primary',
+            welcome: 'primary',
+            system_maintenance: 'warning',
+            deadline_approaching: 'warning',
+            deadline_passed: 'danger'
+        };
+        return colorMap[type] || 'primary';
+    }
+
+    truncateMessage(message, maxLength) {
+        if (message.length <= maxLength) return message;
+        return message.substring(0, maxLength) + '...';
+    }
+
+    getTimeAgo(date) {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// Initialize notification widget when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    window.notificationWidget = new NotificationWidget();
+});
+
+// Request notification permission on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+});
+</script>
+
+<style>
+.toast-notification {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.notification-item {
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 12px;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa !important;
+    transform: translateX(2px);
+}
+
+.notification-item:last-child {
+    margin-bottom: 0;
+}
+
+#notification-count {
+    animation: pulse 2s infinite;
+}
+
+@@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.scroll-y {
+    overflow-y: auto;
+}
+
+.mh-300px {
+    max-height: 300px;
+}
+</style>

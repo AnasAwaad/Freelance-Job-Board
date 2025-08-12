@@ -1,0 +1,474 @@
+/* Star Rating System CSS */
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.rating-label {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.rating-label:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.rating-label:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-radius: 4px;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Star icon styling (both Unicode and icon fonts) */
+.rating-label .star-icon,
+.rating-label i {
+    color: #e4e6ef !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    line-height: 1;
+}
+
+/* Active/checked star color */
+.rating-label.checked .star-icon,
+.rating-label.checked i {
+    color: #ffc107 !important;
+    text-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+}
+
+/* Hover effect color */
+.rating-label.hover .star-icon,
+.rating-label.hover i,
+.rating-label:hover .star-icon,
+.rating-label:hover i {
+    color: #ffc107 !important;
+    transform: scale(1.1);
+    text-shadow: 0 0 12px rgba(255, 193, 7, 0.5);
+}
+
+/* Unicode star specific styling */
+.rating-label .star-icon {
+    font-size: 1.5rem;
+    font-weight: normal;
+    font-family: "Arial Unicode MS", "Segoe UI Symbol", Arial, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Size variations */
+.rating-sm .rating-label .star-icon {
+    font-size: 1rem !important;
+}
+
+.rating .rating-label .star-icon {
+    font-size: 1.5rem !important;
+}
+
+.rating-lg .rating-label .star-icon {
+    font-size: 2rem !important;
+}
+
+/* Keep existing icon font support for backward compatibility */
+.rating-sm .rating-label i {
+    font-size: 1rem !important;
+}
+
+.rating .rating-label i {
+    font-size: 1.5rem !important;
+}
+
+.rating-lg .rating-label i {
+    font-size: 2rem !important;
+}
+
+/* Quick rating for pending reviews */
+.rating-quick {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    padding: 8px;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+
+.rating-quick:hover {
+    background-color: #e9ecef;
+}
+
+.rating-quick .rating-label-quick {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+.rating-quick .rating-label-quick:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.rating-quick .rating-label-quick:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.rating-quick .rating-label-quick .star-icon,
+.rating-quick .rating-label-quick i {
+    color: #e4e6ef !important;
+    transition: color 0.2s ease;
+}
+
+.rating-quick .rating-label-quick.active .star-icon,
+.rating-quick .rating-label-quick.hover .star-icon,
+.rating-quick .rating-label-quick.active i,
+.rating-quick .rating-label-quick.hover i {
+    color: #ffc107 !important;
+}
+
+/* Disabled states */
+.rating-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.rating-disabled .rating-label,
+.rating-disabled .rating-label-quick {
+    cursor: not-allowed !important;
+}
+
+.rating-disabled .rating-label .star-icon,
+.rating-disabled .rating-label i,
+.rating-disabled .rating-label-quick .star-icon,
+.rating-disabled .rating-label-quick i {
+    color: #adb5bd !important;
+}
+
+/* Rating input containers */
+.rating-input,
+.rating-input-modal {
+    position: relative;
+    min-height: 60px;
+}
+
+.rating-input-modal {
+    min-height: 70px;
+}
+
+/* Disable user selection on rating labels */
+.rating-label,
+.rating-label-quick {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Rating feedback */
+.rating-feedback,
+.quick-rating-feedback {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    min-height: 1.2rem;
+}
+
+.rating-feedback .rating-text,
+.quick-rating-feedback .rating-text {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+/* Loading states */
+.rating-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.rating-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Success highlight animation */
+@keyframes successHighlight {
+    0% { 
+        background-color: transparent; 
+        box-shadow: none;
+    }
+    50% { 
+        background-color: rgba(40, 167, 69, 0.1);
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+    }
+    100% { 
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+
+.rating-success {
+    animation: successHighlight 1s ease;
+    border-radius: 6px;
+}
+
+/* Error highlight animation */
+@keyframes errorHighlight {
+    0% { 
+        background-color: transparent;
+        box-shadow: none;
+    }
+    50% { 
+        background-color: rgba(220, 53, 69, 0.1);
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+    }
+    100% { 
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+
+.rating-error {
+    animation: errorHighlight 1s ease;
+    border-radius: 6px;
+}
+
+/* Animation for star filling */
+@keyframes starFill {
+    0% {
+        color: #e4e6ef;
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        color: #ffc107;
+        transform: scale(1);
+    }
+}
+
+.rating-label.animate .star-icon,
+.rating-label.animate i,
+.rating-label-quick.animate .star-icon,
+.rating-label-quick.animate i {
+    animation: starFill 0.3s ease;
+}
+
+/* Enhanced star pop animation */
+@keyframes starPop {
+    0% { 
+        transform: scale(1); 
+    }
+    50% { 
+        transform: scale(1.3);
+        text-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+    }
+    100% { 
+        transform: scale(1); 
+    }
+}
+
+.rating-label.star-pop .star-icon {
+    animation: starPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Modal specific styling */
+#quickReviewModal .rating-label .star-icon,
+#quickReviewModal .rating-label i {
+    font-size: 1.75rem !important;
+}
+
+/* Validation error states */
+.rating-validation-error {
+    border: 2px solid #dc3545;
+    border-radius: 6px;
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+.rating-validation-error .rating-label .star-icon,
+.rating-validation-error .rating-label i,
+.rating-validation-error .rating-label-quick .star-icon,
+.rating-validation-error .rating-label-quick i {
+    color: #dc3545 !important;
+}
+
+/* Rating tooltips (optional enhancement) */
+.rating-label[title]:hover::after,
+.rating-label-quick[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 4px;
+}
+
+/* Interactive star glow effect */
+.rating-label:hover .star-icon,
+.rating-label.hover .star-icon {
+    filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.6));
+}
+
+/* Better spacing for different sizes */
+.rating-lg {
+    gap: 0.375rem;
+}
+
+.rating-sm {
+    gap: 0.125rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .rating-lg .rating-label .star-icon,
+    .rating-lg .rating-label i {
+        font-size: 1.5rem !important;
+    }
+    
+    .rating .rating-label .star-icon,
+    .rating .rating-label i {
+        font-size: 1.25rem !important;
+    }
+    
+    .rating-sm .rating-label .star-icon,
+    .rating-sm .rating-label i {
+        font-size: 0.875rem !important;
+    }
+    
+    .rating-quick {
+        padding: 6px;
+        gap: 0.15rem;
+    }
+    
+    .rating-input,
+    .rating-input-modal {
+        min-height: 50px;
+    }
+    
+    .rating-label {
+        padding: 1px;
+        margin: 0 1px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rating-lg .rating-label .star-icon,
+    .rating-lg .rating-label i {
+        font-size: 1.25rem !important;
+    }
+    
+    .rating .rating-label .star-icon,
+    .rating .rating-label i {
+        font-size: 1rem !important;
+    }
+    
+    .rating-sm .rating-label .star-icon,
+    .rating-sm .rating-label i {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .rating-label .star-icon,
+    .rating-label i {
+        color: #000000 !important;
+    }
+    
+    .rating-label.checked .star-icon,
+    .rating-label.hover .star-icon,
+    .rating-label.checked i,
+    .rating-label.hover i,
+    .rating-label-quick.active .star-icon,
+    .rating-label-quick.hover .star-icon,
+    .rating-label-quick.active i,
+    .rating-label-quick.hover i {
+        color: #ff6600 !important;
+        text-shadow: none;
+        filter: none;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .rating-label,
+    .rating-label-quick {
+        transition: none;
+    }
+    
+    .rating-label:hover,
+    .rating-label-quick:hover {
+        transform: none;
+    }
+    
+    .rating-label.animate .star-icon,
+    .rating-label.animate i,
+    .rating-label-quick.animate .star-icon,
+    .rating-label-quick.animate i,
+    .rating-label.star-pop .star-icon {
+        animation: none;
+    }
+    
+    .rating-success,
+    .rating-error {
+        animation: none;
+    }
+    
+    .rating-label .star-icon,
+    .rating-label i {
+        filter: none;
+        text-shadow: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .rating-quick {
+        background-color: transparent !important;
+        border: 1px solid #ddd;
+    }
+    
+    .rating-label.checked .star-icon,
+    .rating-label.checked i,
+    .rating-label-quick.active .star-icon,
+    .rating-label-quick.active i {
+        color: #000 !important;
+    }
+    
+    .rating-label:not(.checked) .star-icon,
+    .rating-label:not(.checked) i,
+    .rating-label-quick:not(.active) .star-icon,
+    .rating-label-quick:not(.active) i {
+        color: #ccc !important;
+    }
+    
+    .rating-label,
+    .rating-label-quick {
+        text-shadow: none !important;
+        filter: none !important;
+    }
+}

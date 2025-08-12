@@ -1,0 +1,258 @@
+﻿@model FreelanceJobBoard.Presentation.Models.ViewModels.JobReviewsViewModel
+@{
+    ViewData["Title"] = "Job Reviews";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Job Reviews</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Jobs" asp-action="Index" class="text-muted text-hover-primary">Jobs</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Jobs" asp-action="Details" asp-route-id="@Model.JobId" class="text-muted text-hover-primary">@(Model.JobTitle ?? "Job Details")</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Reviews</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                @if (Model.CanCurrentUserReview && !string.IsNullOrEmpty(Model.PendingReviewType))
+                {
+                    <a asp-action="Create" asp-route-jobId="@Model.JobId" asp-route-type="@Model.PendingReviewType" class="btn btn-sm fw-bold btn-primary">
+                        <span style="color: #ffc107; star">★</span>
+                        Leave Review
+                    </a>
+                }
+                <a asp-controller="Jobs" asp-action="Details" asp-route-id="@Model.JobId" class="btn btn-sm fw-bold btn-secondary">
+                    <i class="ki-duotone ki-arrow-left fs-4"></i>
+                    Back to Job
+                </a>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-check fs-2hx text-success me-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Job Information -->
+            <div class="card mb-5">
+                <div class="card-header">
+                    <div class="card-title">
+                        <h3 class="fw-bold text-dark">
+                            <i class="ki-duotone ki-briefcase fs-2 text-primary me-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            @(Model.JobTitle ?? "Job Title")
+                        </h3>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="symbol symbol-50px me-5">
+                            <span class="symbol-label bg-light-primary text-primary fs-3 fw-bold">@Model.JobId</span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="text-gray-800 fw-bold fs-6">Job #@Model.JobId</div>
+                            <div class="text-gray-600 fs-7">@(Model.Reviews?.Count ?? 0) Review(s)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                <!-- Reviews List -->
+                <div class="row">
+                    @foreach (var review in Model.Reviews)
+                    {
+                        <div class="col-xl-6 mb-5">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <div class="d-flex align-items-center">
+                                        <div class="symbol symbol-40px me-3">
+                                            <span class="symbol-label bg-light-success text-success fs-7 fw-bold">
+                                                @* Null-safe reviewer initials *@
+                                                @{
+                                                    var reviewerName = review.ReviewerName ?? "Anonymous";
+                                                    var initials = reviewerName.Length >= 2 ? reviewerName.Substring(0, 2).ToUpper() : "??";
+                                                }
+                                                @initials
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="text-gray-800 fw-bold fs-6">@(review.ReviewerName ?? "Anonymous")</div>
+                                            <div class="text-gray-600 fs-7">
+                                                @* Null-safe review type handling *@
+                                                @{
+                                                    var reviewType = review.ReviewType ?? "";
+                                                }
+                                                @if (reviewType == "ClientToFreelancer")
+                                                {
+                                                    <span class="badge badge-light-info">Client Review</span>
+                                                }
+                                                else if (reviewType == "FreelancerToClient")
+                                                {
+                                                    <span class="badge badge-light-success">Freelancer Review</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-light-secondary">Review</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <!-- Star Rating Display -->
+                                            <div class="star-rating-display mb-2">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <span class="star-display @(i <= review.Rating ? "filled" : "") star">★</span>
+                                                }
+                                            </div>
+                                            <div class="text-gray-600 fs-7">@review.Rating/5 stars</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-gray-700 fs-6 mb-4">
+                                        "@(review.Comment ?? "No comment provided")"
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="text-gray-500 fs-7">
+                                            <i class="ki-duotone ki-calendar fs-6 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            @(review.CreatedAt.ToString("MMM dd, yyyy"))
+                                        </div>
+                                        @if (review.IsVisible)
+                                        {
+                                            <span class="badge badge-light-success">
+                                                <i class="ki-duotone ki-eye fs-7 me-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                Public
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-light-warning">
+                                                <i class="ki-duotone ki-eye-slash fs-7 me-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                    <span class="path4"></span>
+                                                </i>
+                                                Private
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <!-- No Reviews State -->
+                <div class="card">
+                    <div class="card-body text-center py-15">
+                        <span style="font-size: 4rem; color: #a1a5b7;">★</span>
+                        <h2 class="fs-2 fw-bold text-gray-800 mb-4 mt-4">No Reviews Yet</h2>
+                        <p class="fs-4 fw-semibold text-gray-600 mb-7">
+                            This job hasn't received any reviews yet. Reviews will appear here once the job is completed and participants leave feedback.
+                        </p>
+                        @if (Model.CanCurrentUserReview && !string.IsNullOrEmpty(Model.PendingReviewType))
+                        {
+                            <a asp-action="Create" asp-route-jobId="@Model.JobId" asp-route-type="@Model.PendingReviewType" class="btn btn-primary">
+                                <span style="color: white; font-size: 1.2rem;">★</span>
+                                Be the First to Review
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.CanCurrentUserReview && !string.IsNullOrEmpty(Model.PendingReviewType))
+            {
+                <!-- Call to Action -->
+                <div class="card bg-light-primary mt-5">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="symbol symbol-50px me-5">
+                                <span class="symbol-label bg-primary text-white">
+                                    <span style="font-size: 1.5rem;">★</span>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h4 class="text-gray-800 fw-bold mb-1">Ready to Share Your Experience?</h4>
+                                <p class="text-gray-600 fs-6 mb-0">
+                                    Your review helps build trust in our community and provides valuable feedback.
+                                </p>
+                            </div>
+                            <div>
+                                <a asp-action="Create" asp-route-jobId="@Model.JobId" asp-route-type="@Model.PendingReviewType" class="btn btn-primary">
+                                    Leave Review
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Star Rating Display Styles */
+    .star-rating-display {
+        display: inline-flex;
+        gap: 2px;
+    }
+    
+    .star-display {
+        font-size: 1.2rem;
+        color: #e4e6ef;
+        font-family: Arial, sans-serif;
+        user-select: none;
+    }
+    
+    .star-display.filled {
+        color: #ffc107;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .star-display {
+            font-size: 1rem;
+        }
+    }
+</style>

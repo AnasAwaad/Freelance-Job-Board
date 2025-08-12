@@ -1,0 +1,392 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.NotificationSettingsViewModel
+
+@{
+    ViewData["Title"] = "Notification Settings";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="ki-duotone ki-notification-bing fs-2 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+                <span class="path3"></span>
+            </i>
+            Notification Settings
+        </h3>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+            <i class="ki-duotone ki-check-circle fs-2 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+            <i class="ki-duotone ki-cross-circle fs-2 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="UpdateSettings" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger m-3" role="alert"></div>
+        
+        <div class="card-body">
+            <div class="row">
+                <!-- Email Notifications -->
+                <div class="col-lg-6">
+                    <div class="card card-bordered mb-5">
+                        <div class="card-header">
+                            <h4 class="card-title">Email Notifications</h4>
+                            <div class="card-toolbar">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotificationsToggle" 
+                                           name="EmailNotificationsEnabled" value="true"
+                                           @(Model.EmailNotificationsEnabled ? "checked" : "") 
+                                           onchange="toggleEmailSettings(this.checked)">
+                                    <input type="hidden" name="EmailNotificationsEnabled" value="false" />
+                                    <label class="form-check-label" for="emailNotificationsToggle">
+                                        Enable Email Notifications
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body" id="emailSettings">
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="JobUpdates" value="true"
+                                               @(Model.JobUpdates ? "checked" : "") />
+                                        <input type="hidden" name="JobUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Job Updates</span>
+                                    </label>
+                                    <div class="text-muted fs-7">Get notified about job status changes, approvals, and completions</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="ProposalUpdates" value="true"
+                                               @(Model.ProposalUpdates ? "checked" : "") />
+                                        <input type="hidden" name="ProposalUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Proposal Updates</span>
+                                    </label>
+                                    <div class="text-muted fs-7">Get notified about new proposals and proposal status changes</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="ContractUpdates" value="true"
+                                               @(Model.ContractUpdates ? "checked" : "") />
+                                        <input type="hidden" name="ContractUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Contract Updates</span>
+                                    </label>
+                                    <div class="text-muted fs-7">Get notified about contract changes, completions, and modifications</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="PaymentUpdates" value="true"
+                                               @(Model.PaymentUpdates ? "checked" : "") />
+                                        <input type="hidden" name="PaymentUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Payment Updates</span>
+                                    </label>
+                                    <div class="text-muted fs-7">Get notified about payment receipts and processing</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="ReviewUpdates" value="true"
+                                               @(Model.ReviewUpdates ? "checked" : "") />
+                                        <input type="hidden" name="ReviewUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Review Updates</span>
+                                    </label>
+                                    <div class="text-muted fs-7">Get notified when you receive new reviews</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="SystemUpdates" value="true"
+                                               @(Model.SystemUpdates ? "checked" : "") />
+                                        <input type="hidden" name="SystemUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">System Updates</span>
+                                    </label>
+                                    <div class="text-muted fs-7">Get notified about system maintenance and important announcements</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Browser Notifications -->
+                <div class="col-lg-6">
+                    <div class="card card-bordered mb-5">
+                        <div class="card-header">
+                            <h4 class="card-title">Browser Notifications</h4>
+                            <div class="card-toolbar">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="browserNotificationsToggle" 
+                                           name="BrowserNotificationsEnabled" value="true"
+                                           @(Model.BrowserNotificationsEnabled ? "checked" : "") 
+                                           onchange="toggleBrowserSettings(this.checked)">
+                                    <input type="hidden" name="BrowserNotificationsEnabled" value="false" />
+                                    <label class="form-check-label" for="browserNotificationsToggle">
+                                        Enable Browser Notifications
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body" id="browserSettings">
+                            <div class="alert alert-info mb-4" id="permissionAlert">
+                                <i class="ki-duotone ki-information-5 fs-2x text-info me-4">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i>
+                                <div class="d-flex flex-column">
+                                    <h4 class="mb-1 text-info">Browser Permission Required</h4>
+                                    <span>You need to allow browser notifications for this feature to work.</span>
+                                    <button type="button" class="btn btn-info btn-sm mt-2" id="requestPermissionBtn" onclick="requestNotificationPermission()">
+                                        Request Permission
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="BrowserJobUpdates" value="true"
+                                               @(Model.BrowserJobUpdates ? "checked" : "") />
+                                        <input type="hidden" name="BrowserJobUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Job Updates</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="BrowserProposalUpdates" value="true"
+                                               @(Model.BrowserProposalUpdates ? "checked" : "") />
+                                        <input type="hidden" name="BrowserProposalUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Proposal Updates</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="BrowserContractUpdates" value="true"
+                                               @(Model.BrowserContractUpdates ? "checked" : "") />
+                                        <input type="hidden" name="BrowserContractUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Contract Updates</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="form-check form-check-custom form-check-solid">
+                                        <input class="form-check-input" type="checkbox" name="BrowserPaymentUpdates" value="true"
+                                               @(Model.BrowserPaymentUpdates ? "checked" : "") />
+                                        <input type="hidden" name="BrowserPaymentUpdates" value="false" />
+                                        <span class="form-check-label fw-bold">Payment Updates</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Frequency -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-bordered">
+                        <div class="card-header">
+                            <h4 class="card-title">Notification Frequency</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-lg-6">
+                                    <label class="form-label" asp-for="EmailDigestFrequency">Email Digest Frequency</label>
+                                    <select class="form-select" name="EmailDigestFrequency" asp-for="EmailDigestFrequency">
+                                        <option value="Immediate">Immediate</option>
+                                        <option value="Daily">Daily Digest</option>
+                                        <option value="Weekly">Weekly Digest</option>
+                                        <option value="Never">Never</option>
+                                    </select>
+                                    <span asp-validation-for="EmailDigestFrequency" class="text-danger fs-7"></span>
+                                    <div class="text-muted fs-7">Choose how often you want to receive email notifications</div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label">Quiet Hours</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label" asp-for="QuietHoursStart">Start time</label>
+                                            <input type="time" class="form-control" name="QuietHoursStart" asp-for="QuietHoursStart" />
+                                            <span asp-validation-for="QuietHoursStart" class="text-danger fs-7"></span>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label" asp-for="QuietHoursEnd">End time</label>
+                                            <input type="time" class="form-control" name="QuietHoursEnd" asp-for="QuietHoursEnd" />
+                                            <span asp-validation-for="QuietHoursEnd" class="text-danger fs-7"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted fs-7 mt-2">Set hours when you don't want to receive browser notifications</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-light me-3" onclick="resetToDefaults()">Reset to Defaults</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="ki-duotone ki-check fs-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleEmailSettings(enabled) {
+            const emailSettings = document.getElementById('emailSettings');
+            const inputs = emailSettings.querySelectorAll('input[type="checkbox"]:not([name="EmailNotificationsEnabled"])');
+            
+            inputs.forEach(input => {
+                input.disabled = !enabled;
+            });
+            
+            emailSettings.style.opacity = enabled ? '1' : '0.5';
+        }
+
+        function toggleBrowserSettings(enabled) {
+            const browserSettings = document.getElementById('browserSettings');
+            const inputs = browserSettings.querySelectorAll('input[type="checkbox"]:not([name="BrowserNotificationsEnabled"])');
+            
+            inputs.forEach(input => {
+                input.disabled = !enabled;
+            });
+            
+            browserSettings.style.opacity = enabled ? '1' : '0.5';
+            
+            if (enabled) {
+                checkNotificationPermission();
+            }
+        }
+
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    updatePermissionStatus(permission);
+                });
+            }
+        }
+
+        function checkNotificationPermission() {
+            if ("Notification" in window) {
+                updatePermissionStatus(Notification.permission);
+            }
+        }
+
+        function updatePermissionStatus(permission) {
+            const permissionBtn = document.getElementById('requestPermissionBtn');
+            const alert = document.getElementById('permissionAlert');
+            
+            if (permission === "granted") {
+                alert.classList.remove('alert-info');
+                alert.classList.add('alert-success');
+                alert.querySelector('h4').textContent = 'Browser Notifications Enabled';
+                alert.querySelector('span').textContent = 'You will receive browser notifications when enabled.';
+                permissionBtn.style.display = 'none';
+            } else if (permission === "denied") {
+                alert.classList.remove('alert-info');
+                alert.classList.add('alert-danger');
+                alert.querySelector('h4').textContent = 'Browser Notifications Blocked';
+                alert.querySelector('span').textContent = 'You have blocked browser notifications. Please enable them in your browser settings.';
+                permissionBtn.textContent = 'Check Browser Settings';
+                permissionBtn.onclick = function() {
+                    alert("Please manually enable notifications in your browser settings for this site.");
+                };
+            }
+        }
+
+        function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all notification settings to defaults?')) {
+                // Reset all checkboxes to default values
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    // Set default values (all enabled except system updates)
+                    if (checkbox.name === 'SystemUpdates') {
+                        checkbox.checked = false;
+                    } else {
+                        checkbox.checked = true;
+                    }
+                });
+                
+                // Reset selects to defaults
+                document.querySelector('select[name="EmailDigestFrequency"]').value = 'Immediate';
+                document.querySelector('input[name="QuietHoursStart"]').value = '22:00';
+                document.querySelector('input[name="QuietHoursEnd"]').value = '08:00';
+                
+                // Update UI states
+                toggleEmailSettings(true);
+                toggleBrowserSettings(true);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleEmailSettings(document.getElementById('emailNotificationsToggle').checked);
+            toggleBrowserSettings(document.getElementById('browserNotificationsToggle').checked);
+            checkNotificationPermission();
+        });
+    </script>
+}
+
+<style>
+    .card-bordered {
+        border: 1px solid var(--bs-gray-300);
+    }
+    
+    .form-check-label {
+        cursor: pointer;
+    }
+    
+    input:disabled {
+        opacity: 0.6;
+    }
+</style>

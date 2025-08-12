@@ -1,0 +1,460 @@
+@model FreelanceJobBoard.Application.Features.Contracts.Queries.GetContractHistory.GetContractHistoryResult
+@{
+    ViewData["Title"] = "Contract History";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Contract History</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="Index" class="text-muted text-hover-primary">Contracts</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-action="Details" asp-route-id="@Model.ContractId" class="text-muted text-hover-primary">Contract #@Model.ContractId</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">History</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <a asp-action="Details" asp-route-id="@Model.ContractId" class="btn btn-sm fw-bold btn-secondary">
+                    <i class="ki-duotone ki-arrow-left fs-4"></i>
+                    Back to Contract
+                </a>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            <!-- Current Version Card -->
+            <div class="card mb-8">
+                <div class="card-header">
+                    <div class="card-title">
+                        <h3 class="fw-bold text-dark">Current Version</h3>
+                        <span class="badge badge-light-success ms-3">Version @Model.CurrentVersion.VersionNumber</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-6">
+                            <div class="mb-5">
+                                <div class="fw-bold text-gray-600 mb-2">Title:</div>
+                                <div class="text-gray-800">@Model.CurrentVersion.Title</div>
+                            </div>
+                            <div class="mb-5">
+                                <div class="fw-bold text-gray-600 mb-2">Payment:</div>
+                                <div class="text-gray-800">$@Model.CurrentVersion.PaymentAmount.ToString("N2") (@Model.CurrentVersion.PaymentType)</div>
+                            </div>
+                            @if (Model.CurrentVersion.ProjectDeadline.HasValue)
+                            {
+                                <div class="mb-5">
+                                    <div class="fw-bold text-gray-600 mb-2">Deadline:</div>
+                                    <div class="text-gray-800">@Model.CurrentVersion.ProjectDeadline.Value.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-xl-6">
+                            <div class="mb-5">
+                                <div class="fw-bold text-gray-600 mb-2">Created By:</div>
+                                <div class="text-gray-800">@Model.CurrentVersion.CreatedByRole on @Model.CurrentVersion.CreatedOn.ToString("MMM dd, yyyy 'at' h:mm tt")</div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.CurrentVersion.ChangeReason))
+                            {
+                                <div class="mb-5">
+                                    <div class="fw-bold text-gray-600 mb-2">Change Reason:</div>
+                                    <div class="text-gray-800">@Model.CurrentVersion.ChangeReason</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.CurrentVersion.Description))
+                    {
+                        <div class="separator my-5"></div>
+                        <div class="mb-5">
+                            <div class="fw-bold text-gray-600 mb-2">Description:</div>
+                            <div class="text-gray-800">@Model.CurrentVersion.Description</div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.CurrentVersion.Deliverables))
+                    {
+                        <div class="mb-5">
+                            <div class="fw-bold text-gray-600 mb-2">Deliverables:</div>
+                            <div class="text-gray-800">@Model.CurrentVersion.Deliverables</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Version History -->
+                <div class="col-xl-6">
+                    <div class="card mb-5">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Version History</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.VersionHistory?.Any() == true)
+                            {
+                                <div class="timeline timeline-border-dashed">
+                                    @foreach (var version in Model.VersionHistory)
+                                    {
+                                        <div class="timeline-item">
+                                            <div class="timeline-line w-40px"></div>
+                                            <div class="timeline-icon symbol symbol-circle symbol-40px">
+                                                <div class="symbol-label @(version.IsCurrentVersion ? "bg-success" : "bg-light-primary")">
+                                                    <i class="ki-duotone ki-abstract-26 @(version.IsCurrentVersion ? "text-white" : "text-primary") fs-2">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content mb-10 mt-n1">
+                                                <div class="pe-3 mb-5">
+                                                    <div class="fs-5 fw-semibold mb-2">
+                                                        Version @version.VersionNumber
+                                                        @if (version.IsCurrentVersion)
+                                                        {
+                                                            <span class="badge badge-light-success ms-2">Current</span>
+                                                        }
+                                                    </div>
+                                                    <div class="d-flex align-items-center mt-1 fs-6">
+                                                        <div class="text-muted me-2 fs-7">@version.CreatedOn.ToString("MMM dd, yyyy 'at' h:mm tt")</div>
+                                                        <span class="bullet bullet-dot bg-gray-300 mx-2"></span>
+                                                        <div class="text-muted fs-7">by @version.CreatedByRole</div>
+                                                    </div>
+                                                </div>
+                                                <div class="overflow-auto pb-5">
+                                                    <div class="d-flex align-items-center border border-dashed border-gray-300 rounded px-4 py-3 mb-3">
+                                                        <div class="flex-grow-1">
+                                                            <div class="fw-semibold text-gray-800 text-hover-primary fs-6">@version.Title</div>
+                                                            <div class="text-muted fs-7">$@version.PaymentAmount.ToString("N2") - @version.PaymentType</div>
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-icon btn-bg-light btn-active-color-primary" 
+                                                                data-bs-toggle="modal" data-bs-target="#versionModal" 
+                                                                data-version="@System.Text.Json.JsonSerializer.Serialize(version)">
+                                                            <i class="ki-duotone ki-eye fs-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                                <span class="path3"></span>
+                                                            </i>
+                                                        </button>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(version.ChangeReason))
+                                                    {
+                                                        <div class="text-muted fs-7">
+                                                            <span class="fw-semibold">Reason:</span> @version.ChangeReason
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-10">
+                                    <i class="ki-duotone ki-time fs-5x text-gray-300 mb-5">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <h3 class="text-gray-600 fw-semibold mb-4">No Version History</h3>
+                                    <p class="text-gray-400">Only the current version exists for this contract.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Requests -->
+                <div class="col-xl-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Change Requests</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.ChangeRequests?.Any() == true)
+                            {
+                                <div class="timeline timeline-border-dashed">
+                                    @foreach (var request in Model.ChangeRequests)
+                                    {
+                                        <div class="timeline-item">
+                                            <div class="timeline-line w-40px"></div>
+                                            <div class="timeline-icon symbol symbol-circle symbol-40px">
+                                                <div class="symbol-label @(request.Status switch { "Approved" => "bg-success", "Rejected" => "bg-danger", "Pending" => "bg-warning", _ => "bg-secondary" })">
+                                                    <i class="ki-duotone ki-abstract-28 text-white fs-2">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                </div>
+                                            </div>
+                                            <div class="timeline-content mb-10 mt-n1">
+                                                <div class="pe-3 mb-5">
+                                                    <div class="fs-5 fw-semibold mb-2">
+                                                        Change Request
+                                                        @{
+                                                            var statusClass = request.Status switch
+                                                            {
+                                                                "Approved" => "badge-light-success",
+                                                                "Rejected" => "badge-light-danger",
+                                                                "Pending" => "badge-light-warning",
+                                                                "Expired" => "badge-light-secondary",
+                                                                _ => "badge-light-secondary"
+                                                            };
+                                                        }
+                                                        <span class="badge @statusClass ms-2">@request.Status</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center mt-1 fs-6">
+                                                        <div class="text-muted me-2 fs-7">@request.RequestDate.ToString("MMM dd, yyyy 'at' h:mm tt")</div>
+                                                        <span class="bullet bullet-dot bg-gray-300 mx-2"></span>
+                                                        <div class="text-muted fs-7">by @request.RequestedByRole</div>
+                                                    </div>
+                                                </div>
+                                                <div class="overflow-auto pb-5">
+                                                    <div class="d-flex align-items-center border border-dashed border-gray-300 rounded px-4 py-3 mb-3">
+                                                        <div class="flex-grow-1">
+                                                            <div class="text-gray-800 fs-6 mb-2">@request.ChangeDescription</div>
+                                                            @if (request.ResponseDate.HasValue && !string.IsNullOrEmpty(request.ResponseNotes))
+                                                            {
+                                                                <div class="text-muted fs-7">
+                                                                    <span class="fw-semibold">Response:</span> @request.ResponseNotes
+                                                                </div>
+                                                                <div class="text-muted fs-8">
+                                                                    Responded by @request.ResponseByRole on @request.ResponseDate.Value.ToString("MMM dd, yyyy")
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-icon btn-bg-light btn-active-color-primary" 
+                                                                data-bs-toggle="modal" data-bs-target="#changeRequestModal" 
+                                                                data-request="@System.Text.Json.JsonSerializer.Serialize(request)">
+                                                            <i class="ki-duotone ki-eye fs-2">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                                <span class="path3"></span>
+                                                            </i>
+                                                        </button>
+                                                    </div>
+                                                    @if (request.ExpiryDate.HasValue && request.Status == "Pending")
+                                                    {
+                                                        <div class="text-warning fs-7">
+                                                            <i class="ki-duotone ki-information-5 fs-7 me-1">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                                <span class="path3"></span>
+                                                            </i>
+                                                            Expires on @request.ExpiryDate.Value.ToString("MMM dd, yyyy")
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-10">
+                                    <i class="ki-duotone ki-questionnaire-tablet fs-5x text-gray-300 mb-5">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <h3 class="text-gray-600 fw-semibold mb-4">No Change Requests</h3>
+                                    <p class="text-gray-400">No change requests have been made for this contract yet.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Version Details Modal -->
+<div class="modal fade" id="versionModal" tabindex="-1" aria-labelledby="versionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="versionModalLabel">Version Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="versionModalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Request Details Modal -->
+<div class="modal fade" id="changeRequestModal" tabindex="-1" aria-labelledby="changeRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeRequestModalLabel">Change Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="changeRequestModalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle version modal
+            document.querySelectorAll('[data-bs-target="#versionModal"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const versionData = JSON.parse(this.getAttribute('data-version'));
+                    const modalBody = document.getElementById('versionModalBody');
+                    
+                    modalBody.innerHTML = `
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-5">
+                                    <strong>Version:</strong> ${versionData.VersionNumber}
+                                </div>
+                                <div class="mb-5">
+                                    <strong>Title:</strong><br>
+                                    ${versionData.Title}
+                                </div>
+                                <div class="mb-5">
+                                    <strong>Payment:</strong><br>
+                                    $${versionData.PaymentAmount.toFixed(2)} (${versionData.PaymentType})
+                                </div>
+                                ${versionData.ProjectDeadline ? `
+                                <div class="mb-5">
+                                    <strong>Deadline:</strong><br>
+                                    ${new Date(versionData.ProjectDeadline).toLocaleDateString()}
+                                </div>` : ''}
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-5">
+                                    <strong>Created:</strong><br>
+                                    ${new Date(versionData.CreatedOn).toLocaleString()} by ${versionData.CreatedByRole}
+                                </div>
+                                ${versionData.ChangeReason ? `
+                                <div class="mb-5">
+                                    <strong>Change Reason:</strong><br>
+                                    ${versionData.ChangeReason}
+                                </div>` : ''}
+                            </div>
+                        </div>
+                        ${versionData.Description ? `
+                        <div class="separator my-5"></div>
+                        <div class="mb-5">
+                            <strong>Description:</strong><br>
+                            ${versionData.Description}
+                        </div>` : ''}
+                        ${versionData.Deliverables ? `
+                        <div class="mb-5">
+                            <strong>Deliverables:</strong><br>
+                            ${versionData.Deliverables}
+                        </div>` : ''}
+                        ${versionData.TermsAndConditions ? `
+                        <div class="mb-5">
+                            <strong>Terms and Conditions:</strong><br>
+                            ${versionData.TermsAndConditions}
+                        </div>` : ''}
+                        ${versionData.AdditionalNotes ? `
+                        <div class="mb-5">
+                            <strong>Additional Notes:</strong><br>
+                            ${versionData.AdditionalNotes}
+                        </div>` : ''}
+                    `;
+                });
+            });
+
+            // Handle change request modal
+            document.querySelectorAll('[data-bs-target="#changeRequestModal"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const requestData = JSON.parse(this.getAttribute('data-request'));
+                    const modalBody = document.getElementById('changeRequestModalBody');
+                    
+                    modalBody.innerHTML = `
+                        <div class="row">
+                            <div class="col-6">
+                                <h6 class="fw-bold mb-3">From Version (${requestData.FromVersion.VersionNumber})</h6>
+                                <div class="card border border-secondary mb-5">
+                                    <div class="card-body">
+                                        <div class="mb-3"><strong>Title:</strong> ${requestData.FromVersion.Title}</div>
+                                        <div class="mb-3"><strong>Payment:</strong> $${requestData.FromVersion.PaymentAmount.toFixed(2)} (${requestData.FromVersion.PaymentType})</div>
+                                        <div class="mb-3"><strong>Description:</strong> ${requestData.FromVersion.Description || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="fw-bold mb-3">Proposed Version (${requestData.ProposedVersion.VersionNumber})</h6>
+                                <div class="card border border-primary mb-5">
+                                    <div class="card-body">
+                                        <div class="mb-3"><strong>Title:</strong> ${requestData.ProposedVersion.Title}</div>
+                                        <div class="mb-3"><strong>Payment:</strong> $${requestData.ProposedVersion.PaymentAmount.toFixed(2)} (${requestData.ProposedVersion.PaymentType})</div>
+                                        <div class="mb-3"><strong>Description:</strong> ${requestData.ProposedVersion.Description || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="separator my-5"></div>
+                        <div class="mb-5">
+                            <strong>Change Description:</strong><br>
+                            ${requestData.ChangeDescription}
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <strong>Requested by:</strong> ${requestData.RequestedByRole}<br>
+                                    <small class="text-muted">${new Date(requestData.RequestDate).toLocaleString()}</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <strong>Status:</strong> 
+                                    <span class="badge badge-light-${requestData.Status === 'Approved' ? 'success' : requestData.Status === 'Rejected' ? 'danger' : requestData.Status === 'Pending' ? 'warning' : 'secondary'}">${requestData.Status}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${requestData.ResponseDate ? `
+                        <div class="mb-5">
+                            <strong>Response:</strong><br>
+                            ${requestData.ResponseNotes || 'No response notes provided'}<br>
+                            <small class="text-muted">Responded by ${requestData.ResponseByRole} on ${new Date(requestData.ResponseDate).toLocaleString()}</small>
+                        </div>` : ''}
+                    `;
+                });
+            });
+        });
+    </script>
+}

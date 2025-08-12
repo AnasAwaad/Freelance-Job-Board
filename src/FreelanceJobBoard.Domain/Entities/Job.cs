@@ -17,11 +17,12 @@ public class Job : BaseEntity
 	public string? RequiredSkills { get; set; }
 	public string? Tags { get; set; }
 	public int ViewsCount { get; set; }
+	public DateTime? CompletedDate { get; set; }
 	public Client Client { get; set; }
 	public ICollection<JobCategory> Categories { get; set; } = new List<JobCategory>();
 	public ICollection<JobAttachment> Attachments { get; set; } = new List<JobAttachment>();
 	public ICollection<JobView> Views { get; set; } = new List<JobView>();
 	public ICollection<JobSkill> Skills { get; set; } = new List<JobSkill>();
 	public ICollection<Proposal> Proposals { get; set; } = new List<Proposal>();
-	public Review Review { get; set; }
+	public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

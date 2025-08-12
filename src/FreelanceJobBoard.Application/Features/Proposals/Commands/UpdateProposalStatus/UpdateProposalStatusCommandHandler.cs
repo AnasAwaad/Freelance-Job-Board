@@ -47,6 +47,13 @@ public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
             {
                 throw new InvalidOperationException("This job already has an accepted proposal. Only one proposal can be accepted per job.");
             }
+
+            // Check if a contract already exists for this proposal
+            var existingContract = await unitOfWork.Contracts.GetContractByProposalIdAsync(request.ProposalId);
+            if (existingContract != null)
+            {
+                throw new InvalidOperationException("A contract already exists for this proposal.");
+            }
         }
 
         // Update the main proposal
@@ -57,11 +64,29 @@ public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
 
         logger.LogInformation("Updated proposal {ProposalId} status to {Status}", proposal.Id, request.Status);
 
+        Contract? newContract = null;
         if (request.Status == ProposalStatus.Accepted)
         {
             // Update job status
             job.Status = JobStatus.InProgress;
             logger.LogInformation("Updated job {JobId} status to InProgress", job.Id);
+            
+            // Create contract
+            newContract = new Contract
+            {
+                ProposalId = proposal.Id,
+                ClientId = proposal.ClientId ?? job.ClientId,
+                FreelancerId = proposal.FreelancerId ?? throw new InvalidOperationException("Proposal must have a freelancer"),
+                StartTime = DateTime.UtcNow,
+                PaymentAmount = proposal.BidAmount,
+                AgreedPaymentType = "Fixed", // Default to Fixed, can be enhanced later
+                ContractStatusId = 1, // Pending status from seeded data
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow
+            };
+
+            await unitOfWork.Contracts.CreateAsync(newContract);
+            logger.LogInformation("Created contract for proposal {ProposalId}", proposal.Id);
             
             // Get all proposals for this job and reject the others
             var allProposals = await unitOfWork.Proposals.GetAllAsync();
@@ -98,13 +123,48 @@ public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
         
         logger.LogInformation("Successfully saved all proposal status changes for job {JobId}", proposal.JobId);
 
+        // Send notifications
         try
         {
-            await notificationService.NotifyJobStatusChangeAsync(proposal.JobId, request.Status, request.ClientFeedback);
+            // Get other proposals for this job that need to be rejected
+            var allProposals = await unitOfWork.Proposals.GetAllAsync();
+            var otherProposals = allProposals
+                .Where(p => p.JobId == proposal.JobId && p.Id != proposal.Id && 
+                           (p.Status == ProposalStatus.Submitted || p.Status == ProposalStatus.Pending || p.Status == ProposalStatus.UnderReview))
+                .ToList();
+
+            // Notify the freelancer about the status change
+            await notificationService.NotifyProposalStatusChangeAsync(proposal.Id, request.Status, request.ClientFeedback);
+            
+            // If proposal is accepted, notify all other freelancers about rejection
+            if (request.Status == ProposalStatus.Accepted && otherProposals.Any())
+            {
+                foreach (var otherProposal in otherProposals)
+                {
+                    await notificationService.NotifyProposalStatusChangeAsync(
+                        otherProposal.Id, 
+                        ProposalStatus.Rejected, 
+                        "Job has been assigned to another freelancer"
+                    );
+                }
+            }
+
+            // If contract was created, notify both parties
+            if (newContract != null)
+            {
+                await notificationService.NotifyContractCreatedAsync(
+                    newContract.Id,
+                    job.Client?.UserId ?? "",
+                    proposal.Freelancer?.UserId ?? "",
+                    job.Title ?? "Project"
+                );
+            }
+
+            logger.LogInformation("Notifications sent successfully for proposal {ProposalId} status change", proposal.Id);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to send job status change notification for job {JobId}", proposal.JobId);
+            logger.LogError(ex, "Failed to send notifications for proposal {ProposalId} status change", proposal.Id);
         }
     }
 }

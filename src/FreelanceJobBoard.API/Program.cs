@@ -1,6 +1,7 @@
 using FreelanceJobBoard.API.Middlewares;
 using FreelanceJobBoard.Application.Extensions;
 using FreelanceJobBoard.Application.Interfaces;
+using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Infrastructure.Extensions;
 using FreelanceJobBoard.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -51,8 +52,11 @@ namespace FreelanceJobBoard.API
 				builder.Services.AddScoped<RequestResponseLoggingMiddleware>();
 				builder.Services.AddScoped<IAuthService, AuthService>();
 				builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+                builder.Services.AddSignalR();
 
-				builder.Services
+                // your app services
+                builder.Services.AddScoped<INotificationService, NotificationService>();
+                builder.Services
 					.AddApplication()
 					.AddInfrastructure(builder.Configuration);
 

@@ -2,12 +2,13 @@ using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
 
 public class ReviewRepository : GenericRepository<Review>, IReviewRepository
 {
-    public ReviewRepository(ApplicationDbContext context) : base(context)
+    public ReviewRepository(ApplicationDbContext context, ILogger<GenericRepository<Review>>? logger = null) : base(context, logger)
     {
     }
 
@@ -18,10 +19,21 @@ public class ReviewRepository : GenericRepository<Review>, IReviewRepository
             .FirstOrDefaultAsync(r => r.JobId == jobId);
     }
 
+    public async Task<IEnumerable<Review>> GetReviewsByJobIdAsync(int jobId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(r => r.Job)
+            .Where(r => r.JobId == jobId && r.IsActive)
+            .OrderByDescending(r => r.CreatedOn)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<Review>> GetByReviewerIdAsync(string reviewerId)
     {
         return await _dbSet
             .AsNoTracking()
+            .Include(r => r.Job)
             .Where(r => r.ReviewerId == reviewerId)
             .OrderByDescending(r => r.CreatedOn)
             .ToListAsync();
@@ -31,6 +43,7 @@ public class ReviewRepository : GenericRepository<Review>, IReviewRepository
     {
         return await _dbSet
             .AsNoTracking()
+            .Include(r => r.Job)
             .Where(r => r.RevieweeId == revieweeId)
             .OrderByDescending(r => r.CreatedOn)
             .ToListAsync();
@@ -40,6 +53,7 @@ public class ReviewRepository : GenericRepository<Review>, IReviewRepository
     {
         return await _dbSet
             .AsNoTracking()
+            .Include(r => r.Job)
             .Where(r => r.RevieweeId == revieweeId && r.IsVisible && r.IsActive)
             .OrderByDescending(r => r.CreatedOn)
             .ToListAsync();
@@ -67,23 +81,19 @@ public class ReviewRepository : GenericRepository<Review>, IReviewRepository
         var job = await _context.Jobs
             .AsNoTracking()
             .Include(j => j.Client)
+            .Include(j => j.Proposals)
+                .ThenInclude(p => p.Freelancer)
             .FirstOrDefaultAsync(j => j.Id == jobId);
 
         if (job == null || job.Status != Domain.Constants.JobStatus.Completed)
             return false;
 
-        var contract = await _context.Contracts
-            .AsNoTracking()
-            .Include(c => c.Proposal)
-                .ThenInclude(p => p.Freelancer)
-            .FirstOrDefaultAsync(c => c.Proposal.JobId == jobId && 
-                                   c.ContractStatusId == 3); 
-
-        if (contract == null)
+        var acceptedProposal = job.Proposals?.FirstOrDefault(p => p.Status == Domain.Constants.ProposalStatus.Accepted);
+        if (acceptedProposal == null)
             return false;
 
-        var isClient = job.Client.UserId == userId;
-        var isAcceptedFreelancer = contract.Proposal.Freelancer?.UserId == userId;
+        var isClient = job.Client?.UserId == userId;
+        var isAcceptedFreelancer = acceptedProposal.Freelancer?.UserId == userId;
 
         return isClient || isAcceptedFreelancer;
     }

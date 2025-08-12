@@ -174,17 +174,32 @@
                                             @if (proposal.Attachments.Any())
                                             {
                                                 <div class="mb-5">
-                                                    <h4 class="fs-6 fw-bold text-gray-900 mb-2">Portfolio Files</h4>
+                                                    <h4 class="fs-6 fw-bold text-gray-900 mb-2">Portfolio Files (@proposal.Attachments.Count)</h4>
                                                     <div class="d-flex flex-wrap gap-2">
                                                         @foreach (var attachment in proposal.Attachments)
                                                         {
-                                                            <a href="@attachment.FileUrl" target="_blank" class="btn btn-sm btn-light-info">
-                                                                <i class="ki-duotone ki-document fs-4 me-1">
-                                                                    <span class="path1"></span>
-                                                                    <span class="path2"></span>
-                                                                </i>
-                                                                @attachment.FileName
-                                                            </a>
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                @if (attachment.ContentType == "application/pdf" || attachment.ContentType.StartsWith("image/"))
+                                                                {
+                                                                    <a asp-controller="Attachment" asp-action="View" asp-route-id="@attachment.Id" 
+                                                                       target="_blank" class="btn btn-sm btn-light-info">
+                                                                        <i class="ki-duotone ki-eye fs-4 me-1">
+                                                                            <span class="path1"></span>
+                                                                            <span class="path2"></span>
+                                                                            <span class="path3"></span>
+                                                                        </i>
+                                                                        View @attachment.FileName
+                                                                    </a>
+                                                                }
+                                                                <a asp-controller="Attachment" asp-action="Download" asp-route-id="@attachment.Id" 
+                                                                   class="btn btn-sm btn-light-success">
+                                                                    <i class="ki-duotone ki-arrow-down fs-4 me-1">
+                                                                        <span class="path1"></span>
+                                                                        <span class="path2"></span>
+                                                                    </i>
+                                                                    Download @attachment.FileName
+                                                                </a>
+                                                            </div>
                                                         }
                                                     </div>
                                                 </div>

@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "My Jobs";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    var isClient = User.IsInRole("Client");
+    var isFreelancer = User.IsInRole("Freelancer");
 }
 
 <div class="d-flex flex-column flex-column-fluid">
@@ -9,7 +11,20 @@
     <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
         <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
             <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
-                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">My Jobs</h1>
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                    @if (isClient)
+                    {
+                        <span>My Posted Jobs</span>
+                    }
+                    else if (isFreelancer)
+                    {
+                        <span>My Assigned Jobs</span>
+                    }
+                    else
+                    {
+                        <span>My Jobs</span>
+                    }
+                </h1>
                 <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
                     <li class="breadcrumb-item text-muted">
                         <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
@@ -21,10 +36,13 @@
                 </ul>
             </div>
             <div class="d-flex align-items-center gap-2 gap-lg-3">
-                <a asp-action="Create" class="btn btn-sm fw-bold btn-primary">
-                    <i class="ki-duotone ki-plus fs-4"></i>
-                    Create Job
-                </a>
+                @if (isClient)
+                {
+                    <a asp-action="Create" class="btn btn-sm fw-bold btn-primary">
+                        <i class="ki-duotone ki-plus fs-4"></i>
+                        Create Job
+                    </a>
+                }
             </div>
         </div>
     </div>
@@ -66,10 +84,13 @@
                         </div>
                         <div class="card-toolbar">
                             <div class="d-flex justify-content-end" data-kt-jobs-table-toolbar="base">
-                                <a asp-action="Create" class="btn btn-primary">
-                                    <i class="ki-duotone ki-plus fs-2"></i>
-                                    Add Job
-                                </a>
+                                @if (isClient)
+                                {
+                                    <a asp-action="Create" class="btn btn-primary">
+                                        <i class="ki-duotone ki-plus fs-2"></i>
+                                        Add Job
+                                    </a>
+                                }
                             </div>
                         </div>
                     </div>
@@ -78,10 +99,17 @@
                             <thead>
                                 <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
                                     <th class="min-w-125px">Title</th>
+                                    @if (isFreelancer)
+                                    {
+                                        <th class="min-w-125px">Client</th>
+                                    }
                                     <th class="min-w-125px">Budget</th>
                                     <th class="min-w-125px">Status</th>
                                     <th class="min-w-125px">Deadline</th>
-                                    <th class="min-w-125px">Views</th>
+                                    @if (isClient)
+                                    {
+                                        <th class="min-w-125px">Views</th>
+                                    }
                                     <th class="text-end min-w-100px">Actions</th>
                                 </tr>
                             </thead>
@@ -95,35 +123,98 @@
                                                 <span class="text-muted">@(job.Description?.Length > 50 ? job.Description.Substring(0, 50) + "..." : job.Description)</span>
                                             </div>
                                         </td>
+                                        @if (isFreelancer)
+                                        {
+                                            <td>
+                                                <span class="text-dark fw-bold">Client Name</span>
+                                            </td>
+                                        }
                                         <td>
                                             <span class="text-dark fw-bold">$@job.BudgetMin - $@job.BudgetMax</span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-light-@(job.Status == "Open" ? "success" : job.Status == "Cancelled" ? "danger" : "warning") fs-7 fw-bold">
+                                            <span class="badge badge-light-@(job.Status == "Open" ? "success" : job.Status == "Cancelled" ? "danger" : job.Status == "Completed" ? "info" : "warning") fs-7 fw-bold">
                                                 @job.Status
                                             </span>
                                         </td>
                                         <td>
                                             <span class="text-dark fw-bold">@job.Deadline.ToString("MMM dd, yyyy")</span>
                                         </td>
-                                        <td>
-                                            <span class="text-muted">@job.ViewsCount</span>
-                                        </td>
+                                        @if (isClient)
+                                        {
+                                            <td>
+                                                <span class="text-muted">@job.ViewsCount</span>
+                                            </td>
+                                        }
                                         <td class="text-end">
                                             <a href="#" class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                                 Actions
                                                 <i class="ki-duotone ki-down fs-5 ms-1"></i>
                                             </a>
-                                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">
+                                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-175px py-4" data-kt-menu="true">
                                                 <div class="menu-item px-3">
-                                                    <a asp-action="Details" asp-route-id="@job.Id" class="menu-link px-3">View</a>
+                                                    <a asp-action="Details" asp-route-id="@job.Id" class="menu-link px-3">View Details</a>
                                                 </div>
-                                                <div class="menu-item px-3">
-                                                    <a asp-action="Edit" asp-route-id="@job.Id" class="menu-link px-3">Edit</a>
-                                                </div>
-                                                <div class="menu-item px-3">
-                                                    <a href="#" class="menu-link px-3 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-job-id="@job.Id" data-job-title="@job.Title">Delete</a>
-                                                </div>
+                                                
+                                                @if (isClient)
+                                                {
+                                                    @if (job.Status != "Completed")
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a asp-action="Edit" asp-route-id="@job.Id" class="menu-link px-3">Edit</a>
+                                                        </div>
+                                                        <div class="menu-item px-3">
+                                                            <a href="#" class="menu-link px-3 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-job-id="@job.Id" data-job-title="@job.Title">Delete</a>
+                                                        </div>
+                                                    }
+                                                    
+                                                    @if (job.Status == "Open")
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a asp-controller="Proposals" asp-action="JobProposals" asp-route-jobId="@job.Id" class="menu-link px-3">View Proposals</a>
+                                                        </div>
+                                                    }
+                                                    
+                                                    @if (job.Status == "Completed")
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@job.Id" asp-route-type="ClientToFreelancer" class="menu-link px-3 text-warning">
+                                                                <i class="ki-duotone ki-star fs-6 me-1">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                </i>
+                                                                Rate Freelancer
+                                                            </a>
+                                                        </div>
+                                                        <div class="menu-item px-3">
+                                                            <a asp-controller="Reviews" asp-action="JobReviews" asp-route-jobId="@job.Id" class="menu-link px-3">View Reviews</a>
+                                                        </div>
+                                                    }
+                                                }
+                                                else if (isFreelancer)
+                                                {
+                                                    @if (job.Status == "Completed")
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@job.Id" asp-route-type="FreelancerToClient" class="menu-link px-3 text-warning">
+                                                                <i class="ki-duotone ki-star fs-6 me-1">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                </i>
+                                                                Rate Client
+                                                            </a>
+                                                        </div>
+                                                        <div class="menu-item px-3">
+                                                            <a asp-controller="Reviews" asp-action="JobReviews" asp-route-jobId="@job.Id" class="menu-link px-3">View Reviews</a>
+                                                        </div>
+                                                    }
+                                                    else if (job.Status == "InProgress")
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a href="#" class="menu-link px-3 text-success" data-bs-toggle="modal" data-bs-target="#completeJobModal" data-job-id="@job.Id" data-job-title="@job.Title">Mark as Complete</a>
+                                                        </div>
+                                                    }
+                                                }
                                             </div>
                                         </td>
                                     </tr>
@@ -143,9 +234,27 @@
                         </i>
                         <h2 class="fs-2 fw-bold text-gray-800 mb-4">No Jobs Found</h2>
                         <p class="fs-4 fw-semibold text-gray-600 mb-7">
-                            You haven't created any jobs yet. Start by creating your first job posting.
+                            @if (isClient)
+                            {
+                                <span>You haven't created any jobs yet. Start by creating your first job posting.</span>
+                            }
+                            else if (isFreelancer)
+                            {
+                                <span>You don't have any assigned jobs yet. Browse available jobs and submit proposals to get started.</span>
+                            }
+                            else
+                            {
+                                <span>No jobs available.</span>
+                            }
                         </p>
-                        <a asp-action="Create" class="btn btn-primary">Create Your First Job</a>
+                        @if (isClient)
+                        {
+                            <a asp-action="Create" class="btn btn-primary">Create Your First Job</a>
+                        }
+                        else if (isFreelancer)
+                        {
+                            <a asp-action="Index" class="btn btn-primary">Browse Available Jobs</a>
+                        }
                     </div>
                 </div>
             }
@@ -154,43 +263,113 @@
     <!--end::Content-->
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+@if (isClient)
+{
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the job "<span id="jobTitle"></span>"?</p>
+                    <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete Job</button>
+                    </form>
+                </div>
             </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete the job "<span id="jobTitle"></span>"?</p>
-                <p class="text-danger">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete Job</button>
+        </div>
+    </div>
+}
+
+@if (isFreelancer)
+{
+    <!-- Complete Job Modal -->
+    <div class="modal fade" id="completeJobModal" tabindex="-1" aria-labelledby="completeJobModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="completeJobModalLabel">Mark Job as Complete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="completeJobForm" asp-controller="Jobs" asp-action="MarkAsCompleted" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" id="completeJobId" name="id" />
+                        
+                        <div class="mb-5">
+                            <p>Are you sure you want to mark the job "<span id="completeJobTitle"></span>" as complete?</p>
+                            <p class="text-muted">This will notify the client and allow both parties to leave reviews.</p>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label class="form-label">Completion Notes (Optional)</label>
+                            <textarea name="completionNotes" class="form-control" rows="4" placeholder="Add any final notes about the completed work..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="ki-duotone ki-check fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Mark as Complete
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
+}
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteModal = document.getElementById('deleteModal');
-            deleteModal.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const jobId = button.getAttribute('data-job-id');
-                const jobTitle = button.getAttribute('data-job-title');
-                
-                const modalTitle = deleteModal.querySelector('#jobTitle');
-                const deleteForm = deleteModal.querySelector('#deleteForm');
-                
-                modalTitle.textContent = jobTitle;
-                deleteForm.action = '@Url.Action("Delete", "Jobs")/' + jobId;
-            });
+            @if (isClient)
+            {
+                <text>
+                const deleteModal = document.getElementById('deleteModal');
+                if (deleteModal) {
+                    deleteModal.addEventListener('show.bs.modal', function (event) {
+                        const button = event.relatedTarget;
+                        const jobId = button.getAttribute('data-job-id');
+                        const jobTitle = button.getAttribute('data-job-title');
+                        
+                        const modalTitle = deleteModal.querySelector('#jobTitle');
+                        const deleteForm = deleteModal.querySelector('#deleteForm');
+                        
+                        modalTitle.textContent = jobTitle;
+                        deleteForm.action = '@Url.Action("Delete", "Jobs")/' + jobId;
+                    });
+                }
+                </text>
+            }
+            
+            @if (isFreelancer)
+            {
+                <text>
+                const completeModal = document.getElementById('completeJobModal');
+                if (completeModal) {
+                    completeModal.addEventListener('show.bs.modal', function (event) {
+                        const button = event.relatedTarget;
+                        const jobId = button.getAttribute('data-job-id');
+                        const jobTitle = button.getAttribute('data-job-title');
+                        
+                        const modalTitle = completeModal.querySelector('#completeJobTitle');
+                        const jobIdInput = completeModal.querySelector('#completeJobId');
+                        
+                        modalTitle.textContent = jobTitle;
+                        jobIdInput.value = jobId;
+                    });
+                }
+                </text>
+            }
         });
     </script>
 }

@@ -6,6 +6,7 @@ using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Services;
 public class AuthService : IAuthService
@@ -16,6 +17,8 @@ public class AuthService : IAuthService
 	private readonly IJwtTokenGenerator _jwtTokenGenerator;
 	private readonly ApplicationDbContext _dbContext;
 	private readonly IEmailService _emailService;
+	private readonly INotificationService _notificationService;
+	private readonly ILogger<AuthService> _logger;
 
 
 	public AuthService(UserManager<ApplicationUser> userManager,
@@ -23,7 +26,9 @@ public class AuthService : IAuthService
 					   RoleManager<IdentityRole> roleManager,
 					   IJwtTokenGenerator jwtTokenGenerator,
 					   ApplicationDbContext dbContext,
-					   IEmailService emailService)
+					   IEmailService emailService,
+					   INotificationService notificationService,
+					   ILogger<AuthService> logger)
 	{
 		_userManager = userManager;
 		_signInManager = signInManager;
@@ -31,6 +36,8 @@ public class AuthService : IAuthService
 		_jwtTokenGenerator = jwtTokenGenerator;
 		_dbContext = dbContext;
 		_emailService = emailService;
+		_notificationService = notificationService;
+		_logger = logger;
 	}
 
 	public async Task<AuthResponseDto> LoginAsync(string email, string password)
@@ -94,6 +101,17 @@ public class AuthService : IAuthService
 		_dbContext.Clients.Add(client);
 		await _dbContext.SaveChangesAsync();
 
+		// Send welcome notification
+		try
+		{
+			await _notificationService.NotifyWelcomeMessageAsync(user.Id, fullName);
+			_logger.LogInformation("Welcome notification sent to new client user {UserId}", user.Id);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send welcome notification to new client user {UserId}", user.Id);
+		}
+
 		// Send confirmation email
 		//var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 		//var link = $"https://your-frontend.com/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
@@ -133,6 +151,17 @@ public class AuthService : IAuthService
 
 		_dbContext.Freelancers.Add(freelancer);
 		await _dbContext.SaveChangesAsync();
+
+		// Send welcome notification
+		try
+		{
+			await _notificationService.NotifyWelcomeMessageAsync(user.Id, fullName);
+			_logger.LogInformation("Welcome notification sent to new freelancer user {UserId}", user.Id);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send welcome notification to new freelancer user {UserId}", user.Id);
+		}
 
 		// Send confirmation email
 		//var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);

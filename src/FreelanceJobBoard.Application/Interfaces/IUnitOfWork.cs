@@ -14,6 +14,10 @@ public interface IUnitOfWork
 	public IFreelancerSkillRepository FreelancerSkills { get; }
 	public INotificationRepository Notifications { get; }
 	public IReviewRepository Reviews { get; }
+	public IContractRepository Contracts { get; }
+	public IContractVersionRepository ContractVersions { get; }
+	public IContractChangeRequestRepository ContractChangeRequests { get; }
+	public IAttachmentRepository Attachments { get; }
 	Task SaveChangesAsync();
 
 }

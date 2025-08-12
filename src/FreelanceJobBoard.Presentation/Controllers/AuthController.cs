@@ -7,17 +7,21 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
 
 public class AuthController : Controller
 {
 	private readonly AuthService _authService;
+	private readonly UserService _userService;
 	private readonly ILogger<AuthController> _logger;
 
-	public AuthController(AuthService authService, ILogger<AuthController> logger)
+	public AuthController(AuthService authService, UserService userService, ILogger<AuthController> logger)
 	{
 		_authService = authService;
+		_userService = userService;
 		_logger = logger;
 	}
 
@@ -197,8 +201,53 @@ public class AuthController : Controller
 	{
 		try
 		{
+			// Extract user ID from JWT token
+			string? userId = null;
+			try
+			{
+				var tokenHandler = new JwtSecurityTokenHandler();
+				var jwtToken = tokenHandler.ReadJwtToken(authResponse.Token);
+				userId = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value
+						?? jwtToken.Claims.FirstOrDefault(x => x.Type == "sub")?.Value
+						?? jwtToken.Claims.FirstOrDefault(x => x.Type == "userId")?.Value;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Failed to extract user ID from JWT token, attempting to get from user profile");
+			}
+
+			// If we couldn't get userId from token, try to get it from user profile
+			if (string.IsNullOrEmpty(userId))
+			{
+				try
+				{
+					// Temporarily set up a minimal claims identity to make the API call
+					var tempClaims = new List<Claim>
+					{
+						new Claim(ClaimTypes.Email, authResponse.Email),
+						new Claim("jwt", authResponse.Token)
+					};
+					var tempIdentity = new ClaimsIdentity(tempClaims, CookieAuthenticationDefaults.AuthenticationScheme);
+					HttpContext.User = new ClaimsPrincipal(tempIdentity);
+
+					var userProfile = await _userService.GetCurrentUserProfileAsync();
+					userId = userProfile?.UserProfile?.Id;
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to get user profile for user ID extraction");
+				}
+			}
+
+			if (string.IsNullOrEmpty(userId))
+			{
+				_logger.LogError("Unable to determine user ID for authentication");
+				return false;
+			}
+
 			List<Claim> claims = new()
 			{
+				new Claim(ClaimTypes.NameIdentifier, userId),
 				new Claim(ClaimTypes.Name, authResponse.FullName),
 				new Claim(ClaimTypes.Email, authResponse.Email),
 				new Claim(ClaimTypes.Role, authResponse.Role),
@@ -215,6 +264,8 @@ public class AuthController : Controller
 			};
 
 			await HttpContext.SignInAsync(scheme, new ClaimsPrincipal(claimsIdentity), authenticationProperties);
+
+			_logger.LogInformation("User {Email} signed in successfully with UserId: {UserId}", authResponse.Email, userId);
 			return true;
 		}
 		catch (Exception ex)
@@ -267,6 +318,68 @@ public class AuthController : Controller
 		}
 
 		return RedirectToAction("Login");
+	}
+
+	[HttpGet]
+	[AllowAnonymous]
+	public IActionResult JwtDebug()
+	{
+		try
+		{
+			var jwtToken = User?.FindFirst("jwt")?.Value;
+
+			if (string.IsNullOrEmpty(jwtToken))
+			{
+				ViewBag.Error = "No JWT token found in claims";
+				return View("Debug");
+			}
+
+			var tokenHandler = new JwtSecurityTokenHandler();
+			var token = tokenHandler.ReadJwtToken(jwtToken);
+
+			var tokenInfo = new
+			{
+				Header = token.Header,
+				Payload = token.Claims.Select(c => new { c.Type, c.Value }).ToList(),
+				ValidFrom = token.ValidFrom,
+				ValidTo = token.ValidTo,
+				RawToken = jwtToken
+			};
+
+			ViewBag.TokenInfo = tokenInfo;
+			return View("Debug");
+		}
+		catch (Exception ex)
+		{
+			ViewBag.Error = $"Error parsing JWT: {ex.Message}";
+			return View("Debug");
+		}
+	}
+
+	// Quick debug action for testing authentication
+	[HttpGet]
+	[AllowAnonymous]
+	public IActionResult TestAuth()
+	{
+		var claims = User?.Claims;
+		object claimsList = null;
+
+		if (claims != null)
+		{
+			claimsList = claims.Select(c => new { c.Type, c.Value }).ToList();
+		}
+
+		var debugInfo = new
+		{
+			IsAuthenticated = User?.Identity?.IsAuthenticated ?? false,
+			AuthenticationType = User?.Identity?.AuthenticationType,
+			Name = User?.Identity?.Name,
+			Claims = claimsList,
+			HasJwt = User?.FindFirst("jwt") != null
+		};
+
+		ViewBag.DebugInfo = debugInfo;
+		return View("TestAuth");
 	}
 
 	public IActionResult AccessDenied()

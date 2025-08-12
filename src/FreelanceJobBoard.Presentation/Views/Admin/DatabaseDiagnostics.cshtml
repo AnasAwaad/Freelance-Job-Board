@@ -1,0 +1,744 @@
+@model object
+@{
+    ViewData["Title"] = "Database Diagnostics";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    
+    // Get diagnostics data
+    var diagnostics = ViewBag.DatabaseDiagnostics as Dictionary<string, object>;
+    
+    // Analyze contract issues
+    bool hasContractIssues = false;
+    if (diagnostics != null)
+    {
+        var tablesForAnalysis = diagnostics.ContainsKey("Tables") ? diagnostics["Tables"] as Dictionary<string, bool> : null;
+        var countsForAnalysis = diagnostics.ContainsKey("Counts") ? diagnostics["Counts"] as Dictionary<string, int> : null;
+        
+        if (tablesForAnalysis != null && countsForAnalysis != null)
+        {
+            hasContractIssues = !tablesForAnalysis.GetValueOrDefault("ContractVersions", false) || 
+                              !tablesForAnalysis.GetValueOrDefault("ContractChangeRequests", false) ||
+                              countsForAnalysis.GetValueOrDefault("ContractVersions", -1) < 0 ||
+                              countsForAnalysis.GetValueOrDefault("ContractChangeRequests", -1) < 0;
+        }
+    }
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Database Diagnostics</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Admin" asp-action="Index" class="text-muted text-hover-primary">Admin</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Database Diagnostics</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (diagnostics != null)
+            {
+                <div class="row g-5 g-xl-10">
+                    <!--begin::Connection Status-->
+                    <div class="col-xl-6">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">Database Connection</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-row-dashed">
+                                        <tbody>
+                                            <tr>
+                                                <td class="fw-bold">Can Connect:</td>
+                                                <td>
+                                                    @if (diagnostics.ContainsKey("CanConnect") && (bool)diagnostics["CanConnect"])
+                                                    {
+                                                        <span class="badge badge-success">? Yes</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-danger">? No</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold">Connection String:</td>
+                                                <td><code>@(diagnostics.ContainsKey("ConnectionString") ? diagnostics["ConnectionString"]?.ToString() ?? "Not Available" : "Not Available")</code></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Connection Status-->
+
+                    <!--begin::Table Status-->
+                    <div class="col-xl-6">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">Table Status</h3>
+                            </div>
+                            <div class="card-body">
+                                @if (diagnostics.ContainsKey("Tables"))
+                                {
+                                    var tablesList = diagnostics["Tables"] as Dictionary<string, bool>;
+                                    if (tablesList != null)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-row-dashed">
+                                                <thead>
+                                                    <tr class="fw-bold fs-6 text-gray-800">
+                                                        <th>Table Name</th>
+                                                        <th>Exists</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var table in tablesList)
+                                                    {
+                                                        <tr>
+                                                            <td class="fw-semibold">@table.Key</td>
+                                                            <td>
+                                                                @if (table.Value)
+                                                                {
+                                                                    <span class="badge badge-success">? Yes</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-danger">? No</span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted">No table information available</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Table Status-->
+                </div>
+
+                <div class="row g-5 g-xl-10 mt-5">
+                    <!--begin::Data Counts-->
+                    <div class="col-xl-6">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">Data Counts</h3>
+                            </div>
+                            <div class="card-body">
+                                @if (diagnostics.ContainsKey("Counts"))
+                                {
+                                    var countsList = diagnostics["Counts"] as Dictionary<string, int>;
+                                    if (countsList != null)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-row-dashed">
+                                                <thead>
+                                                    <tr class="fw-bold fs-6 text-gray-800">
+                                                        <th>Table</th>
+                                                        <th>Count</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var count in countsList)
+                                                    {
+                                                        <tr>
+                                                            <td class="fw-semibold">@count.Key</td>
+                                                            <td>
+                                                                @if (count.Value >= 0)
+                                                                {
+                                                                    <span class="badge badge-primary">@count.Value</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge badge-danger">Error</span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted">No count information available</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Data Counts-->
+
+                    <!--begin::Migration Status-->
+                    <div class="col-xl-6">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">Migration Status</h3>
+                            </div>
+                            <div class="card-body">
+                                @if (diagnostics.ContainsKey("AppliedMigrations"))
+                                {
+                                    var appliedMigrations = diagnostics["AppliedMigrations"] as List<string>;
+                                    var pendingMigrations = diagnostics["PendingMigrations"] as List<string>;
+                                    
+                                    <h6>Applied Migrations:</h6>
+                                    @if (appliedMigrations?.Any() == true)
+                                    {
+                                        <ul class="list-group list-group-flush mb-3">
+                                            @foreach (var migration in appliedMigrations.TakeLast(5))
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <code>@migration</code>
+                                                    <span class="badge badge-success">?</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                        @if (appliedMigrations.Count > 5)
+                                        {
+                                            <small class="text-muted">...and @(appliedMigrations.Count - 5) more</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted">No migrations applied</p>
+                                    }
+
+                                    <h6 class="mt-4">Pending Migrations:</h6>
+                                    @if (pendingMigrations?.Any() == true)
+                                    {
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var migration in pendingMigrations)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <code>@migration</code>
+                                                    <span class="badge badge-warning">?</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-success">? No pending migrations</p>
+                                    }
+                                }
+                                else if (diagnostics.ContainsKey("MigrationError"))
+                                {
+                                    <div class="alert alert-danger">
+                                        <strong>Migration Error:</strong><br>
+                                        @diagnostics["MigrationError"]
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">No migration information available</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Migration Status-->
+                </div>
+
+                <!--begin::Test Data Actions-->
+                <div class="row g-5 g-xl-10 mt-5">
+                    <div class="col-12">
+                        <div class="card card-flush">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="ki-duotone ki-flask fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Test Data Creation
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="card border border-primary">
+                                            <div class="card-body text-center">
+                                                <i class="ki-duotone ki-file-attachments fs-3x text-primary mb-3">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                <h5 class="card-title">Contract Attachments</h5>
+                                                <p class="card-text">Create sample PDF, image, and document attachments for the first contract to test viewing functionality.</p>
+                                                <button type="button" class="btn btn-primary" onclick="createTestData('contract')">
+                                                    Create Contract Test Data
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border border-success">
+                                            <div class="card-body text-center">
+                                                <i class="ki-duotone ki-profile-user fs-3x text-success mb-3">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                <h5 class="card-title">Proposal Attachments</h5>
+                                                <p class="card-text">Create sample portfolio files for the first proposal to test freelancer attachment viewing.</p>
+                                                <button type="button" class="btn btn-success" onclick="createTestData('proposal')">
+                                                    Create Proposal Test Data
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="testDataResult" class="mt-4" style="display: none;">
+                                    <!-- Results will be shown here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Test Data Actions-->
+
+                <!--begin::Contract Tables Analysis-->
+                @if (hasContractIssues)
+                {
+                    <div class="row g-5 g-xl-10 mt-5">
+                        <div class="col-12">
+                            <div class="card card-flush border-danger">
+                                <div class="card-header bg-danger">
+                                    <h3 class="card-title text-white">?? Contract Versioning Issue Detected</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-danger">
+                                        <h5>Database Sync Problem</h5>
+                                        <p>The contract versioning tables are missing or not accessible. This is causing the 500 error you're experiencing.</p>
+                                        
+                                        <h6>Issues Found:</h6>
+                                        <ul>
+                                            @{
+                                                var tablesForAnalysis = diagnostics.ContainsKey("Tables") ? diagnostics["Tables"] as Dictionary<string, bool> : null;
+                                                var countsForAnalysis = diagnostics.ContainsKey("Counts") ? diagnostics["Counts"] as Dictionary<string, int> : null;
+                                            }
+                                            @if (tablesForAnalysis != null && !tablesForAnalysis.GetValueOrDefault("ContractVersions", false))
+                                            {
+                                                <li>? ContractVersions table is missing</li>
+                                            }
+                                            @if (tablesForAnalysis != null && !tablesForAnalysis.GetValueOrDefault("ContractChangeRequests", false))
+                                            {
+                                                <li>? ContractChangeRequests table is missing</li>
+                                            }
+                                            @if (countsForAnalysis != null && countsForAnalysis.GetValueOrDefault("ContractVersions", -1) < 0)
+                                            {
+                                                <li>? Cannot access ContractVersions table</li>
+                                            }
+                                            @if (countsForAnalysis != null && countsForAnalysis.GetValueOrDefault("ContractChangeRequests", -1) < 0)
+                                            {
+                                                <li>? Cannot access ContractChangeRequests table</li>
+                                            }
+                                        </ul>
+
+                                        <h6>Solution:</h6>
+                                        <ol>
+                                            <li><strong>Stop both API and Presentation applications</strong></li>
+                                            <li><strong>Run database update command:</strong>
+                                                <br><code>dotnet ef database update --project src/FreelanceJobBoard.Infrastructure --startup-project src/FreelanceJobBoard.API</code>
+                                            </li>
+                                            <li><strong>Restart both applications</strong></li>
+                                            <li><strong>Try the contract editing again</strong></li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-5 g-xl-10 mt-5">
+                        <div class="col-12">
+                            <div class="card card-flush border-success">
+                                <div class="card-header bg-success">
+                                    <h3 class="card-title text-white">? Database Status: Healthy</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-success">
+                                        <h5>All Contract Tables Present</h5>
+                                        <p>The contract versioning tables are properly configured and accessible.</p>
+                                        <p>If you're still experiencing 500 errors, check the API logs for more specific error details.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <h4>Diagnostic Error</h4>
+                    <p>Unable to retrieve database diagnostics. Check the application logs for more details.</p>
+                </div>
+            }
+
+            <!--begin::Actions-->
+            <div class="row g-5 g-xl-10 mt-5">
+                <div class="col-12">
+                    <div class="card card-flush">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="d-flex flex-wrap justify-content-center gap-3">
+                                <a asp-controller="Admin" asp-action="Diagnostics" class="btn btn-light-info">
+                                    <i class="ki-duotone ki-user me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    User Diagnostics
+                                </a>
+                                
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-light-primary">
+                                    <i class="ki-duotone ki-home me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    Back to Admin Dashboard
+                                </a>
+                                
+                                <a href="javascript:location.reload();" class="btn btn-light-success">
+                                    <i class="ki-duotone ki-arrows-circle me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    Refresh Diagnostics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Actions-->
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+@section Scripts {
+    <script>
+        async function createTestData(type) {
+            const button = event.target;
+            const originalText = button.textContent;
+            const resultDiv = document.getElementById('testDataResult');
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+            
+            try {
+                const url = type === 'contract' ? '@Url.Action("CreateTestContractAttachments")' : '@Url.Action("CreateTestProposalAttachments")';
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                // Show result
+                resultDiv.style.display = 'block';
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h5>? Success!</h5>
+                            <p>${result.message}</p>
+                            ${result.attachments ? `
+                                <h6>Created attachments:</h6>
+                                <ul>
+                                    ${result.attachments.map(att => `<li><strong>${att.name}</strong> (${att.type}) - ID: ${att.id}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            <p><strong>What to test:</strong></p>
+                            <ul>
+                                <li>Go to ${type === 'contract' ? 'Contracts' : 'Proposals'} ? Details</li>
+                                <li>Look for the attachments section</li>
+                                <li>Try clicking "View" on PDFs and images</li>
+                                <li>Try clicking "Download" on any file</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <h5>?? Notice</h5>
+                            <p>${result.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error creating test data:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>? Error</h5>
+                        <p>Failed to create test data: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // Restore button
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        async function fixContractVersions() {
+            const button = event.target;
+            const originalText = button.textContent;
+            const resultDiv = document.getElementById('contractDiagnosticsResult');
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Fixing...';
+            
+            try {
+                const response = await fetch('@Url.Action("FixContractVersions")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                // Show result
+                resultDiv.style.display = 'block';
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <h5>? Contract Versions Fixed!</h5>
+                            <p>${result.message}</p>
+                            ${result.contractsFixed && result.contractsFixed.length > 0 ? `
+                                <h6>Fixed contracts:</h6>
+                                <p>Contract IDs: ${result.contractsFixed.join(', ')}</p>
+                            ` : ''}
+                            <p><strong>Next steps:</strong></p>
+                            <ul>
+                                <li>Try accessing contract details again</li>
+                                <li>The 500 errors should now be resolved</li>
+                                <li>You can now view and edit contracts normally</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>? Error</h5>
+                            <p>${result.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fixing contract versions:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>? Error</h5>
+                        <p>Failed to fix contract versions: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // Restore button
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        async function diagnoseIssues() {
+            const button = event.target;
+            const originalText = button.textContent;
+            const resultDiv = document.getElementById('contractDiagnosticsResult');
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Diagnosing...';
+            
+            try {
+                const response = await fetch('@Url.Action("DiagnoseContractIssues")', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                // Show result
+                resultDiv.style.display = 'block';
+                
+                if (result.success) {
+                    const diagnostics = result.diagnostics;
+                    let html = `<div class="alert alert-info"><h5>?? Contract Diagnostics</h5>`;
+                    
+                    if (diagnostics.Summary) {
+                        html += `
+                            <h6>Summary:</h6>
+                            <ul>
+                                <li>Total Contracts: ${diagnostics.Summary.TotalContracts}</li>
+                                <li>Contracts without versions: ${diagnostics.Summary.ContractsWithoutVersions}</li>
+                                <li>Contracts without current version: ${diagnostics.Summary.ContractsWithoutCurrentVersion}</li>
+                            </ul>
+                        `;
+                    }
+                    
+                    if (diagnostics.ContractsWithoutVersions && diagnostics.ContractsWithoutVersions.length > 0) {
+                        html += `
+                            <h6>?? Problematic Contract IDs:</h6>
+                            <p>${diagnostics.ContractsWithoutVersions.join(', ')}</p>
+                            <p><strong>Recommendation:</strong> Run "Fix Contract Versions" to resolve these issues.</p>
+                        `;
+                    }
+                    
+                    html += `</div>`;
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>? Error</h5>
+                            <p>${result.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error diagnosing issues:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>? Error</h5>
+                        <p>Failed to diagnose issues: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // Restore button
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
+
+        async function diagnoseSpecificContract() {
+            const contractId = document.getElementById('contractIdInput').value;
+            if (!contractId) {
+                alert('Please enter a contract ID');
+                return;
+            }
+
+            const resultDiv = document.getElementById('contractDiagnosticsResult');
+            
+            try {
+                const response = await fetch(`@Url.Action("DiagnoseContractIssues")?contractId=${contractId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                // Show result
+                resultDiv.style.display = 'block';
+                
+                if (result.success) {
+                    const diagnostics = result.diagnostics;
+                    let html = `<div class="alert alert-info"><h5>?? Contract ${contractId} Diagnostics</h5>`;
+                    
+                    if (diagnostics.ContractInfo) {
+                        const info = diagnostics.ContractInfo;
+                        html += `
+                            <h6>Contract Information:</h6>
+                            <ul>
+                                <li>Status: ${info.Status}</li>
+                                <li>Client: ${info.ClientName}</li>
+                                <li>Freelancer: ${info.FreelancerName}</li>
+                                <li>Job: ${info.JobTitle}</li>
+                                <li>Payment: $${info.PaymentAmount}</li>
+                            </ul>
+                        `;
+                    }
+                    
+                    if (diagnostics.Versions) {
+                        html += `<h6>Versions (${diagnostics.Versions.length}):</h6>`;
+                        if (diagnostics.Versions.length > 0) {
+                            html += `<ul>`;
+                            diagnostics.Versions.forEach(v => {
+                                html += `<li>Version ${v.VersionNumber}: ${v.Title} ${v.IsCurrentVersion ? '(Current)' : ''}</li>`;
+                            });
+                            html += `</ul>`;
+                        } else {
+                            html += `<p class="text-danger">No versions found!</p>`;
+                        }
+                    }
+                    
+                    if (diagnostics.Attachments) {
+                        html += `<h6>Attachments (${diagnostics.Attachments.length}):</h6>`;
+                        if (diagnostics.Attachments.length > 0) {
+                            html += `<ul>`;
+                            diagnostics.Attachments.forEach(a => {
+                                html += `<li>${a.FileName} (${a.FileType}, ${a.FileSize} bytes)</li>`;
+                            });
+                            html += `</ul>`;
+                        } else {
+                            html += `<p>No attachments found.</p>`;
+                        }
+                    }
+                    
+                    if (diagnostics.Issues && diagnostics.Issues.length > 0) {
+                        html += `<h6 class="text-danger">?? Issues Found:</h6><ul>`;
+                        diagnostics.Issues.forEach(issue => {
+                            html += `<li class="text-danger">${issue}</li>`;
+                        });
+                        html += `</ul>`;
+                    }
+                    
+                    html += `</div>`;
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h5>? Error</h5>
+                            <p>${result.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error diagnosing specific contract:', error);
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>? Error</h5>
+                        <p>Failed to diagnose contract: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+}
