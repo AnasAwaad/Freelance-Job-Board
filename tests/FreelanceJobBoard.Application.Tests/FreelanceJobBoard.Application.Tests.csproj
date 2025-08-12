@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FreelanceJobBoard.Application\FreelanceJobBoard.Application.csproj" />
+    <ProjectReference Include="..\..\src\FreelanceJobBoard.Infrastructure\FreelanceJobBoard.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

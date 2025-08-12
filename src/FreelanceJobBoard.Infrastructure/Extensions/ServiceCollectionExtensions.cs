@@ -22,7 +22,10 @@ public static class ServiceCollectionExtensions
 		services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
 		services.AddScoped<IUnitOfWork, UnitOfWork>();
-		services.AddScoped<ICloudinaryService, CloudinaryService>();
+		
+		// Register HttpClient and CloudinaryService
+		services.AddHttpClient<ICloudinaryService, CloudinaryService>();
+		
 		services.AddScoped<ICurrentUserService, CurrentUserService>();
 		services.AddScoped<IEmailSender, EmailSender>();
 		services.AddScoped<IEmailService, EmailService>();
