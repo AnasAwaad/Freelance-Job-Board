@@ -53,7 +53,9 @@ public class GetUserContractsQueryHandler(IUnitOfWork unitOfWork, ICurrentUserSe
             EndTime = c.EndTime,
             ContractStatus = c.ContractStatus?.Name ?? "Unknown",
             CreatedOn = c.CreatedOn,
-            LastUpdatedOn = c.LastUpdatedOn
+            LastUpdatedOn = c.LastUpdatedOn,
+            CompletionRequestedByUserId = c.CompletionRequestedByUserId,
+            CompletionRequestedAt = c.CompletionRequestedAt
         }).ToList();
 
         return new GetUserContractsResult

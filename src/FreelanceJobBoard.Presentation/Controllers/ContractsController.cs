@@ -287,17 +287,17 @@ public class ContractsController : Controller
             
             if (result.IsSuccess)
             {
-                TempData["Success"] = "Contract completed successfully! The job is now closed.";
+                TempData["Success"] = "Contract completion requested successfully! The other party will be notified to approve or provide feedback.";
             }
             else
             {
-                TempData["Error"] = result.ErrorMessage ?? "Failed to complete contract.";
+                TempData["Error"] = result.ErrorMessage ?? "Failed to request contract completion.";
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while completing contract {ContractId}", contractId);
-            TempData["Error"] = "An error occurred while completing the contract. Please try again.";
+            _logger.LogError(ex, "Error occurred while requesting contract completion {ContractId}", contractId);
+            TempData["Error"] = "An error occurred while requesting contract completion. Please try again.";
         }
 
         return RedirectToAction("Details", new { id = contractId });
@@ -305,25 +305,56 @@ public class ContractsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Cancel(int contractId, string? notes = null)
+    public async Task<IActionResult> ApproveCompletion(int contractId, bool isApproved, string? notes = null)
     {
         try
         {
-            var result = await _contractService.CancelContractAsync(contractId, notes);
+            var result = await _contractService.ApproveCompletionAsync(contractId, isApproved, notes);
             
             if (result.IsSuccess)
             {
-                TempData["Success"] = "Contract cancelled successfully.";
+                var action = isApproved ? "approved" : "rejected";
+                var message = isApproved 
+                    ? "Contract completion approved successfully! The contract is now marked as completed." 
+                    : "Contract completion rejected. The contract remains active.";
+                TempData["Success"] = message;
             }
             else
             {
-                TempData["Error"] = result.ErrorMessage ?? "Failed to cancel contract.";
+                TempData["Error"] = result.ErrorMessage ?? $"Failed to {(isApproved ? "approve" : "reject")} contract completion.";
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while cancelling contract {ContractId}", contractId);
-            TempData["Error"] = "An error occurred while cancelling the contract. Please try again.";
+            _logger.LogError(ex, "Error occurred while {Action} contract completion {ContractId}", 
+                isApproved ? "approving" : "rejecting", contractId);
+            TempData["Error"] = "An error occurred while processing the completion request. Please try again.";
+        }
+
+        return RedirectToAction("Details", new { id = contractId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelCompletionRequest(int contractId, string? notes = null)
+    {
+        try
+        {
+            var result = await _contractService.CancelCompletionRequestAsync(contractId, notes);
+            
+            if (result.IsSuccess)
+            {
+                TempData["Success"] = "Completion request cancelled successfully! The contract is now active again.";
+            }
+            else
+            {
+                TempData["Error"] = result.ErrorMessage ?? "Failed to cancel completion request.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while cancelling completion request {ContractId}", contractId);
+            TempData["Error"] = "An error occurred while cancelling the completion request. Please try again.";
         }
 
         return RedirectToAction("Details", new { id = contractId });

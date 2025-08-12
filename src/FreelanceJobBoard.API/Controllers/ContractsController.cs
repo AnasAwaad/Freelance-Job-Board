@@ -1,6 +1,9 @@
 using FreelanceJobBoard.Application.Features.Contracts.Commands.ProposeContractChange;
 using FreelanceJobBoard.Application.Features.Contracts.Commands.RespondToChangeRequest;
 using FreelanceJobBoard.Application.Features.Contracts.Commands.UpdateContractStatus;
+using FreelanceJobBoard.Application.Features.Contracts.Commands.RequestCompletion;
+using FreelanceJobBoard.Application.Features.Contracts.Commands.ApproveCompletion;
+using FreelanceJobBoard.Application.Features.Contracts.Commands.CancelCompletionRequest;
 using FreelanceJobBoard.Application.Features.Contracts.Queries.GetContractDetails;
 using FreelanceJobBoard.Application.Features.Contracts.Queries.GetContractHistory;
 using FreelanceJobBoard.Application.Features.Contracts.Queries.GetPendingChangeRequests;
@@ -382,15 +385,14 @@ public class ContractsController : ControllerBase
     {
         try
         {
-            var command = new UpdateContractStatusCommand
+            var command = new RequestCompletionCommand
             {
                 ContractId = contractId,
-                Status = ContractStatus.Completed,
                 Notes = request?.Notes
             };
 
             await _mediator.Send(command);
-            return Ok(new { message = "Contract completed successfully" });
+            return Ok(new { message = "Contract completion requested and is pending approval from the other party" });
         }
         catch (UnauthorizedAccessException)
         {
@@ -406,8 +408,46 @@ public class ContractsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error completing contract {ContractId}", contractId);
-            return StatusCode(500, "An error occurred while completing the contract");
+            _logger.LogError(ex, "Error requesting contract completion {ContractId}", contractId);
+            return StatusCode(500, "An error occurred while requesting contract completion");
+        }
+    }
+
+    /// <summary>
+    /// Approve or reject contract completion
+    /// </summary>
+    [HttpPost("{contractId}/approve-completion")]
+    public async Task<IActionResult> ApproveCompletion(int contractId, [FromBody] ApproveCompletionRequest request)
+    {
+        try
+        {
+            var command = new ApproveCompletionCommand
+            {
+                ContractId = contractId,
+                IsApproved = request.IsApproved,
+                Notes = request.Notes
+            };
+
+            await _mediator.Send(command);
+            var action = request.IsApproved ? "approved" : "rejected";
+            return Ok(new { message = $"Contract completion {action} successfully" });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Domain.Exceptions.NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error approving contract completion {ContractId}", contractId);
+            return StatusCode(500, "An error occurred while processing the completion approval");
         }
     }
 
@@ -447,6 +487,42 @@ public class ContractsController : ControllerBase
             return StatusCode(500, "An error occurred while cancelling the contract");
         }
     }
+
+    /// <summary>
+    /// Cancel completion request and return contract to Active status
+    /// </summary>
+    [HttpPost("{contractId}/cancel-completion-request")]
+    public async Task<IActionResult> CancelCompletionRequest(int contractId, [FromBody] ContractActionRequest? request = null)
+    {
+        try
+        {
+            var command = new CancelCompletionRequestCommand
+            {
+                ContractId = contractId,
+                Notes = request?.Notes
+            };
+
+            await _mediator.Send(command);
+            return Ok(new { message = "Completion request cancelled successfully. Contract is now active again." });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Domain.Exceptions.NotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling completion request {ContractId}", contractId);
+            return StatusCode(500, "An error occurred while cancelling the completion request");
+        }
+    }
 }
 
 public class ProposeContractChangeRequest
@@ -477,5 +553,11 @@ public class UpdateContractStatusRequest
 
 public class ContractActionRequest
 {
+    public string? Notes { get; set; }
+}
+
+public class ApproveCompletionRequest
+{
+    public bool IsApproved { get; set; }
     public string? Notes { get; set; }
 }

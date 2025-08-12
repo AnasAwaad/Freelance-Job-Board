@@ -23,6 +23,7 @@ public static class ContractStatus
 {
 	public const string Pending = "Pending";
 	public const string Active = "Active";
+	public const string PendingApproval = "Pending Approval";
 	public const string Completed = "Completed";
 	public const string Cancelled = "Cancelled";
 }

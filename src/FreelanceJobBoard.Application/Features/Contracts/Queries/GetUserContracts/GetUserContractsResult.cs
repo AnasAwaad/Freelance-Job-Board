@@ -21,4 +21,6 @@ public class ContractDto
     public string ContractStatus { get; set; } = string.Empty;
     public DateTime CreatedOn { get; set; }
     public DateTime? LastUpdatedOn { get; set; }
+    public string? CompletionRequestedByUserId { get; set; }
+    public DateTime? CompletionRequestedAt { get; set; }
 }

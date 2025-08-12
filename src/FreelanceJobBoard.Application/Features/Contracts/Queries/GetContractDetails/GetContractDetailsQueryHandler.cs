@@ -92,7 +92,9 @@ public class GetContractDetailsQueryHandler(IUnitOfWork unitOfWork, ICurrentUser
                 CreatedOn = contract.CreatedOn,
                 LastUpdatedOn = contract.LastUpdatedOn,
                 CoverLetter = contract.Proposal?.CoverLetter ?? "",
-                EstimatedTimelineDays = contract.Proposal?.EstimatedTimelineDays ?? 0
+                EstimatedTimelineDays = contract.Proposal?.EstimatedTimelineDays ?? 0,
+                CompletionRequestedByUserId = contract.CompletionRequestedByUserId,
+                CompletionRequestedAt = contract.CompletionRequestedAt
             };
 
             // Use current version data if available, otherwise fallback to contract data

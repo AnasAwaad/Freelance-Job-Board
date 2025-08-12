@@ -19,8 +19,9 @@ public class ContractStatusConfiguration : IEntityTypeConfiguration<ContractStat
         builder.HasData(
             new ContractStatus { Id = 1, Name = "Pending" },
             new ContractStatus { Id = 2, Name = "Active" },
-            new ContractStatus { Id = 3, Name = "Completed" },
-            new ContractStatus { Id = 4, Name = "Cancelled" }
+            new ContractStatus { Id = 3, Name = "Pending Approval" },
+            new ContractStatus { Id = 4, Name = "Completed" },
+            new ContractStatus { Id = 5, Name = "Cancelled" }
         );
     }
 }

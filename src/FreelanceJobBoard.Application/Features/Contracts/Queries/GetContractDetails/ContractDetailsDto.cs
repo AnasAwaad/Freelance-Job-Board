@@ -21,6 +21,10 @@ public class ContractDetailsDto
     public string CoverLetter { get; set; } = string.Empty;
     public int EstimatedTimelineDays { get; set; }
     
+    // Completion request tracking
+    public string? CompletionRequestedByUserId { get; set; }
+    public DateTime? CompletionRequestedAt { get; set; }
+    
     // Version-specific fields
     public string? Title { get; set; }
     public string? Description { get; set; }

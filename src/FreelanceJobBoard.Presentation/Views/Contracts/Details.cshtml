@@ -185,6 +185,10 @@
                                 {
                                     <span class="badge badge-light-success fs-6">Active</span>
                                 }
+                                else if (Model.ContractStatus == "Pending Approval")
+                                {
+                                    <span class="badge badge-light-info fs-6">Pending Approval</span>
+                                }
                                 else if (Model.ContractStatus == "Completed")
                                 {
                                     <span class="badge badge-light-primary fs-6">Completed</span>
@@ -237,12 +241,75 @@
                                             <span class="path1"></span>
                                             <span class="path2"></span>
                                         </i>
-                                        Mark Complete
+                                        Request Completion
                                     </button>
                                 </div>
                             }
 
-                            @if (Model.ContractStatus != "Completed" && Model.ContractStatus != "Cancelled")
+                            @if (Model.ContractStatus == "Pending Approval")
+                            {
+                                <div class="alert alert-light-info border-info mb-5">
+                                    <div class="d-flex align-items-center">
+                                        <i class="ki-duotone ki-information-5 fs-2 text-info me-3">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        <div>
+                                            <h5 class="mb-1">Completion Pending Approval</h5>
+                                            @if (Model.CompletionRequestedByUserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                                            {
+                                                <p class="mb-0">You have requested completion for this contract. You can cancel your request or wait for approval from the other party.</p>
+                                            }
+                                            else
+                                            {
+                                                <p class="mb-0">The other party has requested completion for this contract. Please review and approve or provide feedback.</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (Model.CompletionRequestedByUserId != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                                {
+                                    <div class="mb-5">
+                                        <button type="button" class="btn btn-success w-100 mb-3" data-action="approve" data-contract-id="@Model.Id">
+                                            <i class="ki-duotone ki-check fs-4 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Approve Completion
+                                        </button>
+                                        <button type="button" class="btn btn-light-warning w-100" data-action="reject" data-contract-id="@Model.Id">
+                                            <i class="ki-duotone ki-cross fs-4 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Reject Completion
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mb-5">
+                                        <button type="button" class="btn btn-light-danger w-100 mb-3" data-action="cancel-request" data-contract-id="@Model.Id">
+                                            <i class="ki-duotone ki-cross fs-4 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Cancel Completion Request
+                                        </button>
+                                        <div class="alert alert-light-warning mt-3">
+                                            <i class="ki-duotone ki-time fs-3 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <strong>Waiting for Approval</strong><br>
+                                            The other party must review and approve your completion request.
+                                        </div>
+                                    </div>
+                                }
+                            }
+
+                            @if (Model.ContractStatus != "Completed" && Model.ContractStatus != "Cancelled" && Model.ContractStatus != "Pending Approval")
                             {
                                 <div class="mb-5">
                                     <button type="button" class="btn btn-light-danger w-100" data-action="cancel" data-contract-id="@Model.Id">
@@ -533,18 +600,32 @@
                             url = '/Contracts/Start';
                             break;
                         case 'complete':
-                            title = 'Complete Contract';
-                            text = 'Are you sure you want to mark this contract as completed? This will close the job and finalize the contract.';
-                            confirmText = 'Yes, Complete Contract';
+                            title = 'Request Contract Completion';
+                            text = 'Are you sure you want to request completion of this contract? The other party will need to approve before the contract is marked as completed.';
+                            confirmText = 'Yes, Request Completion';
                             method = 'POST';
                             url = '/Contracts/Complete';
                             break;
-                        case 'cancel':
-                            title = 'Cancel Contract';
-                            text = 'Are you sure you want to cancel this contract? This action cannot be undone.';
-                            confirmText = 'Yes, Cancel Contract';
+                        case 'approve':
+                            title = 'Approve Contract Completion';
+                            text = 'Are you sure you want to approve the completion of this contract? This will mark the contract as completed.';
+                            confirmText = 'Yes, Approve Completion';
                             method = 'POST';
-                            url = '/Contracts/Cancel';
+                            url = '/Contracts/ApproveCompletion';
+                            break;
+                        case 'reject':
+                            title = 'Reject Contract Completion';
+                            text = 'Are you sure you want to reject the completion request? The contract will remain active.';
+                            confirmText = 'Yes, Reject Completion';
+                            method = 'POST';
+                            url = '/Contracts/ApproveCompletion';
+                            break;
+                        case 'cancel-request':
+                            title = 'Cancel Completion Request';
+                            text = 'Are you sure you want to cancel your completion request? The contract will return to active status.';
+                            confirmText = 'Yes, Cancel Request';
+                            method = 'POST';
+                            url = '/Contracts/CancelCompletionRequest';
                             break;
                         default:
                             return;
@@ -572,6 +653,15 @@
                         contractIdInput.name = 'contractId';
                         contractIdInput.value = contractId;
                         form.appendChild(contractIdInput);
+                        
+                        // Add approval status for approve/reject actions
+                        if (action === 'approve' || action === 'reject') {
+                            const isApprovedInput = document.createElement('input');
+                            isApprovedInput.type = 'hidden';
+                            isApprovedInput.name = 'isApproved';
+                            isApprovedInput.value = action === 'approve' ? 'true' : 'false';
+                            form.appendChild(isApprovedInput);
+                        }
                         
                         document.body.appendChild(form);
                         form.submit();

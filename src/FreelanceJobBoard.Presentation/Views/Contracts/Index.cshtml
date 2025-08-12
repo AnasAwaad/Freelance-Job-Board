@@ -87,6 +87,7 @@
                                             <option></option>
                                             <option value="Pending">Pending</option>
                                             <option value="Active">Active</option>
+                                            <option value="Pending Approval">Pending Approval</option>
                                             <option value="Completed">Completed</option>
                                             <option value="Cancelled">Cancelled</option>
                                         </select>
@@ -149,6 +150,7 @@
                                                 {
                                                     "Pending" => "badge-light-warning",
                                                     "Active" => "badge-light-success",
+                                                    "Pending Approval" => "badge-light-info",
                                                     "Completed" => "badge-light-primary",
                                                     "Cancelled" => "badge-light-danger",
                                                     _ => "badge-light-secondary"
@@ -214,11 +216,47 @@
                                                                 <span class="path1"></span>
                                                                 <span class="path2"></span>
                                                             </i>
-                                                            Mark Complete
+                                                            Request Completion
                                                         </a>
                                                     </div>
                                                 }
-                                                @if (contract.ContractStatus != "Completed" && contract.ContractStatus != "Cancelled")
+                                                @if (contract.ContractStatus == "Pending Approval")
+                                                {
+                                                    @if (contract.CompletionRequestedByUserId != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a href="#" class="menu-link px-3 text-success" data-contract-id="@contract.Id" data-action="approve">
+                                                                <i class="ki-duotone ki-check fs-6 me-2">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                </i>
+                                                                Approve Completion
+                                                            </a>
+                                                        </div>
+                                                        <div class="menu-item px-3">
+                                                            <a href="#" class="menu-link px-3 text-warning" data-contract-id="@contract.Id" data-action="reject">
+                                                                <i class="ki-duotone ki-cross fs-6 me-2">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                </i>
+                                                                Reject Completion
+                                                            </a>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="menu-item px-3">
+                                                            <a href="#" class="menu-link px-3 text-danger" data-contract-id="@contract.Id" data-action="cancel-request">
+                                                                <i class="ki-duotone ki-cross fs-6 me-2">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                </i>
+                                                                Cancel Request
+                                                            </a>
+                                                        </div>
+                                                    }
+                                                }
+                                                @if (contract.ContractStatus != "Completed" && contract.ContractStatus != "Cancelled" && contract.ContractStatus != "Pending Approval")
                                                 {
                                                     <div class="menu-item px-3">
                                                         <a href="#" class="menu-link px-3 text-danger" data-contract-id="@contract.Id" data-action="cancel">
@@ -292,18 +330,32 @@
                             url = `/Contracts/Start`;
                             break;
                         case 'complete':
-                            title = 'Complete Contract';
-                            text = 'Are you sure you want to mark this contract as completed?';
-                            confirmText = 'Yes, Complete Contract';
+                            title = 'Request Contract Completion';
+                            text = 'Are you sure you want to request completion of this contract? The other party will need to approve before the contract is marked as completed.';
+                            confirmText = 'Yes, Request Completion';
                             method = 'POST';
                             url = `/Contracts/Complete`;
                             break;
-                        case 'cancel':
-                            title = 'Cancel Contract';
-                            text = 'Are you sure you want to cancel this contract? This action cannot be undone.';
-                            confirmText = 'Yes, Cancel Contract';
+                        case 'approve':
+                            title = 'Approve Contract Completion';
+                            text = 'Are you sure you want to approve the completion of this contract? This will mark the contract as completed.';
+                            confirmText = 'Yes, Approve Completion';
                             method = 'POST';
-                            url = `/Contracts/Cancel`;
+                            url = `/Contracts/ApproveCompletion`;
+                            break;
+                        case 'reject':
+                            title = 'Reject Contract Completion';
+                            text = 'Are you sure you want to reject the completion request? The contract will remain active.';
+                            confirmText = 'Yes, Reject Completion';
+                            method = 'POST';
+                            url = `/Contracts/ApproveCompletion`;
+                            break;
+                        case 'cancel-request':
+                            title = 'Cancel Completion Request';
+                            text = 'Are you sure you want to cancel your completion request? The contract will return to active status.';
+                            confirmText = 'Yes, Cancel Request';
+                            method = 'POST';
+                            url = `/Contracts/CancelCompletionRequest`;
                             break;
                         default:
                             return;
@@ -332,6 +384,15 @@
                         contractIdInput.value = contractId;
                         form.appendChild(contractIdInput);
                         
+                        // Add approval status for approve/reject actions
+                        if (action === 'approve' || action === 'reject') {
+                            const isApprovedInput = document.createElement('input');
+                            isApprovedInput.type = 'hidden';
+                            isApprovedInput.name = 'isApproved';
+                            isApprovedInput.value = action === 'approve' ? 'true' : 'false';
+                            form.appendChild(isApprovedInput);
+                        }
+
                         document.body.appendChild(form);
                         form.submit();
                     }

@@ -341,11 +341,11 @@ public class ContractService
         
         try
         {
-            _logger.LogInformation("? Completing contract | ContractId={ContractId}, User={UserId}", contractId, userId);
+            _logger.LogInformation("?? Requesting contract completion | ContractId={ContractId}, User={UserId}", contractId, userId);
             _logger.LogDebug("?? Completion Details | ContractId={ContractId}, Notes='{Notes}'", contractId, notes ?? "None");
             
             SetAuthorizationHeader();
-            LogRequestHeaders("COMPLETE_CONTRACT");
+            LogRequestHeaders("REQUEST_CONTRACT_COMPLETION");
 
             var request = new { Notes = notes };
             var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/complete", request);
@@ -356,14 +356,14 @@ public class ContractService
             if (response.IsSuccessStatusCode)
             {
                 stopwatch.Stop();
-                _logger.LogInformation("? Contract completed successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                _logger.LogInformation("? Contract completion requested successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
                     contractId, userId, stopwatch.ElapsedMilliseconds);
                 return ServiceResult.Success();
             }
 
             stopwatch.Stop();
-            var errorResult = await HandleErrorResponse(response, "completing contract");
-            _logger.LogWarning("?? Failed to complete contract | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+            var errorResult = await HandleErrorResponse(response, "requesting contract completion");
+            _logger.LogWarning("?? Failed to request contract completion | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
                 contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
             
             return errorResult;
@@ -371,15 +371,68 @@ public class ContractService
         catch (HttpRequestException ex)
         {
             stopwatch.Stop();
-            _logger.LogError(ex, "?? HTTP error while completing contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+            _logger.LogError(ex, "?? HTTP error while requesting contract completion | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
                 contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            _logger.LogError(ex, "?? Unexpected error while completing contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+            _logger.LogError(ex, "?? Unexpected error while requesting contract completion | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
                 contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+    }
+
+    public async Task<ServiceResult> ApproveCompletionAsync(int contractId, bool isApproved, string? notes = null)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
+        try
+        {
+            _logger.LogInformation("? {Action} contract completion | ContractId={ContractId}, User={UserId}", 
+                isApproved ? "Approving" : "Rejecting", contractId, userId);
+            _logger.LogDebug("?? Approval Details | ContractId={ContractId}, IsApproved={IsApproved}, Notes='{Notes}'", 
+                contractId, isApproved, notes ?? "None");
+            
+            SetAuthorizationHeader();
+            LogRequestHeaders("APPROVE_CONTRACT_COMPLETION");
+
+            var request = new { IsApproved = isApproved, Notes = notes };
+            var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/approve-completion", request);
+
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
+
+            if (response.IsSuccessStatusCode)
+            {
+                stopwatch.Stop();
+                var action = isApproved ? "approved" : "rejected";
+                _logger.LogInformation("? Contract completion {Action} successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    action, contractId, userId, stopwatch.ElapsedMilliseconds);
+                return ServiceResult.Success();
+            }
+
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, $"{(isApproved ? "approving" : "rejecting")} contract completion");
+            _logger.LogWarning("?? Failed to {Action} contract completion | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                isApproved ? "approve" : "reject", contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while {Action} contract completion | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                isApproved ? "approving" : "rejecting", contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while {Action} contract completion | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                isApproved ? "approving" : "rejecting", contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
     }
@@ -429,6 +482,56 @@ public class ContractService
         {
             stopwatch.Stop();
             _logger.LogError(ex, "?? Unexpected error while cancelling contract | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+    }
+
+    public async Task<ServiceResult> CancelCompletionRequestAsync(int contractId, string? notes = null)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
+        
+        try
+        {
+            _logger.LogInformation("?? Cancelling completion request | ContractId={ContractId}, User={UserId}", contractId, userId);
+            _logger.LogDebug("?? Cancel Request Details | ContractId={ContractId}, Notes='{Notes}'", contractId, notes ?? "None");
+            
+            SetAuthorizationHeader();
+            LogRequestHeaders("CANCEL_COMPLETION_REQUEST");
+
+            var request = new { Notes = notes };
+            var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/cancel-completion-request", request);
+
+            _logger.LogDebug("?? API Response | ContractId={ContractId}, Status={StatusCode} {ReasonPhrase}", 
+                contractId, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
+
+            if (response.IsSuccessStatusCode)
+            {
+                stopwatch.Stop();
+                _logger.LogInformation("? Completion request cancelled successfully! ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                    contractId, userId, stopwatch.ElapsedMilliseconds);
+                return ServiceResult.Success();
+            }
+
+            stopwatch.Stop();
+            var errorResult = await HandleErrorResponse(response, "cancelling completion request");
+            _logger.LogWarning("?? Failed to cancel completion request | ContractId={ContractId}, User={UserId}, ApiStatus={StatusCode}, Error={ErrorMessage}, Duration={ElapsedMs}ms", 
+                contractId, userId, response.StatusCode, errorResult.ErrorMessage, stopwatch.ElapsedMilliseconds);
+            
+            return errorResult;
+        }
+        catch (HttpRequestException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? HTTP error while cancelling completion request | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
+                contractId, userId, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            _logger.LogError(ex, "?? Unexpected error while cancelling completion request | ContractId={ContractId}, User={UserId}, Duration={ElapsedMs}ms", 
                 contractId, userId, stopwatch.ElapsedMilliseconds);
             throw;
         }
