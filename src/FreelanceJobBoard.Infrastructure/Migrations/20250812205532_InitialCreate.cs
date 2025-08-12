@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FreelanceJobBoard.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class dbchg9 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -320,40 +320,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Notifications",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TemplateId = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false),
-                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    NotificationTemplateId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Notifications", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Notifications_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Notifications_NotificationTemplates_NotificationTemplateId",
-                        column: x => x.NotificationTemplateId,
-                        principalTable: "NotificationTemplates",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "RolePermissions",
                 columns: table => new
                 {
@@ -398,6 +364,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     RequiredSkills = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Tags = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ViewsCount = table.Column<int>(type: "int", nullable: false),
+                    CompletedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -632,6 +599,12 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     ReviewType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     IsVisible = table.Column<bool>(type: "bit", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CommunicationRating = table.Column<int>(type: "int", nullable: true),
+                    QualityRating = table.Column<int>(type: "int", nullable: true),
+                    TimelinessRating = table.Column<int>(type: "int", nullable: true),
+                    WouldRecommend = table.Column<bool>(type: "bit", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -673,6 +646,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     PaymentAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     EndTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ContractStatusId = table.Column<int>(type: "int", nullable: false),
+                    CompletionRequestedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CompletionRequestedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -731,30 +706,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ContractAttachments",
-                columns: table => new
-                {
-                    ContractId = table.Column<int>(type: "int", nullable: false),
-                    AttachmentId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ContractAttachments", x => new { x.ContractId, x.AttachmentId });
-                    table.ForeignKey(
-                        name: "FK_ContractAttachments_Attachments_AttachmentId",
-                        column: x => x.AttachmentId,
-                        principalTable: "Attachments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ContractAttachments_Contracts_ContractId",
-                        column: x => x.ContractId,
-                        principalTable: "Contracts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ContractVersions",
                 columns: table => new
                 {
@@ -772,10 +723,10 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     AdditionalNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedByUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     CreatedByRole = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsCurrentVersion = table.Column<bool>(type: "bit", nullable: false),
                     ChangeReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -787,6 +738,90 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         principalTable: "Contracts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TemplateId = table.Column<int>(type: "int", nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NotificationTemplateId = table.Column<int>(type: "int", nullable: true),
+                    RecipientUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    SenderUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    JobId = table.Column<int>(type: "int", nullable: true),
+                    ProposalId = table.Column<int>(type: "int", nullable: true),
+                    ContractId = table.Column<int>(type: "int", nullable: true),
+                    ReviewId = table.Column<int>(type: "int", nullable: true),
+                    Icon = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Color = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    IsUrgent = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsEmailSent = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ActionUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Data = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdatedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notifications_AspNetUsers_RecipientUserId",
+                        column: x => x.RecipientUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_AspNetUsers_SenderUserId",
+                        column: x => x.SenderUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Contracts_ContractId",
+                        column: x => x.ContractId,
+                        principalTable: "Contracts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Jobs_JobId",
+                        column: x => x.JobId,
+                        principalTable: "Jobs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_NotificationTemplates_NotificationTemplateId",
+                        column: x => x.NotificationTemplateId,
+                        principalTable: "NotificationTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Proposals_ProposalId",
+                        column: x => x.ProposalId,
+                        principalTable: "Proposals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Notifications_Reviews_ReviewId",
+                        column: x => x.ReviewId,
+                        principalTable: "Reviews",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -842,8 +877,9 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 {
                     { 1, "Pending" },
                     { 2, "Active" },
-                    { 3, "Completed" },
-                    { 4, "Cancelled" }
+                    { 3, "Pending Approval" },
+                    { 4, "Completed" },
+                    { 5, "Cancelled" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -896,11 +932,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 column: "UserId",
                 unique: true,
                 filter: "[UserId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ContractAttachments_AttachmentId",
-                table: "ContractAttachments",
-                column: "AttachmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ContractChangeRequests_ContractId",
@@ -1012,9 +1043,69 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_ContractId_Type",
+                table: "Notifications",
+                columns: new[] { "ContractId", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_CreatedOn",
+                table: "Notifications",
+                column: "CreatedOn");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_IsRead",
+                table: "Notifications",
+                column: "IsRead");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_IsUrgent",
+                table: "Notifications",
+                column: "IsUrgent");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_JobId_Type",
+                table: "Notifications",
+                columns: new[] { "JobId", "Type" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_NotificationTemplateId",
                 table: "Notifications",
                 column: "NotificationTemplateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_ProposalId",
+                table: "Notifications",
+                column: "ProposalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_RecipientUserId",
+                table: "Notifications",
+                column: "RecipientUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_RecipientUserId_IsRead",
+                table: "Notifications",
+                columns: new[] { "RecipientUserId", "IsRead" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_RecipientUserId_Type",
+                table: "Notifications",
+                columns: new[] { "RecipientUserId", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_ReviewId",
+                table: "Notifications",
+                column: "ReviewId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_SenderUserId",
+                table: "Notifications",
+                column: "SenderUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_Type",
+                table: "Notifications",
+                column: "Type");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_UserId",
@@ -1055,8 +1146,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_JobId",
                 table: "Reviews",
-                column: "JobId",
-                unique: true);
+                column: "JobId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_RevieweeId",
@@ -1101,9 +1191,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 name: "Certifications");
 
             migrationBuilder.DropTable(
-                name: "ContractAttachments");
-
-            migrationBuilder.DropTable(
                 name: "ContractChangeRequests");
 
             migrationBuilder.DropTable(
@@ -1128,9 +1215,6 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                 name: "ProposalAttachments");
 
             migrationBuilder.DropTable(
-                name: "Reviews");
-
-            migrationBuilder.DropTable(
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
@@ -1144,6 +1228,9 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "NotificationTemplates");
+
+            migrationBuilder.DropTable(
+                name: "Reviews");
 
             migrationBuilder.DropTable(
                 name: "Attachments");

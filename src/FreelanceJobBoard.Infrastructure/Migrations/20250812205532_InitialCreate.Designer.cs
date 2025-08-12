@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FreelanceJobBoard.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250726203624_RemovedNotImportantColumnsFromJobAndProposal")]
-    partial class RemovedNotImportantColumnsFromJobAndProposal
+    [Migration("20250812205532_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -194,6 +194,12 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CompletionRequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CompletionRequestedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ContractStatusId")
                         .HasColumnType("int");
 
@@ -235,6 +241,92 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.ToTable("Contracts");
                 });
 
+            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractChangeRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeDescription")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FromVersionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("LastUpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProposedVersionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestedByRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ResponseByRole")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ResponseByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ResponseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResponseNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("FromVersionId");
+
+                    b.HasIndex("ProposedVersionId");
+
+                    b.HasIndex("RequestDate");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("ContractChangeRequests");
+                });
+
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractStatus", b =>
                 {
                     b.Property<int>("Id")
@@ -266,13 +358,105 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            Name = "Completed"
+                            Name = "Pending Approval"
                         },
                         new
                         {
                             Id = 4,
+                            Name = "Completed"
+                        },
+                        new
+                        {
+                            Id = 5,
                             Name = "Cancelled"
                         });
+                });
+
+            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdditionalNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ChangeReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedByRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Deliverables")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsCurrentVersion")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastUpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PaymentAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ProjectDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TermsAndConditions")
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("ContractId", "IsCurrentVersion");
+
+                    b.HasIndex("ContractId", "VersionNumber")
+                        .IsUnique();
+
+                    b.ToTable("ContractVersions");
                 });
 
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Freelancer", b =>
@@ -356,8 +540,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ApprovedBy")
-                        .HasColumnType("int");
+                    b.Property<string>("ApprovedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("BudgetMax")
                         .HasPrecision(18, 2)
@@ -367,8 +551,11 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ClientId")
+                    b.Property<int>("ClientId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
@@ -383,11 +570,11 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime?>("LastUpdatedOn")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectedBy")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequiredSkills")
                         .HasMaxLength(1000)
@@ -527,14 +714,48 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ActionUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("ContractId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Data")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEmailSent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsUrgent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("JobId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedOn")
                         .HasColumnType("datetime2");
@@ -544,13 +765,28 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int>("NotificationTemplateId")
+                    b.Property<int?>("NotificationTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProposalId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TemplateId")
+                    b.Property<string>("RecipientUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("TemplateId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -558,15 +794,45 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
+                        .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedOn");
+
+                    b.HasIndex("IsRead");
+
+                    b.HasIndex("IsUrgent");
+
                     b.HasIndex("NotificationTemplateId");
 
+                    b.HasIndex("ProposalId");
+
+                    b.HasIndex("RecipientUserId");
+
+                    b.HasIndex("ReviewId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.HasIndex("Type");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("ContractId", "Type");
+
+                    b.HasIndex("JobId", "Type");
+
+                    b.HasIndex("RecipientUserId", "IsRead");
+
+                    b.HasIndex("RecipientUserId", "Type");
 
                     b.ToTable("Notifications");
                 });
@@ -743,6 +1009,12 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int?>("CommunicationRating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -757,6 +1029,9 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Property<DateTime?>("LastUpdatedOn")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("QualityRating")
+                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -774,10 +1049,18 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Tags")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TimelinessRating")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("WouldRecommend")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("JobId")
-                        .IsUnique();
+                    b.HasIndex("JobId");
 
                     b.HasIndex("RevieweeId");
 
@@ -1134,6 +1417,44 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Navigation("Proposal");
                 });
 
+            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractChangeRequest", b =>
+                {
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.Contract", "Contract")
+                        .WithMany("ChangeRequests")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.ContractVersion", "FromVersion")
+                        .WithMany()
+                        .HasForeignKey("FromVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.ContractVersion", "ProposedVersion")
+                        .WithMany()
+                        .HasForeignKey("ProposedVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("FromVersion");
+
+                    b.Navigation("ProposedVersion");
+                });
+
+            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractVersion", b =>
+                {
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.Contract", "Contract")
+                        .WithMany("Versions")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contract");
+                });
+
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Freelancer", b =>
                 {
                     b.HasOne("FreelanceJobBoard.Domain.Identity.ApplicationUser", "User")
@@ -1168,7 +1489,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Client", "Client")
                         .WithMany("Jobs")
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Client");
                 });
@@ -1251,17 +1573,59 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Notification", b =>
                 {
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.Contract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.Job", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("FreelanceJobBoard.Domain.Entities.NotificationTemplate", "Template")
                         .WithMany("Notifications")
                         .HasForeignKey("NotificationTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.Proposal", "Proposal")
+                        .WithMany()
+                        .HasForeignKey("ProposalId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FreelanceJobBoard.Domain.Identity.ApplicationUser", "RecipientUser")
+                        .WithMany()
+                        .HasForeignKey("RecipientUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("FreelanceJobBoard.Domain.Entities.Review", "Review")
+                        .WithMany()
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("FreelanceJobBoard.Domain.Identity.ApplicationUser", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FreelanceJobBoard.Domain.Identity.ApplicationUser", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("Job");
+
+                    b.Navigation("Proposal");
+
+                    b.Navigation("RecipientUser");
+
+                    b.Navigation("Review");
+
+                    b.Navigation("SenderUser");
 
                     b.Navigation("Template");
 
@@ -1304,7 +1668,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Proposal", "Proposal")
                         .WithMany("Attachments")
                         .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Attachment");
@@ -1315,8 +1679,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Review", b =>
                 {
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Job", "Job")
-                        .WithOne("Review")
-                        .HasForeignKey("FreelanceJobBoard.Domain.Entities.Review", "JobId")
+                        .WithMany("Reviews")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1426,6 +1790,13 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Navigation("Proposals");
                 });
 
+            modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Contract", b =>
+                {
+                    b.Navigation("ChangeRequests");
+
+                    b.Navigation("Versions");
+                });
+
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.ContractStatus", b =>
                 {
                     b.Navigation("Contracts");
@@ -1450,8 +1821,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Navigation("Proposals");
 
-                    b.Navigation("Review")
-                        .IsRequired();
+                    b.Navigation("Reviews");
 
                     b.Navigation("Skills");
 
