@@ -2,20 +2,19 @@
 @{
 }
 
-
-
 <div class="d-flex align-items-center ms-1 ms-lg-2">
     <!--begin::Menu wrapper-->
     <div class="btn btn-icon btn-active-light btn-active-color-primary position-relative w-30px h-30px w-md-40px h-md-40px"
          data-kt-menu-trigger="click"
          data-kt-menu-attach="parent"
-         data-kt-menu-placement="bottom-end">
-        <i class=" ki-duotone ki-abstract-36 fs-1">
+         data-kt-menu-placement="bottom-end"
+         id="notification-bell">
+        <i class="ki-duotone ki-abstract-36 fs-1">
             <span class="path1"></span>
             <span class="path2"></span>
         </i>
         <!-- Notification Count Badge -->
-        <span class="badge badge-dot badge-danger position-absolute top-0 end-0 notification-count">1</span>
+        <span class="badge badge-dot badge-danger position-absolute top-0 end-0 notification-count" style="display: none;">0</span>
     </div>
 
     <!--begin::Menu-->
@@ -24,47 +23,57 @@
          id="kt_menu_notifications">
         <!--begin::Heading-->
         <div class="d-flex flex-column bgi-no-repeat rounded-top"
-             style="
-                        background-image: url('assets/media/misc/menu-header-bg.jpg');
-                      ">
+             style="background-image: url('/assets/media/misc/menu-header-bg.jpg');">
             <h3 class="text-white fw-semibold px-9 mt-10 mb-6">
                 Notifications
-                <span class="fs-8 opacity-75 ps-3 notification-total">1 Notification</span>
+                <span class="fs-8 opacity-75 ps-3 notification-total">0 Notifications</span>
             </h3>
         </div>
         <!--end::Heading-->
-        <!--begin::Notification List-->
-        <div id="notifications-container"
-             class="scroll-y mh-325px my-5 px-8">
-            <!--begin::Notification Item-->
-            <div class="d-flex flex-stack py-4 notification-item"
-                 data-id="alice-project">
-                <!--begin::Section-->
-                <div class="d-flex align-items-center">
-                    <!--begin::Details-->
-                    <div class="mb-0 me-2">
-                        <a href="#"
-                           class="fs-6 text-gray-800 text-hover-primary fw-bold">
-                            Project Alice
-                        </a>
-                        <div class="text-gray-400 fs-7">
-                            Phase 1 development has been completed.
-                        </div>
-                    </div>
-                    <!--end::Details-->
-                </div>
-                <!--end::Section-->
-                <!--begin::Timestamp-->
-                <span class="badge badge-light fs-8">1 hr ago</span>
-                <!--end::Timestamp-->
+        
+        <!--begin::Tab Buttons-->
+        <div class="d-flex px-9 py-3 border-bottom">
+            <button type="button" class="btn btn-sm btn-light me-2 active" data-filter="all" id="all-notifications-btn">
+                All
+            </button>
+            <button type="button" class="btn btn-sm btn-light-primary" data-filter="unread" id="unread-notifications-btn">
+                Unread
+            </button>
+            <div class="ms-auto">
+                <button type="button" class="btn btn-sm btn-light-success" id="mark-all-read-btn">
+                    Mark All Read
+                </button>
             </div>
-            <!--end::Notification Item-->
+        </div>
+        <!--end::Tab Buttons-->
+
+        <!--begin::Notification List-->
+        <div id="notifications-container" class="scroll-y mh-325px my-5 px-8">
+            <!-- Loading state -->
+            <div id="notifications-loading" class="text-center py-10">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2">Loading notifications...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div id="notifications-empty" class="text-center py-10" style="display: none;">
+                <i class="ki-duotone ki-notification-bing fs-3x text-gray-400 mb-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                <p class="text-muted">No notifications yet</p>
+            </div>
+            
+            <!-- Notifications will be loaded here -->
         </div>
         <!--end::Notification List-->
+        
         <!--begin::View more-->
         <div class="py-3 text-center border-top">
-            <a href="/Notifications/All"
-               class="btn btn-color-gray-600 btn-active-color-primary">
+            <a href="/Notifications/All" class="btn btn-color-gray-600 btn-active-color-primary">
                 View All
                 <i class="ki-duotone ki-arrow-right fs-5">
                     <span class="path1"></span>
@@ -76,3 +85,210 @@
     </div>
     <!--end::Menu-->
 </div>
+
+<script>
+class NotificationManager {
+    constructor() {
+        this.currentFilter = 'all';
+        this.notifications = [];
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.loadNotifications();
+        // Refresh notifications every 30 seconds
+        setInterval(() => this.loadNotifications(), 30000);
+    }
+
+    bindEvents() {
+        // Filter buttons
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.setFilter(e.target.dataset.filter);
+            });
+        });
+
+        // Mark all as read
+        document.getElementById('mark-all-read-btn').addEventListener('click', () => {
+            this.markAllAsRead();
+        });
+
+        // Notification bell click
+        document.getElementById('notification-bell').addEventListener('click', () => {
+            this.loadNotifications();
+        });
+    }
+
+    setFilter(filter) {
+        this.currentFilter = filter;
+        
+        // Update button states
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.filter === filter) {
+                btn.classList.add('active');
+            }
+        });
+
+        this.renderNotifications();
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch('/api/notifications');
+            if (response.ok) {
+                this.notifications = await response.json();
+                this.updateNotificationCount();
+                this.renderNotifications();
+            }
+        } catch (error) {
+            console.error('Failed to load notifications:', error);
+        }
+    }
+
+    renderNotifications() {
+        const container = document.getElementById('notifications-container');
+        const loading = document.getElementById('notifications-loading');
+        const empty = document.getElementById('notifications-empty');
+        
+        // Hide loading
+        loading.style.display = 'none';
+
+        // Filter notifications
+        let filteredNotifications = this.notifications;
+        if (this.currentFilter === 'unread') {
+            filteredNotifications = this.notifications.filter(n => !n.isRead);
+        }
+
+        if (filteredNotifications.length === 0) {
+            empty.style.display = 'block';
+            // Clear existing notifications
+            const existingNotifications = container.querySelectorAll('.notification-item');
+            existingNotifications.forEach(n => n.remove());
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        // Clear existing notifications
+        const existingNotifications = container.querySelectorAll('.notification-item');
+        existingNotifications.forEach(n => n.remove());
+
+        // Render notifications
+        filteredNotifications.forEach(notification => {
+            const notificationElement = this.createNotificationElement(notification);
+            container.appendChild(notificationElement);
+        });
+    }
+
+    createNotificationElement(notification) {
+        const div = document.createElement('div');
+        div.className = `d-flex flex-stack py-4 notification-item ${!notification.isRead ? 'bg-light-primary' : ''}`;
+        div.dataset.id = notification.id;
+
+        const timeAgo = this.getTimeAgo(new Date(notification.createdOn));
+        
+        div.innerHTML = `
+            <div class="d-flex align-items-start flex-grow-1">
+                <div class="symbol symbol-35px me-3">
+                    <div class="symbol-label bg-light-primary">
+                        <i class="ki-duotone ki-notification-bing fs-2 text-primary">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fs-6 text-gray-800 fw-bold mb-1">${this.escapeHtml(notification.title)}</div>
+                    <div class="text-gray-600 fs-7 mb-1">${this.escapeHtml(notification.message)}</div>
+                    <div class="text-gray-500 fs-8">${timeAgo}</div>
+                </div>
+                ${!notification.isRead ? `
+                <button type="button" class="btn btn-sm btn-light-primary ms-2" onclick="notificationManager.markAsRead(${notification.id})">
+                    Mark Read
+                </button>
+                ` : ''}
+            </div>
+        `;
+
+        return div;
+    }
+
+    async markAsRead(notificationId) {
+        try {
+            const response = await fetch(`/api/notifications/${notificationId}/read`, {
+                method: 'PUT'
+            });
+            
+            if (response.ok) {
+                // Update local data
+                const notification = this.notifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.isRead = true;
+                }
+                this.updateNotificationCount();
+                this.renderNotifications();
+            }
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    }
+
+    async markAllAsRead() {
+        try {
+            const response = await fetch('/api/notifications/mark-all-read', {
+                method: 'PUT'
+            });
+            
+            if (response.ok) {
+                // Update local data
+                this.notifications.forEach(n => n.isRead = true);
+                this.updateNotificationCount();
+                this.renderNotifications();
+            }
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+        }
+    }
+
+    updateNotificationCount() {
+        const unreadCount = this.notifications.filter(n => !n.isRead).length;
+        const countBadge = document.querySelector('.notification-count');
+        const totalSpan = document.querySelector('.notification-total');
+        
+        if (unreadCount > 0) {
+            countBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            countBadge.style.display = 'block';
+        } else {
+            countBadge.style.display = 'none';
+        }
+        
+        totalSpan.textContent = `${this.notifications.length} Notification${this.notifications.length !== 1 ? 's' : ''}`;
+    }
+
+    getTimeAgo(date) {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// Initialize notification manager when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    window.notificationManager = new NotificationManager();
+});
+</script>

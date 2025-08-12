@@ -19,6 +19,8 @@ public class CreateReviewCommandHandlerTests
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<ILogger<CreateReviewCommandHandler>> _loggerMock;
+    private readonly Mock<IEmailService> _emailServiceMock;
+    private readonly Mock<INotificationService> _notificationServiceMock;
     private readonly CreateReviewCommandHandler _handler;
 
     public CreateReviewCommandHandlerTests()
@@ -27,12 +29,16 @@ public class CreateReviewCommandHandlerTests
         _currentUserServiceMock = new Mock<ICurrentUserService>();
         _mapperMock = new Mock<IMapper>();
         _loggerMock = new Mock<ILogger<CreateReviewCommandHandler>>();
+        _emailServiceMock = new Mock<IEmailService>();
+        _notificationServiceMock = new Mock<INotificationService>();
 
         _handler = new CreateReviewCommandHandler(
             _unitOfWorkMock.Object,
             _currentUserServiceMock.Object,
             _mapperMock.Object,
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _emailServiceMock.Object,
+            _notificationServiceMock.Object);
     }
 
     [Fact]
@@ -230,7 +236,7 @@ public class CreateReviewCommandHandlerTests
         var freelancerUserId = "freelancer-123";
 
         var job = CreateJobWithDetails(currentUserId, freelancerUserId);
-        var freelancer = new Freelancer { Id = 1, UserId = freelancerUserId };
+        var freelancer = new Freelancer { Id = 1, UserId = freelancerUserId, User = new FreelanceJobBoard.Domain.Identity.ApplicationUser { Id = freelancerUserId, Email = "freelancer@test.com", FullName = "Test Freelancer" } };
 
         _currentUserServiceMock.Setup(x => x.UserId).Returns(currentUserId);
 
@@ -246,8 +252,14 @@ public class CreateReviewCommandHandlerTests
         _unitOfWorkMock.Setup(x => x.Freelancers.GetByUserIdAsync(freelancerUserId))
             .ReturnsAsync(freelancer);
 
+        _unitOfWorkMock.Setup(x => x.Freelancers.GetByUserIdWithDetailsAsync(freelancerUserId))
+            .ReturnsAsync(freelancer);
+
         _unitOfWorkMock.Setup(x => x.Clients.GetByUserIdAsync(freelancerUserId))
             .ReturnsAsync((Client?)null);
+
+        _unitOfWorkMock.Setup(x => x.Clients.GetByUserIdWithDetailsAsync(currentUserId))
+            .ReturnsAsync(new Client { Id = 1, UserId = currentUserId, User = new FreelanceJobBoard.Domain.Identity.ApplicationUser { Id = currentUserId, Email = "client@test.com", FullName = "Test Client" } });
 
         _unitOfWorkMock.Setup(x => x.Reviews.GetAverageRatingByRevieweeIdAsync(freelancerUserId))
             .ReturnsAsync(4.5m);
@@ -261,6 +273,12 @@ public class CreateReviewCommandHandlerTests
         _unitOfWorkMock.Setup(x => x.Reviews.CreateAsync(It.IsAny<Review>()))
             .Callback<Review>(review => review.Id = 123); 
 
+        _emailServiceMock.Setup(x => x.SendTemplateEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))
+            .Returns(Task.CompletedTask);
+
+        _notificationServiceMock.Setup(x => x.NotifyReviewReceivedAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -269,6 +287,8 @@ public class CreateReviewCommandHandlerTests
         _unitOfWorkMock.Verify(x => x.Reviews.CreateAsync(It.IsAny<Review>()), Times.Once);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2)); // Once for review creation, once for rating update
         _unitOfWorkMock.Verify(x => x.Freelancers.Update(It.IsAny<Freelancer>()), Times.Once);
+        _emailServiceMock.Verify(x => x.SendTemplateEmailAsync(It.IsAny<string>(), "ReviewNotification", It.IsAny<object>()), Times.Once);
+        _notificationServiceMock.Verify(x => x.NotifyReviewReceivedAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -289,7 +309,7 @@ public class CreateReviewCommandHandlerTests
         var currentUserId = "freelancer-123";
 
         var job = CreateJobWithDetails(clientUserId, currentUserId);
-        var client = new Client { Id = 1, UserId = clientUserId };
+        var client = new Client { Id = 1, UserId = clientUserId, User = new FreelanceJobBoard.Domain.Identity.ApplicationUser { Id = clientUserId, Email = "client@test.com", FullName = "Test Client" } };
 
         _currentUserServiceMock.Setup(x => x.UserId).Returns(currentUserId);
 
@@ -305,8 +325,14 @@ public class CreateReviewCommandHandlerTests
         _unitOfWorkMock.Setup(x => x.Clients.GetByUserIdAsync(clientUserId))
             .ReturnsAsync(client);
 
+        _unitOfWorkMock.Setup(x => x.Clients.GetByUserIdWithDetailsAsync(clientUserId))
+            .ReturnsAsync(client);
+
         _unitOfWorkMock.Setup(x => x.Freelancers.GetByUserIdAsync(clientUserId))
             .ReturnsAsync((Freelancer?)null);
+
+        _unitOfWorkMock.Setup(x => x.Freelancers.GetByUserIdWithDetailsAsync(currentUserId))
+            .ReturnsAsync(new Freelancer { Id = 1, UserId = currentUserId, User = new FreelanceJobBoard.Domain.Identity.ApplicationUser { Id = currentUserId, Email = "freelancer@test.com", FullName = "Test Freelancer" } });
 
         _unitOfWorkMock.Setup(x => x.Reviews.GetAverageRatingByRevieweeIdAsync(clientUserId))
             .ReturnsAsync(4.2m);
@@ -320,6 +346,12 @@ public class CreateReviewCommandHandlerTests
         _unitOfWorkMock.Setup(x => x.Reviews.CreateAsync(It.IsAny<Review>()))
             .Callback<Review>(review => review.Id = 456);
 
+        _emailServiceMock.Setup(x => x.SendTemplateEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))
+            .Returns(Task.CompletedTask);
+
+        _notificationServiceMock.Setup(x => x.NotifyReviewReceivedAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -328,6 +360,8 @@ public class CreateReviewCommandHandlerTests
         _unitOfWorkMock.Verify(x => x.Reviews.CreateAsync(It.IsAny<Review>()), Times.Once);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
         _unitOfWorkMock.Verify(x => x.Clients.Update(It.IsAny<Client>()), Times.Once);
+        _emailServiceMock.Verify(x => x.SendTemplateEmailAsync(It.IsAny<string>(), "ReviewNotification", It.IsAny<object>()), Times.Once);
+        _notificationServiceMock.Verify(x => x.NotifyReviewReceivedAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
     }
 
     private static Job CreateJobWithDetails(string clientUserId, string freelancerUserId)

@@ -21,7 +21,6 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Where(j => searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
 														(j.Description!.ToLower().Contains(searchValue))));
 
-		// Apply status filter if provided
 		if (!string.IsNullOrEmpty(statusFilter))
 		{
 			query = query.Where(j => j.Status == statusFilter);
@@ -47,7 +46,6 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 		}
 		else
 		{
-			// Default ordering by creation date (newest first)
 			query = query.OrderByDescending(j => j.CreatedOn);
 		}
 
@@ -102,6 +100,25 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Include(j => j.Skills)
 				.ThenInclude(s => s.Skill)
 			.Include(j => j.Proposals)
+				.ThenInclude(p => p.Freelancer)
+					.ThenInclude(f => f.User)
+			.OrderByDescending(j => j.CreatedOn)
+			.ToListAsync();
+	}
+
+	public async Task<IEnumerable<Job>> GetJobsByFreelancerIdAsync(int freelancerId)
+	{
+		return await _context.Jobs
+			.Where(j => j.Proposals.Any(p => p.FreelancerId == freelancerId && p.Status == ProposalStatus.Accepted))
+			.Include(j => j.Categories)
+				.ThenInclude(c => c.Category)
+			.Include(j => j.Skills)
+				.ThenInclude(s => s.Skill)
+			.Include(j => j.Proposals)
+				.ThenInclude(p => p.Freelancer)
+					.ThenInclude(f => f.User)
+			.Include(j => j.Client)
+				.ThenInclude(c => c.User)
 			.OrderByDescending(j => j.CreatedOn)
 			.ToListAsync();
 	}
@@ -114,7 +131,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 					.ThenInclude(a => a.Attachment)
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
-			.Include(j => j.Review)
+			.Include(j => j.Reviews)
 			.Where(j => j.Id == id);
 
 	}

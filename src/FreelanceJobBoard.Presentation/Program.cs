@@ -1,7 +1,9 @@
-﻿using FreelanceJobBoard.Application.Interfaces.Services;
+﻿using FreelanceJobBoard.Application.Extensions;
+using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
+using FreelanceJobBoard.Infrastructure.Extensions;
 using FreelanceJobBoard.Infrastructure.Services;
 using FreelanceJobBoard.Infrastructure.Settings;
 using FreelanceJobBoard.Presentation.Services;
@@ -20,6 +22,10 @@ public class Program
 		// Add services to the container.
 		builder.Services.AddControllersWithViews();
 		
+		// Add Application and Infrastructure layers
+		builder.Services.AddApplication();
+		builder.Services.AddInfrastructure(builder.Configuration, configureIdentity: false);
+
 		// Configure Session (optional, for future use)
 		builder.Services.AddDistributedMemoryCache();
 		builder.Services.AddSession(options =>
@@ -42,9 +48,7 @@ public class Program
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 		
-		// Register Email Service
-		builder.Services.AddScoped<IEmailService, EmailService>();
-
+		
 		// Configure Database
 		var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 		if (string.IsNullOrEmpty(connectionString))
@@ -55,41 +59,33 @@ public class Program
 		// Log the connection string for debugging (remove in production)
 		Console.WriteLine($"🔗 Database Connection: {connectionString}");
 
-		builder.Services.AddDbContext<ApplicationDbContext>(options =>
-		{
-			options.UseSqlServer(connectionString, b => b.MigrationsAssembly("FreelanceJobBoard.Infrastructure"));
-			if (builder.Environment.IsDevelopment())
-			{
-				options.EnableSensitiveDataLogging();
-				options.EnableDetailedErrors();
-			}
-		});
+		// Note: ApplicationDbContext is already configured in AddInfrastructure()
+		// Remove duplicate registration to avoid conflicts
 
 		builder.Services.AddHttpContextAccessor();
 
-		// Configure Identity with proper options
+		// Configure Identity with proper options for cookie authentication
+		// This is separate from the Infrastructure Identity configuration
 		builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 		{
-			// Password settings
+			// Configure password requirements (if needed)
 			options.Password.RequireDigit = true;
 			options.Password.RequireLowercase = true;
-			options.Password.RequireNonAlphanumeric = false;
-			options.Password.RequireUppercase = false;
-			options.Password.RequiredLength = 6;
-			options.Password.RequiredUniqueChars = 1;
+			options.Password.RequireNonAlphanumeric = true;
+			options.Password.RequireUppercase = true;
+			options.Password.RequiredLength = 8;
+			options.Password.RequiredUniqueChars = 3;
 
-			// Lockout settings
-			options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+			// Configure lockout settings
+			options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 			options.Lockout.MaxFailedAccessAttempts = 5;
-			options.Lockout.AllowedForNewUsers = true;
 
-			// User settings
+			// Configure user settings
 			options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-			options.User.RequireUniqueEmail = true;
 
-			// Sign in settings
-			options.SignIn.RequireConfirmedEmail = false; // Set to true in production
-			options.SignIn.RequireConfirmedPhoneNumber = false;
+			// Configure sign-in settings
+			options.SignIn.RequireConfirmedAccount = true;
+			options.SignIn.RequireConfirmedEmail = true;
 		})
 		.AddEntityFrameworkStores<ApplicationDbContext>()
 		.AddDefaultTokenProviders();
@@ -192,7 +188,7 @@ public class Program
 
 		app.MapControllerRoute(
 			name: "default",
-			pattern: "{controller=Auth}/{action=Login}/{id?}");
+			pattern: "{controller=Home}/{action=Index}/{id?}");
 
 		app.Run();
 	}

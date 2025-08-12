@@ -79,8 +79,28 @@ public class JobService
 	{
 		try
 		{
-			// This will call GET /api/Jobs/my-jobs
-			var response = await _httpClient.GetAsync("Jobs/my-jobs");
+			// Check if user is a client or freelancer
+			var isClient = _httpContext?.User?.IsInRole("Client") ?? false;
+			var isFreelancer = _httpContext?.User?.IsInRole("Freelancer") ?? false;
+
+			string endpoint;
+			if (isClient)
+			{
+				// This will call GET /api/Jobs/my-jobs for clients
+				endpoint = "Jobs/my-jobs";
+			}
+			else if (isFreelancer)
+			{
+				// This will call GET /api/Jobs/my-freelancer-jobs for freelancers
+				endpoint = "Jobs/my-freelancer-jobs";
+			}
+			else
+			{
+				_logger.LogWarning("User is neither client nor freelancer");
+				return null;
+			}
+
+			var response = await _httpClient.GetAsync(endpoint);
 
 			if (response.IsSuccessStatusCode)
 			{

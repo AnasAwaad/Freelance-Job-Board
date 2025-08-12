@@ -14,7 +14,7 @@ using IEmailSender = Microsoft.AspNetCore.Identity.UI.Services.IEmailSender;
 namespace FreelanceJobBoard.Infrastructure.Extensions;
 public static class ServiceCollectionExtensions
 {
-	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+	public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool configureIdentity = true)
 	{
 		var connectionString = configuration.GetConnectionString("DefaultConnection")
 			?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
@@ -26,15 +26,21 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<ICurrentUserService, CurrentUserService>();
 		services.AddScoped<IEmailSender, EmailSender>();
 		services.AddScoped<IEmailService, EmailService>();
+		services.AddScoped<IAuthService, AuthService>();
+		services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 		services.AddScoped<INotificationService, NotificationService>();
 
 		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 		services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 
-		services.AddIdentity<ApplicationUser, IdentityRole>()
-		.AddEntityFrameworkStores<ApplicationDbContext>()
-		.AddDefaultTokenProviders();
+		// Only configure Identity if requested (API layer needs it, Presentation configures its own)
+		if (configureIdentity)
+		{
+			services.AddIdentity<ApplicationUser, IdentityRole>()
+			.AddEntityFrameworkStores<ApplicationDbContext>()
+			.AddDefaultTokenProviders();
+		}
 
 		return services;
 	}

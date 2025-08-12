@@ -13,5 +13,5 @@ public class JobDetailsDto
 	public DateTime CreatedOn { get; set; }
 	public ClientDto Client { get; set; }
 	public List<ProposalDto> Proposals { get; set; }
-	public ReviewDto? Review { get; set; }
+	public List<ReviewDto> Reviews { get; set; } = new();
 }

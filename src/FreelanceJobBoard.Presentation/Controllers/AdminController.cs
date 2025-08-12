@@ -27,6 +27,45 @@ public class AdminController : Controller
     }
 
     [HttpPost]
+    [AllowAnonymous] // For emergency fix
+    public async Task<IActionResult> SeedNotificationTemplate()
+    {
+        try
+        {
+            // Check if notification template already exists
+            var existingTemplate = await _context.NotificationTemplates.FirstOrDefaultAsync();
+            if (existingTemplate != null)
+            {
+                return Json(new { success = true, message = "Notification template already exists", templateId = existingTemplate.Id });
+            }
+
+            // Create default notification template
+            var notificationTemplate = new NotificationTemplate
+            {
+                TemplateName = "General",
+                TemplateTitle = "General Notification",
+                TemplateMessage = "General notification message",
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow
+            };
+
+            _context.NotificationTemplates.Add(notificationTemplate);
+            await _context.SaveChangesAsync();
+
+            return Json(new { 
+                success = true, 
+                message = "Default notification template created successfully",
+                templateId = notificationTemplate.Id
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating notification template");
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost]
     [AllowAnonymous] // For testing purposes only  
     public async Task<IActionResult> CreateTestProposalAttachments()
     {
@@ -450,6 +489,12 @@ public class AdminController : Controller
             }
             catch { tables["ProposalAttachments"] = false; }
 
+            try
+            {
+                tables["NotificationTemplates"] = await _context.Database.ExecuteSqlRawAsync("SELECT TOP 1 1 FROM NotificationTemplates") > -1;
+            }
+            catch { tables["NotificationTemplates"] = false; }
+
             diagnostics["Tables"] = tables;
 
             // Get data counts
@@ -496,6 +541,12 @@ public class AdminController : Controller
                 counts["Attachments"] = await _context.Attachments.CountAsync();
             }
             catch { counts["Attachments"] = -1; }
+
+            try
+            {
+                counts["NotificationTemplates"] = await _context.NotificationTemplates.CountAsync();
+            }
+            catch { counts["NotificationTemplates"] = -1; }
 
             diagnostics["Counts"] = counts;
 

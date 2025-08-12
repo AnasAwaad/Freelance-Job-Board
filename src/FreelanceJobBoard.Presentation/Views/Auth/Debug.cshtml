@@ -1,0 +1,150 @@
+@{
+    ViewData["Title"] = "JWT Debug";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">JWT Token Debug Information</h3>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            @ViewBag.Error
+                        </div>
+                    }
+                    else if (ViewBag.TokenInfo != null)
+                    {
+                        var tokenInfo = ViewBag.TokenInfo;
+                        
+                        <div class="row g-6">
+                            <div class="col-lg-6">
+                                <div class="card border border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title mb-0">Token Header</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; font-size: 12px;">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(tokenInfo.Header, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }))</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="card border border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="card-title mb-0">Token Info</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Valid From:</strong></td>
+                                                <td><code>@tokenInfo.ValidFrom</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Valid To:</strong></td>
+                                                <td><code>@tokenInfo.ValidTo</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Is Expired:</strong></td>
+                                                <td>
+                                                    <span class="badge @(DateTime.UtcNow > tokenInfo.ValidTo ? "badge-danger" : "badge-success")">
+                                                        @(DateTime.UtcNow > tokenInfo.ValidTo ? "Yes" : "No")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="card border border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="card-title mb-0">Token Claims</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (tokenInfo.Payload != null && tokenInfo.Payload.Count > 0)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Claim Type</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var claim in tokenInfo.Payload)
+                                                    {
+                                                        <tr class="@(claim.Type.Contains("nameidentifier") || claim.Type == "sub" || claim.Type == "userId" ? "table-info" : "")">
+                                                            <td><code>@claim.Type</code></td>
+                                                            <td><code>@claim.Value</code></td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            No claims found in the token.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="card border border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="card-title mb-0">Raw Token</h5>
+                                </div>
+                                <div class="card-body">
+                                    <textarea class="form-control" rows="4" readonly style="font-family: monospace; font-size: 11px;">@tokenInfo.RawToken</textarea>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-secondary" onclick="copyToClipboard('@tokenInfo.RawToken')">
+                                            <i class="fas fa-copy"></i> Copy Token
+                                        </button>
+                                        <a href="https://jwt.io/" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-external-link-alt"></i> Decode on JWT.io
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            No token information available.
+                        </div>
+                    }
+                    
+                    <div class="mt-6 text-center">
+                        <a asp-action="Login" class="btn btn-secondary">Back to Login</a>
+                        <a asp-controller="Reviews" asp-action="Debug" class="btn btn-info">Review Debug</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Token copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>

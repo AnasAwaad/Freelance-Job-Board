@@ -155,6 +155,50 @@
 					}
 					<!--end:Menu item-->
 
+					<!--begin:Menu item - Reviews-->
+					@if (User.IsInRole(AppRoles.Client) || User.IsInRole(AppRoles.Freelancer))
+					{
+						<div class="menu-item menu-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reviews" ? "here show" : "")" >
+							<!--begin:Menu link-->
+							<span class="menu-link" role="button" tabindex="0">
+								<span class="menu-icon">
+									<i class="ki-duotone ki-star fs-2">
+										<span class="path1"></span>
+										<span class="path2"></span>
+									</i>
+								</span>
+								<span class="menu-title">Reviews</span>
+								<span class="menu-arrow"></span>
+							</span>
+							<!--end:Menu link-->
+							<!--begin:Menu sub-->
+							<div class="menu-sub menu-sub-accordion @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Reviews" ? "show" : "")">
+								<!--begin:Menu item-->
+								<div class="menu-item">
+									<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "Pending" ? "active" : "")" asp-controller="Reviews" asp-action="Pending">
+										<span class="menu-bullet">
+											<span class="bullet bullet-dot"></span>
+										</span>
+										<span class="menu-title">Pending Reviews</span>
+									</a>
+								</div>
+								<!--end:Menu item-->
+								<!--begin:Menu item-->
+								<div class="menu-item">
+									<a class="menu-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "MyReviews" ? "active" : "")" asp-controller="Reviews" asp-action="MyReviews">
+										<span class="menu-bullet">
+											<span class="bullet bullet-dot"></span>
+										</span>
+										<span class="menu-title">My Reviews</span>
+									</a>
+								</div>
+								<!--end:Menu item-->
+							</div>
+							<!--end:Menu sub-->
+						</div>
+					}
+					<!--end:Menu item-->
+
 					<!--begin:Menu item - Categories-->
 					<div class="menu-item">
 						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categories" ? "active" : "")" asp-controller="Categories" asp-action="Index">

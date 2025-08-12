@@ -32,8 +32,8 @@ internal class NotificationService : INotificationService
                 UserId = userId,
                 Title = title,
                 Message = message,
-                TemplateId = templateId ?? 1, 
-                NotificationTemplateId = templateId ?? 1,
+                TemplateId = templateId ?? 1, // Use 1 as default (will be created by migration)
+                NotificationTemplateId = templateId ?? 1, // Use 1 as default (will be created by migration)
                 IsRead = false,
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow
@@ -42,12 +42,13 @@ internal class NotificationService : INotificationService
             await _unitOfWork.Notifications.CreateAsync(notification);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Notification created for user {UserId}", userId);
+            _logger.LogInformation("Notification created for user {UserId}: {Title}", userId, title);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create notification for user {UserId}", userId);
-            throw;
+            // Don't throw here to prevent blocking the calling functionality
+            // The notification system should be secondary to the main business logic
         }
     }
 
@@ -85,7 +86,7 @@ internal class NotificationService : INotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send job status change notifications for job {JobId}", jobId);
-            throw;
+            // Don't throw here to prevent blocking the main job status change functionality
         }
     }
 
@@ -118,7 +119,7 @@ internal class NotificationService : INotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send new proposal notifications for job {JobId}, proposal {ProposalId}", jobId, proposalId);
-            throw;
+            // Don't throw here to prevent blocking the proposal creation functionality
         }
     }
 
@@ -151,7 +152,7 @@ internal class NotificationService : INotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send job approval notifications for job {JobId}", jobId);
-            throw;
+            // Don't throw here to prevent blocking the job approval functionality
         }
     }
 
@@ -201,7 +202,87 @@ internal class NotificationService : INotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send job submission notifications for job {JobId}", jobId);
-            throw;
+            // Don't throw here to prevent blocking the job submission functionality
+        }
+    }
+
+    // Additional helper methods for enhanced notification functionality
+
+    public async Task NotifyReviewReceivedAsync(int reviewId, string revieweeId, string reviewerName, string jobTitle, int rating)
+    {
+        try
+        {
+            var title = $"New Review Received: {jobTitle}";
+            var message = $"You received a {rating}-star review from {reviewerName} for your work on \"{jobTitle}\". " +
+                         "This review will help build your reputation on the platform!";
+
+            await CreateNotificationAsync(revieweeId, title, message);
+
+            _logger.LogInformation("Review notification sent for review {ReviewId} to user {RevieweeId}", reviewId, revieweeId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send review notification for review {ReviewId}", reviewId);
+        }
+    }
+
+    public async Task NotifyContractStatusChangeAsync(int contractId, string newStatus, string userId, string counterpartyName)
+    {
+        try
+        {
+            var title = $"Contract Status Updated: {newStatus}";
+            var message = $"Your contract with {counterpartyName} has been updated to \"{newStatus}\".";
+
+            await CreateNotificationAsync(userId, title, message);
+
+            _logger.LogInformation("Contract status notification sent for contract {ContractId} to user {UserId}", contractId, userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send contract status notification for contract {ContractId}", contractId);
+        }
+    }
+
+    public async Task NotifyJobCompletedAsync(int jobId, string clientId, string freelancerId, string jobTitle)
+    {
+        try
+        {
+            // Notify client
+            await CreateNotificationAsync(
+                clientId,
+                $"Job Completed: {jobTitle}",
+                $"Your job \"{jobTitle}\" has been marked as completed. You can now leave a review for the freelancer."
+            );
+
+            // Notify freelancer
+            await CreateNotificationAsync(
+                freelancerId,
+                $"Job Completed: {jobTitle}",
+                $"The job \"{jobTitle}\" has been completed successfully. You can now leave a review for the client."
+            );
+
+            _logger.LogInformation("Job completion notifications sent for job {JobId}", jobId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send job completion notifications for job {JobId}", jobId);
+        }
+    }
+
+    public async Task NotifyPaymentReceivedAsync(string userId, decimal amount, string jobTitle)
+    {
+        try
+        {
+            var title = "Payment Received";
+            var message = $"You have received a payment of ${amount:N2} for the job \"{jobTitle}\".";
+
+            await CreateNotificationAsync(userId, title, message);
+
+            _logger.LogInformation("Payment notification sent to user {UserId} for amount {Amount}", userId, amount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send payment notification to user {UserId}", userId);
         }
     }
 }

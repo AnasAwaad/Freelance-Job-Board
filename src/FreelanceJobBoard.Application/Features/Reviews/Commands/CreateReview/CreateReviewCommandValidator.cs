@@ -30,6 +30,26 @@ public class CreateReviewCommandValidator : AbstractValidator<CreateReviewComman
             .WithMessage("Review type is required.")
             .Must(BeValidReviewType)
             .WithMessage("Invalid review type. Valid types are: ClientToFreelancer, FreelancerToClient.");
+
+        RuleFor(x => x.CommunicationRating)
+            .InclusiveBetween(1, 5)
+            .When(x => x.CommunicationRating.HasValue)
+            .WithMessage("Communication rating must be between 1 and 5 stars.");
+
+        RuleFor(x => x.QualityRating)
+            .InclusiveBetween(1, 5)
+            .When(x => x.QualityRating.HasValue)
+            .WithMessage("Quality rating must be between 1 and 5 stars.");
+
+        RuleFor(x => x.TimelinessRating)
+            .InclusiveBetween(1, 5)
+            .When(x => x.TimelinessRating.HasValue)
+            .WithMessage("Timeliness rating must be between 1 and 5 stars.");
+
+        RuleFor(x => x.Tags)
+            .MaximumLength(200)
+            .When(x => !string.IsNullOrEmpty(x.Tags))
+            .WithMessage("Tags must not exceed 200 characters.");
     }
 
     private static bool BeValidReviewType(string reviewType)

@@ -35,14 +35,15 @@ public static class ContractChangeRequestStatus
 	public const string Expired = "Expired";
 }
 
+public static class ReviewType
+{
+	public const string ClientToFreelancer = "ClientToFreelancer";
+	public const string FreelancerToClient = "FreelancerToClient";
+}
+
 public static class UserRole
 {
 	public const string Client = "Client";
 	public const string Freelancer = "Freelancer";
 }
 
-public static class ReviewType
-{
-	public const string ClientToFreelancer = "ClientToFreelancer";
-	public const string FreelancerToClient = "FreelancerToClient";
-}

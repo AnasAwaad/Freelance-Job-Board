@@ -15,17 +15,23 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, i
     private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
     private readonly ILogger<CreateReviewCommandHandler> _logger;
+    private readonly IEmailService _emailService;
+    private readonly INotificationService _notificationService;
 
     public CreateReviewCommandHandler(
         IUnitOfWork unitOfWork,
         ICurrentUserService currentUserService,
         IMapper mapper,
-        ILogger<CreateReviewCommandHandler> logger)
+        ILogger<CreateReviewCommandHandler> logger,
+        IEmailService emailService,
+        INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _mapper = mapper;
         _logger = logger;
+        _emailService = emailService;
+        _notificationService = notificationService;
     }
 
     public async Task<int> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -57,6 +63,11 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, i
             Comment = request.Comment,
             ReviewType = request.ReviewType,
             IsVisible = request.IsVisible,
+            CommunicationRating = request.CommunicationRating,
+            QualityRating = request.QualityRating,
+            TimelinessRating = request.TimelinessRating,
+            WouldRecommend = request.WouldRecommend,
+            Tags = request.Tags,
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
@@ -65,6 +76,17 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, i
         await _unitOfWork.SaveChangesAsync();
 
         await UpdateAverageRating(request.RevieweeId);
+
+        //await SendReviewNotification(review, job);
+
+        var reviewerName = await GetReviewerName(currentUserId);
+        //await _notificationService.NotifyReviewReceivedAsync(
+        //    review.Id, 
+        //    request.RevieweeId, 
+        //    reviewerName, 
+        //    job.Title ?? "Unknown Job", 
+        //    request.Rating
+        //);
 
         _logger.LogInformation("Review created successfully. ReviewId: {ReviewId}, JobId: {JobId}, ReviewerId: {ReviewerId}",
             review.Id, request.JobId, currentUserId);
@@ -125,5 +147,81 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, i
         }
 
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    //private async Task SendReviewNotification(Review review, Job job)
+    //{
+    //    try
+    //    {
+    //        // Get reviewer information
+    //        var reviewer = await GetUserDetails(review.ReviewerId);
+    //        var reviewee = await GetUserDetails(review.RevieweeId);
+
+    //        if (reviewee?.Email == null)
+    //        {
+    //            _logger.LogWarning("Cannot send review notification - reviewee email not found for user {RevieweeId}", review.RevieweeId);
+    //            return;
+    //        }
+
+    //        // Generate star rating display for email
+    //        var starRating = new string('?', review.Rating) + new string('?', 5 - review.Rating);
+
+    //        var emailData = new
+    //        {
+    //            RevieweeName = reviewee.FullName ?? "User",
+    //            JobTitle = job.Title ?? "Unknown Job",
+    //            StarRating = starRating,
+    //            Rating = review.Rating,
+    //            ReviewerName = reviewer?.FullName ?? "Anonymous",
+    //            Comment = review.Comment ?? "No comment provided"
+    //        };
+
+    //        await _emailService.SendTemplateEmailAsync(
+    //            reviewee.Email,
+    //            "ReviewNotification",
+    //            emailData);
+
+    //        _logger.LogInformation("Review notification email sent to {RevieweeEmail} for review {ReviewId}", 
+    //            reviewee.Email, review.Id);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Failed to send review notification email for review {ReviewId}", review.Id);
+    //        // Don't throw here to avoid breaking the review creation process
+    //    }
+    //}
+
+    private async Task<Domain.Identity.ApplicationUser?> GetUserDetails(string userId)
+    {
+        try
+        {
+            // Try to get user details from client first
+            var client = await _unitOfWork.Clients.GetByUserIdWithDetailsAsync(userId);
+            if (client?.User != null)
+            {
+                return client.User;
+            }
+
+            // If not found in clients, try freelancers
+            var freelancer = await _unitOfWork.Freelancers.GetByUserIdWithDetailsAsync(userId);
+            if (freelancer?.User != null)
+            {
+                return freelancer.User;
+            }
+
+            _logger.LogWarning("User details not found for userId {UserId}", userId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user details for userId {UserId}", userId);
+            return null;
+        }
+    }
+
+    private async Task<string> GetReviewerName(string userId)
+    {
+        var user = await GetUserDetails(userId);
+        return user?.FullName ?? "Anonymous User";
     }
 }

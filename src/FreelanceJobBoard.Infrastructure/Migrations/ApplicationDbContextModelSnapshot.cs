@@ -540,6 +540,9 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -913,6 +916,12 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int?>("CommunicationRating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
@@ -927,6 +936,9 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Property<DateTime?>("LastUpdatedOn")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("QualityRating")
+                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -944,10 +956,18 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Tags")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TimelinessRating")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("WouldRecommend")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("JobId")
-                        .IsUnique();
+                    b.HasIndex("JobId");
 
                     b.HasIndex("RevieweeId");
 
@@ -1524,8 +1544,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
             modelBuilder.Entity("FreelanceJobBoard.Domain.Entities.Review", b =>
                 {
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Job", "Job")
-                        .WithOne("Review")
-                        .HasForeignKey("FreelanceJobBoard.Domain.Entities.Review", "JobId")
+                        .WithMany("Reviews")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1666,8 +1686,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
 
                     b.Navigation("Proposals");
 
-                    b.Navigation("Review")
-                        .IsRequired();
+                    b.Navigation("Reviews");
 
                     b.Navigation("Skills");
 

@@ -1,0 +1,468 @@
+﻿@model FreelanceJobBoard.Presentation.Models.ViewModels.QuickReviewViewModel
+
+<div class="modal-header">
+    <h3 class="modal-title">
+        <span style="color: #ffc107; font-size: 1.5rem;">★</span>
+        Quick Review
+    </h3>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="quickReviewForm" asp-action="SubmitQuickReview" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="JobId" />
+    <input type="hidden" asp-for="RevieweeId" />
+    <input type="hidden" asp-for="ReviewType" />
+    
+    <div class="modal-body">
+        <!-- Job Information -->
+        <div class="mb-6">
+            <div class="d-flex align-items-center mb-3">
+                <div class="symbol symbol-50px me-3">
+                    <div class="symbol-label bg-light-primary">
+                        <i class="ki-duotone ki-briefcase fs-2 text-primary">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="mb-1">@Model.JobTitle</h5>
+                    <p class="text-muted mb-0">Review for: <strong>@Model.RevieweeName</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Section -->
+        <div class="mb-6">
+            <label class="form-label fs-6 fw-bold required">Your Rating</label>
+            <div class="rating-container mb-3">
+                <div class="star-rating star-rating-lg" data-rating="@Model.Rating" data-target="Rating">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star @(i <= Model.Rating ? "filled" : "")" data-value="@i">★</span>
+                    }
+                </div>
+                <input type="hidden" asp-for="Rating" class="rating-value" />
+                <div class="rating-feedback mt-2">
+                    <span class="feedback-text text-muted fs-7"></span>
+                </div>
+            </div>
+            <span asp-validation-for="Rating" class="text-danger"></span>
+        </div>
+
+        <!-- Comment Section with Live Character Counter -->
+        <div class="mb-6">
+            <label class="form-label fs-6 fw-bold required">Your Review</label>
+            <textarea asp-for="Comment" 
+                      id="quickReviewComment"
+                      class="form-control" 
+                      rows="4" 
+                      placeholder="Share your experience working with @Model.RevieweeName. What went well?"
+                      maxlength="500"></textarea>
+            <span asp-validation-for="Comment" class="text-danger"></span>
+            <div class="form-text d-flex justify-content-between align-items-center">
+                <div>
+                    <span id="commentCounter" class="fw-bold">0</span><span class="text-muted">/500 characters</span>
+                    <span class="text-muted ms-3">• Minimum 10 characters required</span>
+                </div>
+                <div id="commentStatus" class="text-muted fs-7"></div>
+            </div>
+        </div>
+
+        <!-- Visibility Option -->
+        <div class="mb-4">
+            <div class="form-check form-check-custom form-check-solid">
+                <input asp-for="IsVisible" class="form-check-input" type="checkbox" checked />
+                <label class="form-check-label fs-6 fw-bold" asp-for="IsVisible">
+                    Make this review public
+                </label>
+                <div class="form-text">Public reviews help build trust in our community</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="quickSubmitBtn">
+            <span style="color: white;">★</span>
+            <span class="indicator-label">Submit Review</span>
+            <span class="indicator-progress">Please wait...
+                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+            </span>
+        </button>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Quick Review Modal initialized');
+    
+    // Rating feedback messages
+    const ratingMessages = {
+        0: "Please select a rating",
+        1: "Poor - Did not meet expectations",
+        2: "Fair - Met some expectations",
+        3: "Good - Met expectations",
+        4: "Very Good - Exceeded expectations",
+        5: "Excellent - Far exceeded expectations"
+    };
+
+    // Initialize star ratings
+    document.querySelectorAll('.star-rating').forEach(function(ratingContainer) {
+        const stars = ratingContainer.querySelectorAll('.star');
+        const target = ratingContainer.getAttribute('data-target');
+        const hiddenInput = document.querySelector(`input[name="${target}"]`);
+        const feedbackElement = ratingContainer.parentElement.querySelector('.feedback-text');
+        
+        let currentRating = parseInt(ratingContainer.getAttribute('data-rating')) || 0;
+        
+        console.log('Initializing star rating with initial rating:', currentRating);
+        
+        // Set initial display
+        updateStarDisplay(stars, currentRating);
+        updateFeedback(feedbackElement, currentRating);
+        
+        // Set the hidden input value to match the initial rating
+        if (hiddenInput && currentRating > 0) {
+            hiddenInput.value = currentRating;
+            console.log('Set hidden input value to:', currentRating);
+        }
+        
+        // Add click handlers
+        stars.forEach(function(star) {
+            const value = parseInt(star.getAttribute('data-value'));
+            
+            star.addEventListener('click', function(e) {
+                e.preventDefault();
+                currentRating = value;
+                ratingContainer.setAttribute('data-rating', value);
+                
+                if (hiddenInput) {
+                    hiddenInput.value = value;
+                    console.log('Updated rating to:', value);
+                }
+                
+                updateStarDisplay(stars, value);
+                updateFeedback(feedbackElement, value);
+                
+                // Visual feedback
+                star.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    star.style.transform = '';
+                }, 150);
+            });
+            
+            // Hover effects
+            star.addEventListener('mouseenter', function() {
+                updateStarDisplay(stars, value, true);
+            });
+            
+            ratingContainer.addEventListener('mouseleave', function() {
+                updateStarDisplay(stars, currentRating);
+            });
+        });
+    });
+
+    // Character counter with live updates
+    const commentTextarea = document.getElementById('quickReviewComment');
+    const commentCounter = document.getElementById('commentCounter');
+    const commentStatus = document.getElementById('commentStatus');
+    
+    if (commentTextarea && commentCounter) {
+        function updateCharacterCount() {
+            const length = commentTextarea.value.length;
+            const maxLength = 500;
+            const minLength = 10;
+            
+            // Update counter
+            commentCounter.textContent = length;
+            
+            // Update counter color and status
+            if (length < minLength) {
+                commentCounter.className = 'fw-bold text-danger';
+                commentStatus.textContent = `Need ${minLength - length} more characters`;
+                commentStatus.className = 'text-danger fs-7';
+            } else if (length > maxLength - 50) {
+                commentCounter.className = 'fw-bold text-warning';
+                commentStatus.textContent = `${maxLength - length} characters remaining`;
+                commentStatus.className = 'text-warning fs-7';
+            } else {
+                commentCounter.className = 'fw-bold text-success';
+                commentStatus.textContent = 'Good length';
+                commentStatus.className = 'text-success fs-7';
+            }
+            
+            // Prevent exceeding max length
+            if (length > maxLength) {
+                commentTextarea.value = commentTextarea.value.substring(0, maxLength);
+                updateCharacterCount(); // Recursive call to update display
+            }
+        }
+        
+        // Initialize counter
+        updateCharacterCount();
+        
+        // Update counter on input
+        commentTextarea.addEventListener('input', updateCharacterCount);
+        commentTextarea.addEventListener('paste', function() {
+            setTimeout(updateCharacterCount, 10); // Small delay for paste
+        });
+    }
+
+    // Function to update star display
+    function updateStarDisplay(stars, rating, isHover = false) {
+        console.log('Updating star display for rating:', rating);
+        stars.forEach(function(star) {
+            const starValue = parseInt(star.getAttribute('data-value'));
+            
+            if (starValue <= rating) {
+                star.classList.add('filled');
+                star.style.color = '#ffc107';
+                if (isHover) {
+                    star.style.transform = 'scale(1.1)';
+                    star.style.textShadow = '0 0 10px rgba(255, 193, 7, 0.8)';
+                } else {
+                    star.style.textShadow = '0 0 5px rgba(255, 193, 7, 0.3)';
+                }
+            } else {
+                star.classList.remove('filled');
+                star.style.color = '#e4e6ef';
+                star.style.transform = '';
+                star.style.textShadow = '';
+            }
+        });
+    }
+    
+    // Function to update feedback text
+    function updateFeedback(feedbackElement, rating) {
+        if (feedbackElement) {
+            feedbackElement.textContent = ratingMessages[rating] || ratingMessages[0];
+            
+            // Update color based on rating
+            if (rating >= 4) {
+                feedbackElement.className = 'feedback-text text-success fs-7';
+            } else if (rating >= 3) {
+                feedbackElement.className = 'feedback-text text-warning fs-7';
+            } else if (rating >= 1) {
+                feedbackElement.className = 'feedback-text text-danger fs-7';
+            } else {
+                feedbackElement.className = 'feedback-text text-muted fs-7';
+            }
+        }
+    }
+
+    // Enhanced form validation and submission
+    const quickForm = document.getElementById('quickReviewForm');
+    const submitBtn = document.getElementById('quickSubmitBtn');
+    
+    if (quickForm && submitBtn) {
+        quickForm.addEventListener('submit', function(e) {
+            console.log('Form submission started');
+            
+            // Get all form data for debugging
+            const formData = new FormData(this);
+            console.log('Form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+            
+            // Validate rating
+            const ratingInput = this.querySelector('input[name="Rating"]');
+            const rating = parseInt(ratingInput?.value) || 0;
+            
+            console.log('Rating validation - Value:', rating);
+            
+            if (rating < 1) {
+                e.preventDefault();
+                showError('Please select a rating before submitting your review.');
+                // Highlight rating section
+                const ratingContainer = this.querySelector('.star-rating');
+                if (ratingContainer) {
+                    highlightElement(ratingContainer);
+                }
+                return;
+            }
+            
+            // Validate comment
+            const commentInput = this.querySelector('textarea[name="Comment"]');
+            const comment = commentInput?.value?.trim() || '';
+            
+            console.log('Comment validation - Length:', comment.length, 'Content:', comment);
+            
+            if (comment.length < 10) {
+                e.preventDefault();
+                showError('Please provide a comment with at least 10 characters.');
+                commentInput?.focus();
+                highlightElement(commentInput);
+                return;
+            }
+            
+            if (comment.length > 500) {
+                e.preventDefault();
+                showError('Comment must not exceed 500 characters.');
+                commentInput?.focus();
+                highlightElement(commentInput);
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.setAttribute('data-kt-indicator', 'on');
+            submitBtn.disabled = true;
+            
+            // Form will submit normally to the server which will redirect
+            console.log('Form validation passed, submitting to:', this.action);
+        });
+    }
+    
+    // Helper functions
+    function showError(message) {
+        if (typeof toastr !== 'undefined') {
+            toastr.error(message);
+        } else {
+            alert(message);
+        }
+    }
+    
+    function showSuccess(message) {
+        if (typeof toastr !== 'undefined') {
+            toastr.success(message);
+        } else {
+            alert(message);
+        }
+    }
+    
+    function highlightElement(element) {
+        if (element) {
+            element.style.border = '2px solid #dc3545';
+            element.style.borderRadius = '4px';
+            
+            setTimeout(() => {
+                element.style.border = '';
+                element.style.borderRadius = '';
+            }, 3000);
+        }
+    }
+    
+    console.log('Quick Review Modal setup complete');
+});
+
+// Global function to update rating from parent page
+window.setModalRating = function(rating) {
+    console.log('Setting modal rating to:', rating);
+    
+    const ratingContainer = document.querySelector('.star-rating');
+    const hiddenInput = document.querySelector('input[name="Rating"]');
+    const stars = document.querySelectorAll('.star');
+    const feedbackElement = document.querySelector('.feedback-text');
+    
+    if (ratingContainer && hiddenInput && stars.length > 0) {
+        ratingContainer.setAttribute('data-rating', rating);
+        hiddenInput.value = rating;
+        
+        // Update star display
+        stars.forEach(function(star) {
+            const starValue = parseInt(star.getAttribute('data-value'));
+            
+            if (starValue <= rating) {
+                star.classList.add('filled');
+                star.style.color = '#ffc107';
+                star.style.textShadow = '0 0 5px rgba(255, 193, 7, 0.3)';
+            } else {
+                star.classList.remove('filled');
+                star.style.color = '#e4e6ef';
+                star.style.textShadow = '';
+            }
+        });
+        
+        // Update feedback
+        const ratingMessages = {
+            1: "Poor - Did not meet expectations",
+            2: "Fair - Met some expectations",
+            3: "Good - Met expectations",
+            4: "Very Good - Exceeded expectations",
+            5: "Excellent - Far exceeded expectations"
+        };
+        
+        if (feedbackElement) {
+            feedbackElement.textContent = ratingMessages[rating] || "";
+            feedbackElement.className = `feedback-text ${rating >= 4 ? 'text-success' : rating >= 3 ? 'text-warning' : 'text-danger'} fs-7`;
+        }
+        
+        console.log('Modal rating updated successfully');
+    } else {
+        console.error('Could not find rating elements in modal');
+    }
+};
+</script>
+
+<style>
+    /* Enhanced star rating styles */
+    .star-rating {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .star-rating-lg .star {
+        font-size: 2.5rem;
+    }
+    
+    .star {
+        font-size: 2rem;
+        color: #e4e6ef;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+        font-family: Arial, sans-serif;
+    }
+    
+    .star:hover {
+        transform: scale(1.1);
+    }
+    
+    .star.filled {
+        color: #ffc107 !important;
+        text-shadow: 0 0 5px rgba(255, 193, 7, 0.3);
+    }
+    
+    .rating-container {
+        margin-bottom: 1rem;
+    }
+    
+    .feedback-text {
+        font-weight: 500;
+        min-height: 20px;
+    }
+    
+    /* Character counter styling */
+    #commentCounter {
+        font-size: 0.9rem;
+    }
+    
+    #commentStatus {
+        font-style: italic;
+    }
+    
+    /* Form validation highlights */
+    .form-control:invalid {
+        border-color: #dc3545;
+    }
+    
+    .form-control:valid {
+        border-color: #28a745;
+    }
+    
+    /* Loading state */
+    .btn[data-kt-indicator="on"] .indicator-label {
+        display: none;
+    }
+    
+    .btn[data-kt-indicator="on"] .indicator-progress {
+        display: inline-flex;
+    }
+    
+    .indicator-progress {
+        display: none;
+    }
+</style>

@@ -1,0 +1,162 @@
+@{
+    ViewData["Title"] = "Authentication Test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Authentication Test Results</h3>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.DebugInfo != null)
+                    {
+                        var debugInfo = ViewBag.DebugInfo;
+                        
+                        <div class="alert @(debugInfo.IsAuthenticated ? "alert-success" : "alert-warning")">
+                            <h5><i class="fas @(debugInfo.IsAuthenticated ? "fa-check-circle" : "fa-exclamation-triangle")"></i> 
+                            Authentication Status: @(debugInfo.IsAuthenticated ? "Authenticated" : "Not Authenticated")</h5>
+                        </div>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">Identity Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Is Authenticated:</strong></td>
+                                                <td><span class="badge @(debugInfo.IsAuthenticated ? "badge-success" : "badge-danger")">@debugInfo.IsAuthenticated</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Authentication Type:</strong></td>
+                                                <td><code>@(debugInfo.AuthenticationType ?? "None")</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Name:</strong></td>
+                                                <td><code>@(debugInfo.Name ?? "None")</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Has JWT Token:</strong></td>
+                                                <td><span class="badge @(debugInfo.HasJwt ? "badge-success" : "badge-warning")">@debugInfo.HasJwt</span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border border-secondary">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h6 class="mb-0">Quick Actions</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            @if (!debugInfo.IsAuthenticated)
+                                            {
+                                                <a asp-action="Login" class="btn btn-primary">
+                                                    <i class="fas fa-sign-in-alt"></i> Login
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-controller="Reviews" asp-action="Debug" class="btn btn-info">
+                                                    <i class="fas fa-bug"></i> Review System Debug
+                                                </a>
+                                                <a asp-controller="Reviews" asp-action="Pending" class="btn btn-warning">
+                                                    <i class="fas fa-clock"></i> Test Pending Reviews
+                                                </a>
+                                                <form asp-action="Logout" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-danger w-100">
+                                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if (debugInfo.Claims != null && debugInfo.Claims.Count > 0)
+                        {
+                            <div class="mt-4">
+                                <div class="card border border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">User Claims (@debugInfo.Claims.Count)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Claim Type</th>
+                                                        <th>Value</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var claim in debugInfo.Claims)
+                                                    {
+                                                        var isImportant = claim.Type.Contains("nameidentifier") || 
+                                                                         claim.Type == "sub" || 
+                                                                         claim.Type == "userId" ||
+                                                                         claim.Type.Contains("email") ||
+                                                                         claim.Type.Contains("role");
+                                                        <tr class="@(isImportant ? "table-warning" : "")">
+                                                            <td><code>@claim.Type</code></td>
+                                                            <td><code>@claim.Value</code></td>
+                                                            <td>
+                                                                @if (isImportant)
+                                                                {
+                                                                    <span class="badge badge-warning">Important</span>
+                                                                }
+                                                                @if (claim.Type.Contains("nameidentifier"))
+                                                                {
+                                                                    <span class="badge badge-success">User ID</span>
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mt-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    No claims found. @(debugInfo.IsAuthenticated ? "This might indicate an authentication issue." : "Please log in to see user claims.")
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No debug information available.
+                        </div>
+                    }
+                </div>
+                
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        Use this page to test and debug authentication issues. 
+                        <a asp-action="JwtDebug">View JWT Details</a> | 
+                        <a asp-controller="Home" asp-action="Index">Back to Dashboard</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

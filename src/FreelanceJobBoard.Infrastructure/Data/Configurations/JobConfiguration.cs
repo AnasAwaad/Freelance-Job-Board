@@ -63,9 +63,9 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
 			   .HasForeignKey(p => p.JobId)
 			   .OnDelete(DeleteBehavior.Restrict);
 
-		builder.HasOne(j => j.Review)
+		builder.HasMany(j => j.Reviews)
 			   .WithOne(r => r.Job)
-			   .HasForeignKey<Review>(r => r.JobId)
+			   .HasForeignKey(r => r.JobId)
 			   .OnDelete(DeleteBehavior.Restrict);
 	}
 }
