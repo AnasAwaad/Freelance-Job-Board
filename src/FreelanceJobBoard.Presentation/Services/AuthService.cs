@@ -13,7 +13,7 @@ public class AuthService
 	private readonly IEmailService _emailService;
 	private readonly IHttpContextAccessor _httpContextAccessor;
 
-	public AuthService(HttpClient httpClient, IWebHostEnvironment webHostEnvironment, ILogger<AuthService> logger, IEmailService emailService, IHttpContextAccessor httpContextAccessor)
+	public AuthService(HttpClient httpClient, IWebHostEnvironment webHostEnvironment, ILogger<AuthService> logger, IEmailService emailService, IHttpContextAccessor httpContextAccessor, ILocalStorageService localStorageService)
 	{
 		_httpClient = httpClient;
 		_webHostEnvironment = webHostEnvironment;
