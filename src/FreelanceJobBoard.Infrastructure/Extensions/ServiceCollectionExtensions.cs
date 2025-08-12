@@ -33,6 +33,7 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 		services.AddScoped<INotificationService, NotificationService>();
+		services.AddScoped<IDashboardService, DashboardService>();
 
 		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 		services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));

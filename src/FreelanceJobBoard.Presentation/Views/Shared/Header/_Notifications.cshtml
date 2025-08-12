@@ -1,8 +1,4 @@
-﻿@page
-@{
-}
-
-<div class="d-flex align-items-center ms-1 ms-lg-2">
+﻿<div class="d-flex align-items-center ms-1 ms-lg-2">
     <!--begin::Menu wrapper-->
     <div class="btn btn-icon btn-active-light btn-active-color-primary position-relative w-30px h-30px w-md-40px h-md-40px"
          data-kt-menu-trigger="click"
@@ -73,7 +69,7 @@
         
         <!--begin::View more-->
         <div class="py-3 text-center border-top">
-            <a href="/Notifications/All" class="btn btn-color-gray-600 btn-active-color-primary">
+            <a href="/Notifications" class="btn btn-color-gray-600 btn-active-color-primary">
                 View All
                 <i class="ki-duotone ki-arrow-right fs-5">
                     <span class="path1"></span>
@@ -86,19 +82,78 @@
     <!--end::Menu-->
 </div>
 
+<script src="https://unpkg.com/@@microsoft/signalr@@latest/dist/browser/signalr.js"></script>
 <script>
 class NotificationManager {
     constructor() {
         this.currentFilter = 'all';
         this.notifications = [];
+        this.connection = null;
         this.init();
     }
 
-    init() {
+    async init() {
         this.bindEvents();
-        this.loadNotifications();
-        // Refresh notifications every 30 seconds
+        await this.initializeSignalR();
+        await this.loadNotifications();
+        
+        // Refresh notifications every 30 seconds as fallback
         setInterval(() => this.loadNotifications(), 30000);
+    }
+
+    async initializeSignalR() {
+        try {
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/notifications")
+                .withAutomaticReconnect([0, 2000, 10000, 30000])
+                .build();
+
+            // Handle incoming notifications
+            this.connection.on("ReceiveNotification", (notificationData) => {
+                this.handleNewNotification(notificationData);
+            });
+
+            // Handle notification read updates
+            this.connection.on("NotificationMarkedAsRead", (notificationId) => {
+                this.handleNotificationMarkedAsRead(notificationId);
+            });
+
+            // Handle all notifications marked as read
+            this.connection.on("AllNotificationsMarkedAsRead", () => {
+                this.handleAllNotificationsMarkedAsRead();
+            });
+
+            // Handle notification deletion
+            this.connection.on("NotificationDeleted", (notificationId) => {
+                this.handleNotificationDeleted(notificationId);
+            });
+
+            // Handle unread count updates
+            this.connection.on("UpdateUnreadCount", (count) => {
+                this.updateNotificationCountDisplay(count);
+            });
+
+            // Start the connection
+            await this.connection.start();
+            console.log("SignalR connected successfully");
+
+            // Handle connection state changes
+            this.connection.onreconnecting(() => {
+                console.log("SignalR reconnecting...");
+            });
+
+            this.connection.onreconnected(() => {
+                console.log("SignalR reconnected");
+                this.loadNotifications(); // Refresh notifications on reconnect
+            });
+
+            this.connection.onclose(() => {
+                console.log("SignalR connection closed");
+            });
+
+        } catch (error) {
+            console.error("SignalR connection failed:", error);
+        }
     }
 
     bindEvents() {
@@ -120,6 +175,133 @@ class NotificationManager {
         });
     }
 
+    handleNewNotification(notificationData) {
+        // Show browser notification if supported and permission granted
+        this.showBrowserNotification(notificationData.title, notificationData.message);
+        
+        // Play notification sound (optional)
+        this.playNotificationSound();
+        
+        // Refresh the notification list
+        this.loadNotifications();
+        
+        // Show toast notification
+        this.showToastNotification(notificationData.title, notificationData.message);
+    }
+
+    handleNotificationMarkedAsRead(notificationId) {
+        const notification = this.notifications.find(n => n.id === notificationId);
+        if (notification) {
+            notification.isRead = true;
+            this.renderNotifications();
+            this.updateNotificationCount();
+        }
+    }
+
+    handleAllNotificationsMarkedAsRead() {
+        this.notifications.forEach(n => n.isRead = true);
+        this.renderNotifications();
+        this.updateNotificationCount();
+    }
+
+    handleNotificationDeleted(notificationId) {
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        this.renderNotifications();
+        this.updateNotificationCount();
+    }
+
+    showBrowserNotification(title, message) {
+        if ("Notification" in window) {
+            // Check if notifications are in quiet hours
+            if (this.isInQuietHours()) {
+                console.log('Notification suppressed due to quiet hours');
+                return;
+            }
+            
+            if (Notification.permission === "granted") {
+                new Notification(title, {
+                    body: message,
+                    icon: "/favicon.ico",
+                    tag: "freelancejobboard-notification",
+                    requireInteraction: false,
+                    silent: false
+                });
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification(title, {
+                            body: message,
+                            icon: "/favicon.ico",
+                            tag: "freelancejobboard-notification",
+                            requireInteraction: false,
+                            silent: false
+                        });
+                    }
+                });
+            }
+        }
+    }
+
+    isInQuietHours() {
+        // Default quiet hours: 10 PM to 8 AM
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTime = currentHour * 60 + currentMinute;
+        
+        // Default quiet hours
+        const quietStart = 22 * 60; // 10 PM
+        const quietEnd = 8 * 60;    // 8 AM
+        
+        // Check if current time is within quiet hours
+        if (quietStart > quietEnd) {
+            // Quiet hours span midnight (e.g., 10 PM to 8 AM)
+            return currentTime >= quietStart || currentTime <= quietEnd;
+        } else {
+            // Quiet hours don't span midnight
+            return currentTime >= quietStart && currentTime <= quietEnd;
+        }
+    }
+
+    playNotificationSound() {
+        // Optional: Play a subtle notification sound
+        try {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoDAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAA');
+            audio.volume = 0.3;
+            audio.play().catch(() => {
+                // Ignore audio play errors (browser might block autoplay)
+            });
+        } catch (error) {
+            // Ignore errors
+        }
+    }
+
+    showToastNotification(title, message) {
+        // Create a simple toast notification
+        const toast = document.createElement('div');
+        toast.className = 'notification-toast position-fixed top-0 end-0 m-3 p-3 bg-primary text-white rounded shadow';
+        toast.style.zIndex = '9999';
+        toast.style.maxWidth = '300px';
+        toast.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong>${this.escapeHtml(title)}</strong>
+                    <div class="mt-1">${this.escapeHtml(message)}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+
     setFilter(filter) {
         this.currentFilter = filter;
         
@@ -136,11 +318,14 @@ class NotificationManager {
 
     async loadNotifications() {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch('/Notifications/GetNotifications');
             if (response.ok) {
-                this.notifications = await response.json();
-                this.updateNotificationCount();
-                this.renderNotifications();
+                const data = await response.json();
+                if (data.success) {
+                    this.notifications = data.notifications;
+                    this.updateNotificationCount();
+                    this.renderNotifications();
+                }
             }
         } catch (error) {
             console.error('Failed to load notifications:', error);
@@ -175,8 +360,8 @@ class NotificationManager {
         const existingNotifications = container.querySelectorAll('.notification-item');
         existingNotifications.forEach(n => n.remove());
 
-        // Render notifications
-        filteredNotifications.forEach(notification => {
+        // Render notifications (limit to 10 most recent)
+        filteredNotifications.slice(0, 10).forEach(notification => {
             const notificationElement = this.createNotificationElement(notification);
             container.appendChild(notificationElement);
         });
@@ -202,7 +387,7 @@ class NotificationManager {
                 </div>
                 <div class="flex-grow-1">
                     <div class="fs-6 text-gray-800 fw-bold mb-1">${this.escapeHtml(notification.title)}</div>
-                    <div class="text-gray-600 fs-7 mb-1">${this.escapeHtml(notification.message)}</div>
+                    <div class="text-gray-600 fs-7 mb-1">${this.escapeHtml(this.truncateMessage(notification.message, 80))}</div>
                     <div class="text-gray-500 fs-8">${timeAgo}</div>
                 </div>
                 ${!notification.isRead ? `
@@ -218,18 +403,32 @@ class NotificationManager {
 
     async markAsRead(notificationId) {
         try {
-            const response = await fetch(`/api/notifications/${notificationId}/read`, {
-                method: 'PUT'
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+            
+            const response = await fetch('/Notifications/MarkAsRead', {
+                method: 'POST',
+                headers: headers,
+                body: `id=${notificationId}${token ? `&__RequestVerificationToken=${encodeURIComponent(token)}` : ''}`
             });
             
             if (response.ok) {
-                // Update local data
-                const notification = this.notifications.find(n => n.id === notificationId);
-                if (notification) {
-                    notification.isRead = true;
+                const data = await response.json();
+                if (data.success) {
+                    // Update local data
+                    const notification = this.notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.isRead = true;
+                    }
+                    this.updateNotificationCount();
+                    this.renderNotifications();
                 }
-                this.updateNotificationCount();
-                this.renderNotifications();
             }
         } catch (error) {
             console.error('Failed to mark notification as read:', error);
@@ -238,15 +437,29 @@ class NotificationManager {
 
     async markAllAsRead() {
         try {
-            const response = await fetch('/api/notifications/mark-all-read', {
-                method: 'PUT'
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+            
+            const response = await fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: headers,
+                body: token ? `__RequestVerificationToken=${encodeURIComponent(token)}` : ''
             });
             
             if (response.ok) {
-                // Update local data
-                this.notifications.forEach(n => n.isRead = true);
-                this.updateNotificationCount();
-                this.renderNotifications();
+                const data = await response.json();
+                if (data.success) {
+                    // Update local data
+                    this.notifications.forEach(n => n.isRead = true);
+                    this.updateNotificationCount();
+                    this.renderNotifications();
+                }
             }
         } catch (error) {
             console.error('Failed to mark all notifications as read:', error);
@@ -255,6 +468,10 @@ class NotificationManager {
 
     updateNotificationCount() {
         const unreadCount = this.notifications.filter(n => !n.isRead).length;
+        this.updateNotificationCountDisplay(unreadCount);
+    }
+
+    updateNotificationCountDisplay(unreadCount) {
         const countBadge = document.querySelector('.notification-count');
         const totalSpan = document.querySelector('.notification-total');
         
@@ -266,6 +483,11 @@ class NotificationManager {
         }
         
         totalSpan.textContent = `${this.notifications.length} Notification${this.notifications.length !== 1 ? 's' : ''}`;
+    }
+
+    truncateMessage(message, maxLength) {
+        if (message.length <= maxLength) return message;
+        return message.substring(0, maxLength) + '...';
     }
 
     getTimeAgo(date) {
@@ -291,4 +513,42 @@ class NotificationManager {
 document.addEventListener('DOMContentLoaded', function() {
     window.notificationManager = new NotificationManager();
 });
+
+// Request notification permission on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+});
 </script>
+
+<style>
+.notification-toast {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.notification-count {
+    animation: pulse 2s infinite;
+}
+
+@@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+</style>

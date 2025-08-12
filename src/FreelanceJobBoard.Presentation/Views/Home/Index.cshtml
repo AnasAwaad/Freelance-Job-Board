@@ -1,7 +1,381 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
-<h1>Welcome from home</h1>
+<!--begin::Content-->
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                    <i class="ki-duotone ki-home fs-2 text-primary me-2">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                        <span class="path3"></span>
+                    </i>
+                    Dashboard
+                </h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        Welcome back, @(User.Identity?.Name ?? "User")
+                    </li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <span class="badge badge-light-success fs-6" id="current-time">
+                    @DateTime.Now.ToString("MMM dd, yyyy HH:mm")
+                </span>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-check fs-2hx text-success me-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="ki-duotone ki-cross fs-2hx text-danger me-4">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                    </i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!--begin::Row-->
+            <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+                <!--begin::Col - Quick Stats-->
+                <div class="col-xxl-8">
+                    <!--begin::Quick Stats Widget-->
+                    <div class="card card-flush mb-6 mb-xl-9">
+                        <div class="card-header border-0 pt-5">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-dark">Quick Overview</span>
+                                <span class="text-muted mt-1 fw-semibold fs-7">Your activity summary</span>
+                            </h3>
+                        </div>
+                        <div class="card-body pt-5">
+                            <div class="row g-0">
+                                <div class="col bg-light-primary px-6 py-8 rounded-2 me-7 mb-7">
+                                    <i class="ki-duotone ki-briefcase fs-3x text-primary d-block mb-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <a href="/Jobs" class="text-primary fw-semibold fs-6">Active Jobs</a>
+                                    <div class="fw-bolder fs-2x text-primary" id="active-jobs-count">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col bg-light-warning px-6 py-8 rounded-2 mb-7">
+                                    <i class="ki-duotone ki-document fs-3x text-warning d-block mb-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <a href="/Proposals" class="text-warning fw-semibold fs-6">Proposals</a>
+                                    <div class="fw-bolder fs-2x text-warning" id="proposals-count">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-0">
+                                <div class="col bg-light-success px-6 py-8 rounded-2 me-7">
+                                    <i class="ki-duotone ki-handshake fs-3x text-success d-block mb-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <a href="/Contracts" class="text-success fw-semibold fs-6">Contracts</a>
+                                    <div class="fw-bolder fs-2x text-success" id="contracts-count">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col bg-light-info px-6 py-8 rounded-2">
+                                    <i class="ki-duotone ki-star fs-3x text-info d-block mb-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <a href="/Reviews" class="text-info fw-semibold fs-6">Reviews</a>
+                                    <div class="fw-bolder fs-2x text-info" id="reviews-count">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Quick Stats Widget-->
+                    
+                    <!--begin::Recent Activity Widget-->
+                    <div class="card card-flush">
+                        <div class="card-header border-0 pt-5">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-dark">Recent Activity</span>
+                                <span class="text-muted mt-1 fw-semibold fs-7">Latest updates on your work</span>
+                            </h3>
+                            <div class="card-toolbar">
+                                <a href="/Notifications" class="btn btn-sm btn-light-primary">
+                                    <i class="ki-duotone ki-eye fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    View All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body pt-5">
+                            <div class="timeline-label" id="recent-activity">
+                                <div class="timeline-item">
+                                    <div class="timeline-label fw-bold text-gray-800 fs-6">Loading...</div>
+                                    <div class="timeline-badge">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <div class="fw-muted text-muted ps-3">Fetching your recent activity...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Recent Activity Widget-->
+                </div>
+                <!--end::Col-->
+                
+                <!--begin::Col - Notifications-->
+                <div class="col-xxl-4">
+                    @await Html.PartialAsync("_NotificationWidget")
+                    
+                    <!--begin::Quick Actions Widget-->
+                    <div class="card card-flush">
+                        <div class="card-header border-0 pt-5">
+                            <h3 class="card-title align-items-start flex-column">
+                                <span class="card-label fw-bold text-dark">Quick Actions</span>
+                                <span class="text-muted mt-1 fw-semibold fs-7">Common tasks</span>
+                            </h3>
+                        </div>
+                        <div class="card-body pt-5">
+                            <div class="d-flex flex-column gap-3">
+                                @if (User.IsInRole("Client"))
+                                {
+                                    <a href="/Jobs/Create" class="btn btn-light-primary">
+                                        <i class="ki-duotone ki-plus fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        Post New Job
+                                    </a>
+                                    <a href="/Jobs/MyJobs" class="btn btn-light-info">
+                                        <i class="ki-duotone ki-briefcase fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Manage My Jobs
+                                    </a>
+                                }
+                                @if (User.IsInRole("Freelancer"))
+                                {
+                                    <a href="/Jobs" class="btn btn-light-success">
+                                        <i class="ki-duotone ki-magnifier fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Browse Jobs
+                                    </a>
+                                    <a href="/Proposals/MyProposals" class="btn btn-light-warning">
+                                        <i class="ki-duotone ki-document fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        My Proposals
+                                    </a>
+                                }
+                                <a href="/Profile" class="btn btn-light-secondary">
+                                    <i class="ki-duotone ki-profile-user fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                        <span class="path4"></span>
+                                    </i>
+                                    Update Profile
+                                </a>
+                                <a href="/Contracts" class="btn btn-light-dark">
+                                    <i class="ki-duotone ki-handshake fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    View Contracts
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end::Quick Actions Widget-->
+                </div>
+                <!--end::Col-->
+            </div>
+            <!--end::Row-->
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardStats();
+            loadRecentActivity();
+            
+            // Update time every minute
+            setInterval(updateCurrentTime, 60000);
+        });
+
+        function updateCurrentTime() {
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                timeElement.textContent = new Date().toLocaleString('en-US', {
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch('/Home/GetDashboardStats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('active-jobs-count').textContent = data.activeJobs;
+                    document.getElementById('proposals-count').textContent = data.proposals;
+                    document.getElementById('contracts-count').textContent = data.contracts;
+                    document.getElementById('reviews-count').textContent = data.reviews;
+                } else {
+                    console.error('Failed to load dashboard stats:', data.message);
+                    showErrorState();
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard stats:', error);
+                showErrorState();
+            }
+        }
+
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/Home/GetRecentActivity');
+                const data = await response.json();
+                
+                if (data.success && data.activities.length > 0) {
+                    renderRecentActivity(data.activities);
+                } else {
+                    showEmptyActivityState();
+                }
+            } catch (error) {
+                console.error('Failed to load recent activity:', error);
+                showActivityErrorState();
+            }
+        }
+
+        function renderRecentActivity(activities) {
+            const container = document.getElementById('recent-activity');
+            
+            if (activities.length === 0) {
+                showEmptyActivityState();
+                return;
+            }
+
+            container.innerHTML = activities.map(activity => `
+                <div class="timeline-item">
+                    <div class="timeline-label fw-bold text-gray-800 fs-6">${activity.timeAgo}</div>
+                    <div class="timeline-badge">
+                        <i class="ki-duotone ${activity.icon} text-${activity.color} fs-3">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                    </div>
+                    <div class="timeline-content ps-3">
+                        ${activity.actionUrl ? 
+                            `<a href="${activity.actionUrl}" class="fw-bold text-gray-800 text-hover-primary">${activity.title}</a>` :
+                            `<span class="fw-bold text-gray-800">${activity.title}</span>`
+                        }
+                        <div class="fw-muted text-muted">${activity.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showEmptyActivityState() {
+            const container = document.getElementById('recent-activity');
+            container.innerHTML = `
+                <div class="text-center py-10">
+                    <i class="ki-duotone ki-information-5 fs-3x text-gray-400 mb-3">
+                        <span class="path1"></span>
+                        <span class="path2"></span>
+                        <span class="path3"></span>
+                    </i>
+                    <h4 class="text-gray-600 fw-semibold mb-2">No recent activity</h4>
+                    <p class="text-gray-400 mb-0">Your recent activity will appear here as you use the platform</p>
+                </div>
+            `;
+        }
+
+        function showActivityErrorState() {
+            const container = document.getElementById('recent-activity');
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="text-danger mb-2">
+                        <i class="ki-duotone ki-warning fs-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </div>
+                    <div class="text-muted">Failed to load recent activity</div>
+                    <button type="button" class="btn btn-sm btn-light-primary mt-2" onclick="loadRecentActivity()">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        function showErrorState() {
+            // Show error state for stats that failed to load
+            const statElements = ['active-jobs-count', 'proposals-count', 'contracts-count', 'reviews-count'];
+            statElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                if (element && element.innerHTML.includes('spinner')) {
+                    element.innerHTML = '<span class="text-danger">Error</span>';
+                }
+            });
+        }
+    </script>
+}

@@ -4,6 +4,7 @@ using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FreelanceJobBoard.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250812162347_bbbb")]
+    partial class bbbb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -762,7 +765,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<int?>("NotificationTemplateId")
+                    b.Property<int>("NotificationTemplateId")
                         .HasColumnType("int");
 
                     b.Property<int?>("ProposalId")
@@ -783,7 +786,7 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("TemplateId")
+                    b.Property<int>("TemplateId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -1583,7 +1586,8 @@ namespace FreelanceJobBoard.Infrastructure.Migrations
                     b.HasOne("FreelanceJobBoard.Domain.Entities.NotificationTemplate", "Template")
                         .WithMany("Notifications")
                         .HasForeignKey("NotificationTemplateId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("FreelanceJobBoard.Domain.Entities.Proposal", "Proposal")
                         .WithMany()

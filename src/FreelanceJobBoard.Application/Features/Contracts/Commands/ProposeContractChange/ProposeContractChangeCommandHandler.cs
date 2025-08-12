@@ -219,17 +219,18 @@ public class ProposeContractChangeCommandHandler(IUnitOfWork unitOfWork, ICurren
                 return;
             }
 
-            var requesterName = requesterRole == Domain.Constants.UserRole.Client 
-                ? contract.Client?.User?.FullName ?? "Client"
-                : contract.Freelancer?.User?.FullName ?? "Freelancer";
-            
             var jobTitle = contract.Proposal?.Job?.Title ?? "Project";
-            var title = $"Contract Change Request: {jobTitle}";
-            var message = $"{requesterName} has proposed changes to your contract.\n\nReason: {changeReason}\n\nPlease review and respond to this change request.";
-
-            await notificationService.CreateNotificationAsync(targetUserId, title, message);
             
-            logger.LogInformation("Notification sent to user {UserId} for contract change request on contract {ContractId}", 
+            // Use the dedicated contract change request notification method
+            await notificationService.NotifyContractChangeRequestAsync(
+                contract.Id,
+                currentUserService.UserId!,
+                targetUserId,
+                jobTitle,
+                changeReason
+            );
+            
+            logger.LogInformation("Contract change request notification sent to user {UserId} for contract {ContractId}", 
                 targetUserId, contract.Id);
         }
         catch (Exception ex)

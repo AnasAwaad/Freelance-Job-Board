@@ -36,6 +36,24 @@
 					</div>
 					<!--end:Menu item-->
 					
+					<!--begin:Menu item - Notifications-->
+					<div class="menu-item">
+						<a class="menu-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Notifications" ? "active" : "")" asp-controller="Notifications" asp-action="Index">
+							<span class="menu-icon">
+								<i class="ki-duotone ki-notification-bing fs-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
+									<span class="path3"></span>
+								</i>
+							</span>
+							<span class="menu-title">Notifications</span>
+							<span class="menu-badge">
+								<span class="badge badge-danger" id="sidebar-notification-count" style="display: none;">0</span>
+							</span>
+						</a>
+					</div>
+					<!--end:Menu item-->
+					
 					<!--begin:Menu item - Jobs-->
 					<div class="menu-item menu-accordion" >
 						<!--begin:Menu link-->

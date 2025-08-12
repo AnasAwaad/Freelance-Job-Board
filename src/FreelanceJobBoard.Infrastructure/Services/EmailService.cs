@@ -180,6 +180,177 @@ public class EmailService : IEmailService
 		}
 	}
 
+	public async Task SendWelcomeEmailAsync(string userEmail, string userName, string userRole)
+	{
+		try
+		{
+			var subject = "Welcome to FreelanceJobBoard!";
+			var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+        <h1 style='color: #007bff;'>Welcome to FreelanceJobBoard!</h1>
+        <p>Hello {userName},</p>
+        <p>Welcome to our platform! We're excited to have you join our community as a <strong>{userRole}</strong>.</p>
+        
+        <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+            <h3>Get Started:</h3>
+            <ul>
+                <li>Complete your profile to stand out</li>
+                {(userRole == "Client" ? 
+                    "<li>Post your first job to find talented freelancers</li><li>Browse freelancer profiles and portfolios</li>" : 
+                    "<li>Browse available jobs and submit proposals</li><li>Showcase your skills and build your portfolio</li>")}
+                <li>Connect with other professionals</li>
+                <li>Build your reputation through reviews</li>
+            </ul>
+        </div>
+        
+        <p>If you have any questions or need assistance, our support team is here to help!</p>
+        
+        <p>Best regards,<br>The FreelanceJobBoard Team</p>
+        
+        <hr style='margin: 30px 0; border: none; border-top: 1px solid #eee;'>
+        <p style='font-size: 12px; color: #666;'>
+            This email was sent to {userEmail}. If you didn't create an account with us, please ignore this email.
+        </p>
+    </div>
+</body>
+</html>";
+
+			await SendEmailAsync(userEmail, subject, body, true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send welcome email to {Email}", userEmail);
+			throw;
+		}
+	}
+
+	public async Task SendContractStatusNotificationAsync(string userEmail, string contractTitle, string newStatus, string counterpartyName)
+	{
+		try
+		{
+			var subject = $"Contract Status Update: {contractTitle}";
+			var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <h2>Contract Status Update</h2>
+    <p>Hello,</p>
+    <p>Your contract with <strong>{counterpartyName}</strong> has been updated:</p>
+    <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>
+        <h3>{contractTitle}</h3>
+        <p><strong>New Status:</strong> {newStatus}</p>
+    </div>
+    <p>Please check your dashboard for more details.</p>
+    <p>Best regards,<br>FreelanceJobBoard Team</p>
+</body>
+</html>";
+
+			await SendEmailAsync(userEmail, subject, body, true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send contract status notification to {Email}", userEmail);
+			throw;
+		}
+	}
+
+	public async Task SendReviewNotificationAsync(string userEmail, string revieweeId, string reviewerName, string jobTitle, int rating)
+	{
+		try
+		{
+			var subject = $"New Review Received: {jobTitle}";
+			var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <h2>New Review Received!</h2>
+    <p>Hello,</p>
+    <p>Great news! You've received a new review for your work on <strong>{jobTitle}</strong>:</p>
+    <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>
+        <p><strong>Reviewer:</strong> {reviewerName}</p>
+        <p><strong>Rating:</strong> {new string('?', rating)} ({rating}/5 stars)</p>
+        <p><strong>Project:</strong> {jobTitle}</p>
+    </div>
+    <p>Reviews help build your reputation on the platform. Keep up the great work!</p>
+    <p>Best regards,<br>FreelanceJobBoard Team</p>
+</body>
+</html>";
+
+			await SendEmailAsync(userEmail, subject, body, true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send review notification to {Email}", userEmail);
+			throw;
+		}
+	}
+
+	public async Task SendPaymentNotificationAsync(string userEmail, decimal amount, string jobTitle, string transactionType = "received")
+	{
+		try
+		{
+			var subject = $"Payment {transactionType}: ${amount:N2}";
+			var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <h2>Payment {transactionType.ToUpper()}</h2>
+    <p>Hello,</p>
+    <p>A payment has been {transactionType} for your work:</p>
+    <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;'>
+        <p><strong>Amount:</strong> ${amount:N2}</p>
+        <p><strong>Project:</strong> {jobTitle}</p>
+        <p><strong>Date:</strong> {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC</p>
+    </div>
+    <p>You can view the payment details in your dashboard.</p>
+    <p>Best regards,<br>FreelanceJobBoard Team</p>
+</body>
+</html>";
+
+			await SendEmailAsync(userEmail, subject, body, true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send payment notification to {Email}", userEmail);
+			throw;
+		}
+	}
+
+	public async Task SendDeadlineReminderAsync(string userEmail, string itemName, string itemType, DateTime deadline, int daysRemaining)
+	{
+		try
+		{
+			var subject = $"Deadline Reminder: {itemName}";
+			var urgencyLevel = daysRemaining <= 1 ? "urgent" : daysRemaining <= 3 ? "important" : "reminder";
+			var urgencyColor = daysRemaining <= 1 ? "#dc3545" : daysRemaining <= 3 ? "#ffc107" : "#007bff";
+			
+			var body = $@"
+<html>
+<body style='font-family: Arial, sans-serif;'>
+    <h2 style='color: {urgencyColor};'>Deadline Reminder</h2>
+    <p>Hello,</p>
+    <p>This is a {urgencyLevel} reminder about an upcoming deadline:</p>
+    <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid {urgencyColor};'>
+        <h3>{itemName}</h3>
+        <p><strong>Type:</strong> {itemType}</p>
+        <p><strong>Deadline:</strong> {deadline:yyyy-MM-dd HH:mm} UTC</p>
+        <p style='color: {urgencyColor}; font-weight: bold;'>
+            {(daysRemaining > 0 ? $"Due in {daysRemaining} day{(daysRemaining == 1 ? "" : "s")}" : "Due today!")}
+        </p>
+    </div>
+    <p>Please make sure to complete this on time to maintain your reputation.</p>
+    <p>Best regards,<br>FreelanceJobBoard Team</p>
+</body>
+</html>";
+
+			await SendEmailAsync(userEmail, subject, body, true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to send deadline reminder to {Email}", userEmail);
+			throw;
+		}
+	}
+
 	private SmtpClient CreateSmtpClient()
 	{
 		var client = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
@@ -231,6 +402,10 @@ public class EmailService : IEmailService
 			"JobStatusUpdate" => "<html><body><h2>Job Status Update</h2><p>{{Message}}</p></body></html>",
 			"NewProposal" => "<html><body><h2>New Proposal</h2><p>{{Message}}</p></body></html>",
 			"JobApproval" => "<html><body><h2>Job Approval</h2><p>{{Message}}</p></body></html>",
+			"Welcome" => "<html><body><h2>Welcome!</h2><p>{{Message}}</p></body></html>",
+			"ContractUpdate" => "<html><body><h2>Contract Update</h2><p>{{Message}}</p></body></html>",
+			"PaymentNotification" => "<html><body><h2>Payment Notification</h2><p>{{Message}}</p></body></html>",
+			"ReviewNotification" => "<html><body><h2>Review Notification</h2><p>{{Message}}</p></body></html>",
 			_ => "<html><body><p>{{Message}}</p></body></html>"
 		};
 	}
@@ -242,6 +417,10 @@ public class EmailService : IEmailService
 			"JobStatusUpdate" => "Job Application Status Update",
 			"NewProposal" => "New Proposal Received",
 			"JobApproval" => "Job Approval Status",
+			"Welcome" => "Welcome to FreelanceJobBoard",
+			"ContractUpdate" => "Contract Update",
+			"PaymentNotification" => "Payment Notification",
+			"ReviewNotification" => "Review Notification",
 			_ => "Notification from FreelanceJobBoard"
 		};
 	}

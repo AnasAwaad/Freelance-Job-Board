@@ -134,11 +134,14 @@ public class UpdateContractStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
         try
         {
             // Notify both parties about the status change
-            var title = $"Contract Status Updated: {contract.Proposal.Job.Title}";
+            var jobTitle = contract.Proposal.Job.Title ?? "Project";
+            var title = $"Contract Status Updated: {jobTitle}";
             var message = request.Status switch
             {
                 ContractStatusConstants.PendingApproval => "Contract completion is pending approval from the other party.",
                 ContractStatusConstants.Completed => "Contract has been completed and approved by both parties.",
+                ContractStatusConstants.Active => "Contract is now active. You can start working together!",
+                ContractStatusConstants.Cancelled => "Contract has been cancelled.",
                 _ => $"Contract status has been updated to: {request.Status}"
             };
             
@@ -147,8 +150,34 @@ public class UpdateContractStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
                 message += $"\n\nNotes: {request.Notes}";
             }
 
-            await notificationService.CreateNotificationAsync(contract.Client.UserId!, title, message);
-            await notificationService.CreateNotificationAsync(contract.Freelancer.UserId!, title, message);
+            // Send notifications to both parties
+            var clientName = contract.Client?.User?.FullName ?? "Client";
+            var freelancerName = contract.Freelancer?.User?.FullName ?? "Freelancer";
+
+            await notificationService.NotifyContractStatusChangeAsync(
+                contract.Id, 
+                request.Status, 
+                contract.Client.UserId!, 
+                freelancerName
+            );
+
+            await notificationService.NotifyContractStatusChangeAsync(
+                contract.Id, 
+                request.Status, 
+                contract.Freelancer.UserId!, 
+                clientName
+            );
+
+            // Special notifications for completion
+            if (request.Status == ContractStatusConstants.Completed)
+            {
+                await notificationService.NotifyJobCompletedAsync(
+                    job.Id,
+                    contract.Client.UserId!,
+                    contract.Freelancer.UserId!,
+                    jobTitle
+                );
+            }
         }
         catch (Exception ex)
         {

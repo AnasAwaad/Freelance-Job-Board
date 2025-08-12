@@ -84,24 +84,17 @@ public class RespondToChangeRequestCommandHandler(IUnitOfWork unitOfWork, ICurre
     {
         try
         {
-            var responderName = changeRequest.ResponseByRole == Domain.Constants.UserRole.Client 
-                ? changeRequest.Contract.Client.User?.FullName 
-                : changeRequest.Contract.Freelancer.User?.FullName;
+            var jobTitle = changeRequest.Contract.Proposal?.Job?.Title ?? "Project";
             
-            var title = $"Contract Change Request {(isApproved ? "Approved" : "Rejected")}: {changeRequest.Contract.Proposal?.Job?.Title}";
-            var message = $"{responderName} has {(isApproved ? "approved" : "rejected")} your contract change request.";
-            
-            if (!string.IsNullOrEmpty(responseNotes))
-            {
-                message += $"\n\nResponse: {responseNotes}";
-            }
-
-            if (isApproved)
-            {
-                message += "\n\nThe contract has been updated with your proposed changes.";
-            }
-
-            await notificationService.CreateNotificationAsync(changeRequest.RequestedByUserId, title, message);
+            // Use the dedicated contract change response notification method
+            await notificationService.NotifyContractChangeResponseAsync(
+                changeRequest.ContractId,
+                currentUserService.UserId!,
+                changeRequest.RequestedByUserId,
+                jobTitle,
+                isApproved,
+                responseNotes
+            );
         }
         catch (Exception ex)
         {
