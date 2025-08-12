@@ -16,8 +16,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<JobView> JobViews => Set<JobView>();
 	public DbSet<Review> Reviews => Set<Review>();
 	public DbSet<Proposal> Proposals => Set<Proposal>();
-    public DbSet<Contract> Contracts => Set<Contract>();
-    public DbSet<ContractStatus> ContractStatuses => Set<ContractStatus>();
+	public DbSet<Contract> Contracts => Set<Contract>();
+	public DbSet<ContractStatus> ContractStatuses => Set<ContractStatus>();
 	public DbSet<Attachment> Attachments => Set<Attachment>();
 	public DbSet<ProposalAttachment> ProposalAttachments => Set<ProposalAttachment>();
 	public DbSet<JobAttachment> JobAttachments => Set<JobAttachment>();
@@ -27,9 +27,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 	public DbSet<Certification> Certifications => Set<Certification>();
 	public DbSet<Notification> Notifications => Set<Notification>();
 	public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
-	
+
 	public DbSet<Permission> Permissions => Set<Permission>();
 	public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+	public DbSet<UserConnection> UserConnections => Set<UserConnection>();
 
 	public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 

@@ -4,10 +4,12 @@ using FreelanceJobBoard.Domain.Identity;
 using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Infrastructure.Services;
 using FreelanceJobBoard.Infrastructure.Settings;
+using FreelanceJobBoard.Presentation.Hubs;
 using FreelanceJobBoard.Presentation.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using NetcodeHub.Packages.Extensions.LocalStorage;
 
 namespace FreelanceJobBoard.Presentation;
 
@@ -39,6 +41,9 @@ public class Program
 		builder.Services.AddHttpClient<HomeService>();
 		builder.Services.AddHttpClient<ProposalService>();
 		builder.Services.AddHttpClient<NotificationService>();
+		builder.Services.AddSignalR();
+
+		builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 
 		// Configure Email Settings
 		builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
@@ -187,6 +192,8 @@ public class Program
 
 		// Add antiforgery middleware
 		app.UseAntiforgery();
+
+		app.MapHub<NotificationHub>("/notifyHub");
 
 		app.MapControllerRoute(
 			name: "default",

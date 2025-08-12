@@ -1,36 +1,14 @@
+@using System.Security.Claims
 @model FreelanceJobBoard.Presentation.Models.ViewModels.CreateJobViewModel
+
 @{
     ViewData["Title"] = "Create Job";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
 <div class="d-flex flex-column flex-column-fluid">
-    <!--begin::Toolbar-->
-    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
-        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">
-            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
-                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Create Job</h1>
-                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
-                    <li class="breadcrumb-item text-muted">
-                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
-                    </li>
-                    <li class="breadcrumb-item text-muted">
-                        <a asp-action="MyJobs" class="text-muted text-hover-primary">My Jobs</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
-                    </li>
-                    <li class="breadcrumb-item text-muted">Create</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <!--end::Toolbar-->
-
-    <!--begin::Content-->
+    <!-- Toolbar and Breadcrumb omitted for brevity -->
+    <!-- Content -->
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-fluid">
             <div class="row">
@@ -101,9 +79,12 @@
                                         <div class="fv-row mb-8">
                                             <label asp-for="CategoryIds" class="fs-6 fw-semibold mb-2">Categories</label>
                                             <select asp-for="CategoryIds" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Select categories">
-                                                @foreach (var category in Model.AvailableCategories)
+                                                @if (Model?.AvailableCategories != null)
                                                 {
-                                                    <option value="@category.Id">@category.Name</option>
+                                                    foreach (var category in Model.AvailableCategories)
+                                                    {
+                                                        <option value="@category.Id">@category.Name</option>
+                                                    }
                                                 }
                                             </select>
                                             <span asp-validation-for="CategoryIds" class="text-danger fs-7"></span>
@@ -113,9 +94,12 @@
                                         <div class="fv-row mb-8">
                                             <label asp-for="SkillIds" class="fs-6 fw-semibold mb-2">Required Skills</label>
                                             <select asp-for="SkillIds" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Select required skills">
-                                                @foreach (var skill in Model.AvailableSkills)
+                                                @if (Model?.AvailableSkills != null)
                                                 {
-                                                    <option value="@skill.Id">@skill.Name</option>
+                                                    foreach (var skill in Model.AvailableSkills)
+                                                    {
+                                                        <option value="@skill.Id">@skill.Name</option>
+                                                    }
                                                 }
                                             </select>
                                             <span asp-validation-for="SkillIds" class="text-danger fs-7"></span>
@@ -125,9 +109,10 @@
 
                                 <div class="d-flex justify-content-end">
                                     <a asp-action="MyJobs" class="btn btn-light me-3">Cancel</a>
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" id="createJob" class="btn btn-primary">
                                         <span class="indicator-label">Create Job</span>
-                                        <span class="indicator-progress">Please wait...
+                                        <span class="indicator-progress" style="display:none;">
+                                            Please wait...
                                             <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                                         </span>
                                     </button>
@@ -145,21 +130,39 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Initialize Select2 for multi-select dropdowns
             $('[data-control="select2"]').select2({
-                placeholder: function() {
+                placeholder: function () {
                     return $(this).data('placeholder');
                 },
                 allowClear: true
             });
 
-            // Form submission with loading state
-            $('form').on('submit', function() {
-                const submitBtn = $(this).find('button[type="submit"]');
-                submitBtn.attr('disabled', true);
-                submitBtn.find('.indicator-label').hide();
-                submitBtn.find('.indicator-progress').show();
+            var proxyConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notifyHub")
+                .build();
+
+            proxyConnection.start()
+                .then(() => console.log("SignalR connected"))
+                .catch(err => console.error("SignalR connection error:", err));
+
+            $('#createJob').on('click', function (e) {
+                e.preventDefault();
+
+                var title = $('#Title').val();
+                var description = $('#Description').val();
+
+
+                proxyConnection.send("SendNotification", "Client@gmail.com", title, description)
+                    .then(() => {
+                        console.log("Notification sent");
+                        // Optionally, submit the form after sending notification
+                        $('form').submit();
+                    })
+                    .catch(function (err) {
+                        console.error("Error sending notification:", err.toString());
+                    });
             });
         });
     </script>

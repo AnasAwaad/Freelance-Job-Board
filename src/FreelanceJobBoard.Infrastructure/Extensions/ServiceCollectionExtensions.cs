@@ -27,7 +27,6 @@ public static class ServiceCollectionExtensions
 		services.AddScoped<IEmailSender, EmailSender>();
 		services.AddScoped<IEmailService, EmailService>();
 
-		services.AddScoped<INotificationService, NotificationService>();
 
 		services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
 		services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));

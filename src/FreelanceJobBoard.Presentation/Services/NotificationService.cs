@@ -17,7 +17,7 @@ public class NotificationService
 		_httpContext = httpContextAccessor.HttpContext;
 		_logger = logger;
 
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Notifications/");
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Notifications/");
 
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
 		if (!string.IsNullOrEmpty(token))

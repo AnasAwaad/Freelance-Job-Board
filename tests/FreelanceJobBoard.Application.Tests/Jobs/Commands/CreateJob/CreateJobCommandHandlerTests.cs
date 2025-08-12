@@ -83,7 +83,7 @@ public class CreateJobCommandHandlerTests
 		_notificationServiceMock.Setup(x => x.NotifyJobSubmittedForApprovalAsync(It.IsAny<int>()))
 			.Returns(Task.CompletedTask);
 
-		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object, _mapper, _currentUserServiceMock.Object, _notificationServiceMock.Object);
+		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object, _mapper, _currentUserServiceMock.Object);
 
 
 		// Act
@@ -120,8 +120,7 @@ public class CreateJobCommandHandlerTests
 		var command = new CreateJobCommand();
 		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
 			_mapper,
-			_currentUserServiceMock.Object,
-			_notificationServiceMock.Object);
+			_currentUserServiceMock.Object);
 		// Act
 
 		var act = async () => await handler.Handle(command, CancellationToken.None);
@@ -160,8 +159,7 @@ public class CreateJobCommandHandlerTests
 
 		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
 			_mapper,
-			_currentUserServiceMock.Object,
-			_notificationServiceMock.Object);
+			_currentUserServiceMock.Object);
 
 		// Act
 
@@ -201,8 +199,7 @@ public class CreateJobCommandHandlerTests
 
 		var handler = new CreateJobCommandHandler(_unitOfWorkMock.Object,
 			_mapper,
-			_currentUserServiceMock.Object,
-			_notificationServiceMock.Object);
+			_currentUserServiceMock.Object);
 
 		// Act
 

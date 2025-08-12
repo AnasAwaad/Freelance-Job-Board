@@ -18,7 +18,7 @@ public class AdminController : Controller
     {
         _logger = logger;
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri("http://localhost:5102/api/");
+        _httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
     }
 
     public IActionResult Index()

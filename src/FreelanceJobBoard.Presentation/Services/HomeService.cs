@@ -14,7 +14,7 @@ public class HomeService
 		_httpClient = httpClient;
 		_logger = logger;
 
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Jobs/");
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Jobs/");
 
 	}
 

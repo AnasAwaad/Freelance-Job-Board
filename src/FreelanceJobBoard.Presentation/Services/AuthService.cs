@@ -13,14 +13,14 @@ public class AuthService
 	private readonly IEmailService _emailService;
 	private readonly IHttpContextAccessor _httpContextAccessor;
 
-	public AuthService(HttpClient httpClient, IWebHostEnvironment webHostEnvironment, ILogger<AuthService> logger, IEmailService emailService, IHttpContextAccessor httpContextAccessor, ILocalStorageService localStorageService)
+	public AuthService(HttpClient httpClient, IWebHostEnvironment webHostEnvironment, ILogger<AuthService> logger, IEmailService emailService, IHttpContextAccessor httpContextAccessor)
 	{
 		_httpClient = httpClient;
 		_webHostEnvironment = webHostEnvironment;
 		_logger = logger;
 		_emailService = emailService;
 		_httpContextAccessor = httpContextAccessor;
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Auth/");
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Auth/");
 	}
 
 	public async Task<AuthResponseDto?> LoginAsync(LoginViewModel viewModel)

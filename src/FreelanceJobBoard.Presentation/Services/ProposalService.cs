@@ -17,7 +17,7 @@ public class ProposalService
 		_httpClient = httpClient;
 		_httpContextAccessor = httpContextAccessor;
 		_logger = logger;
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/");
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
 	}
 
 	private string? GetCurrentUserId()

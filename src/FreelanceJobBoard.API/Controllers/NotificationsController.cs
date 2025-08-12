@@ -1,21 +1,16 @@
 using AutoMapper;
-using FreelanceJobBoard.API.Hubs;
 using FreelanceJobBoard.Application.Features.Notifications.DTOs;
 using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace FreelanceJobBoard.API.Controllers;
-[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class NotificationsController(INotificationService notificationService,
-	ICurrentUserService currentUserService,
-	IHubContext<NotificationHub> hubContext, IUnitOfWork unitOfWork, IMapper mapper) : ControllerBase
+	ICurrentUserService currentUserService, IUnitOfWork unitOfWork, IMapper mapper) : ControllerBase
 {
 	[HttpGet("user")]
 	public async Task<IActionResult> GetUserNotifications()
@@ -48,8 +43,7 @@ public class NotificationsController(INotificationService notificationService,
 		await unitOfWork.Notifications.CreateAsync(notification);
 		await unitOfWork.SaveChangesAsync();
 
-
-		await hubContext.Clients.User(userId).SendAsync("ReceiveNotification", title, message);
+		//await hubContext.Clients.User(userId).SendAsync("ReceiveNotification", title, message);
 		return Ok(message);
 	}
 

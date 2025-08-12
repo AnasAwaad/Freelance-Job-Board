@@ -15,7 +15,7 @@ public class SkillService
 		_logger = logger;
 
 		// Set base address to API root - don't include Skills path here
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/");
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
 
 		// Set authorization header if user is authenticated
 		var token = _httpContext?.User?.FindFirst("jwt")?.Value;
