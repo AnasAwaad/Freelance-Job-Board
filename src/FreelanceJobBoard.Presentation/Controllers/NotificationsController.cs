@@ -51,7 +51,7 @@ public class NotificationsController : Controller
     }
 
     // API endpoint for AJAX calls
-    [HttpGet]
+	[HttpGet]
     public async Task<IActionResult> GetNotifications([FromQuery] bool unreadOnly = false)
     {
         try
@@ -323,10 +323,10 @@ public class NotificationsController : Controller
             return RedirectToAction("Settings");
         }
         catch (Exception ex)
-        {
+	{
             _logger.LogError(ex, "Error updating notification settings");
             TempData["Error"] = "Failed to update notification settings. Please try again.";
             return View("Settings", model);
         }
-    }
+	}
 }

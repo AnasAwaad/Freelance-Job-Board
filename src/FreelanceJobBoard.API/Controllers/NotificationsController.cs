@@ -3,9 +3,11 @@ using FreelanceJobBoard.Application.Interfaces.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
 namespace FreelanceJobBoard.API.Controllers;
-
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
@@ -17,9 +19,9 @@ public class NotificationsController(INotificationService notificationService, I
         if (!currentUserService.IsAuthenticated)
             return Unauthorized();
 
-        var notifications = await notificationService.GetUserNotificationsAsync(currentUserService.UserId!, unreadOnly);
-        return Ok(notifications);
-    }
+		var notifications = await notificationService.GetUserNotificationsAsync(currentUserService.UserId!, unreadOnly);
+		return Ok(notifications);
+	}
 
     [HttpGet("count")]
     public async Task<IActionResult> GetUnreadCount()

@@ -17,6 +17,10 @@
     {
       "library": "typeahead.js@0.11.1",
       "destination": "wwwroot/lib/typeahead.js/"
+    },
+    {
+      "library": "microsoft-signalr@9.0.6",
+      "destination": "wwwroot/lib/microsoft-signalr/"
     }
   ]
 }

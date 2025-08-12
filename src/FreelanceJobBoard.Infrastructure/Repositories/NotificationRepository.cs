@@ -24,15 +24,15 @@ internal class NotificationRepository : GenericRepository<Notification>, INotifi
             .Include(n => n.Review)
             .Where(n => n.UserId == userId || n.RecipientUserId == userId);
 
-        if (unreadOnly)
-        {
-            query = query.Where(n => !n.IsRead);
-        }
+		if (unreadOnly)
+		{
+			query = query.Where(n => !n.IsRead);
+		}
 
-        return await query
-            .OrderByDescending(n => n.CreatedOn)
-            .ToListAsync();
-    }
+		return await query
+			.OrderByDescending(n => n.CreatedOn)
+			.ToListAsync();
+	}
 
     public async Task<IEnumerable<Notification>> GetByTemplateIdAsync(int templateId)
     {
@@ -45,16 +45,16 @@ internal class NotificationRepository : GenericRepository<Notification>, INotifi
             .ToListAsync();
     }
 
-    public async Task MarkAsReadAsync(int notificationId)
-    {
-        var notification = await _context.Notifications.FindAsync(notificationId);
-        if (notification != null && !notification.IsRead)
-        {
-            notification.IsRead = true;
-            notification.ReadAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-        }
-    }
+	public async Task MarkAsReadAsync(int notificationId)
+	{
+		var notification = await _context.Notifications.FindAsync(notificationId);
+		if (notification != null && !notification.IsRead)
+		{
+			notification.IsRead = true;
+			notification.ReadAt = DateTime.UtcNow;
+			await _context.SaveChangesAsync();
+		}
+	}
 
     public async Task MarkAllAsReadAsync(string userId)
     {
@@ -62,11 +62,11 @@ internal class NotificationRepository : GenericRepository<Notification>, INotifi
             .Where(n => (n.UserId == userId || n.RecipientUserId == userId) && !n.IsRead)
             .ToListAsync();
 
-        foreach (var notification in unreadNotifications)
-        {
-            notification.IsRead = true;
-            notification.ReadAt = DateTime.UtcNow;
-        }
+		foreach (var notification in unreadNotifications)
+		{
+			notification.IsRead = true;
+			notification.ReadAt = DateTime.UtcNow;
+		}
 
         await _context.SaveChangesAsync();
     }
