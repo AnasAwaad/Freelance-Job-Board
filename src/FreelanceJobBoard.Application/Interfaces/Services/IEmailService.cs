@@ -9,4 +9,9 @@ public interface IEmailService
     Task SendNewProposalNotificationAsync(string clientEmail, string jobTitle, string freelancerName, decimal bidAmount);
     Task SendJobApprovalNotificationAsync(string clientEmail, string jobTitle, bool isApproved, string? adminMessage = null);
     Task SendJobSubmissionNotificationAsync(string adminEmail, string jobTitle, string clientName, decimal budgetMin, decimal budgetMax);
+    Task SendWelcomeEmailAsync(string userEmail, string userName, string userRole);
+    Task SendContractStatusNotificationAsync(string userEmail, string contractTitle, string newStatus, string counterpartyName);
+    Task SendReviewNotificationAsync(string userEmail, string revieweeId, string reviewerName, string jobTitle, int rating);
+    Task SendPaymentNotificationAsync(string userEmail, decimal amount, string jobTitle, string transactionType = "received");
+    Task SendDeadlineReminderAsync(string userEmail, string itemName, string itemType, DateTime deadline, int daysRemaining);
 }

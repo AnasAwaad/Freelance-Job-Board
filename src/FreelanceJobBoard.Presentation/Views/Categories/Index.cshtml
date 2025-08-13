@@ -186,18 +186,6 @@
 
 	<script>
 		$(document).ready(function () {
-			// Initialize DataTable only if table exists and has data
-			if ($('#datatable tbody tr').length > 0) {
-				$('#datatable').DataTable({
-					responsive: true,
-					pageLength: 10,
-					order: [[0, 'asc']],
-					columnDefs: [
-						{ orderable: false, targets: [3] } // Disable sorting on Actions column
-					]
-				});
-			}
-
 			// Handle status change
 			$(document).on('click', '.js-change-status', function(e) {
 				e.preventDefault();
