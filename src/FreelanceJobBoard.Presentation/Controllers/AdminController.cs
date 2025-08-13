@@ -1,3 +1,4 @@
+using FreelanceJobBoard.Application.Interfaces.Services;
 using FreelanceJobBoard.Domain.Constants;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
@@ -8,10 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using FreelanceJobBoard.Infrastructure.Data;
-using FreelanceJobBoard.Domain.Entities;
-using FreelanceJobBoard.Application.Interfaces.Services;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
 
@@ -224,12 +221,12 @@ public class AdminController : Controller
 		}
 	}
 
-    public IActionResult Index()
-    {
-        try
-        {
-            // Log admin access for security auditing
-            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+	public async Task<IActionResult> Index()
+	{
+		try
+		{
+			// Log admin access for security auditing
+			var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 			var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
 			var viewModel = new DashBoardViewModel
@@ -250,12 +247,12 @@ public class AdminController : Controller
 				return RedirectToAction("AccessDenied", "Auth");
 			}
 
-            ViewBag.UserEmail = userEmail;
-            ViewBag.UserRole = userRole;
-            ViewBag.IsAdmin = User.IsInRole(AppRoles.Admin);
+			ViewBag.UserEmail = userEmail;
+			ViewBag.UserRole = userRole;
+			ViewBag.IsAdmin = User.IsInRole(AppRoles.Admin);
 
-            return View();
-        }
+			return View(viewModel);
+		}
 		catch (Exception ex)
 		{
 			_logger.LogError(ex, "Error occurred while accessing admin panel");
