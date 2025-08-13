@@ -1,4 +1,5 @@
 using FreelanceJobBoard.Application.Features.User.DTOs;
+using FreelanceJobBoard.Presentation.Models.ViewModels;
 using System.Net.Http.Headers;
 
 namespace FreelanceJobBoard.Presentation.Services;
@@ -48,6 +49,103 @@ public class UserService
 			return null;
 		}
 	}
+
+	public async Task<int> GetNumberOfClientsAsync()
+	{
+		try
+		{
+			// Get JWT token from claims
+			var context = _httpContextAccessor.HttpContext;
+			if (context?.User?.Identity?.IsAuthenticated == true)
+			{
+				var jwtToken = context.User.FindFirst("jwt")?.Value;
+				if (!string.IsNullOrEmpty(jwtToken))
+				{
+					_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+				}
+			}
+
+			var response = await _httpClient.GetAsync("total-clients");
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<int>();
+			}
+
+			_logger.LogWarning("Failed to get num of clients. Status: {StatusCode}, Content: {Content}",
+				response.StatusCode, await response.Content.ReadAsStringAsync());
+			return 0;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while getting num of clients");
+			return 0;
+		}
+	}
+
+	public async Task<int> GetNumberOfFreelancersAsync()
+	{
+		try
+		{
+			// Get JWT token from claims
+			var context = _httpContextAccessor.HttpContext;
+			if (context?.User?.Identity?.IsAuthenticated == true)
+			{
+				var jwtToken = context.User.FindFirst("jwt")?.Value;
+				if (!string.IsNullOrEmpty(jwtToken))
+				{
+					_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+				}
+			}
+
+			var response = await _httpClient.GetAsync("total-freelancers");
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<int>();
+			}
+
+			_logger.LogWarning("Failed to get num of freelancers. Status: {StatusCode}, Content: {Content}",
+				response.StatusCode, await response.Content.ReadAsStringAsync());
+			return 0;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while getting num of freelancers");
+			return 0;
+		}
+	}
+
+	public async Task<IEnumerable<TopClientViewModel>> GetTopClientsAsync(int numOfClients)
+	{
+		try
+		{
+			// Get JWT token from claims
+			var context = _httpContextAccessor.HttpContext;
+			if (context?.User?.Identity?.IsAuthenticated == true)
+			{
+				var jwtToken = context.User.FindFirst("jwt")?.Value;
+				if (!string.IsNullOrEmpty(jwtToken))
+				{
+					_httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+				}
+			}
+
+			var response = await _httpClient.GetAsync($"top-clients/{numOfClients}");
+			if (response.IsSuccessStatusCode)
+			{
+				return await response.Content.ReadFromJsonAsync<IEnumerable<TopClientViewModel>>();
+			}
+
+			_logger.LogWarning("Failed to get top clients. Status: {StatusCode}, Content: {Content}",
+				response.StatusCode, await response.Content.ReadAsStringAsync());
+			return null;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while getting top clients");
+			return null;
+		}
+	}
+
 
 	public async Task<bool> UpdateFreelancerProfileAsync(UpdateFreelancerProfileRequest request)
 	{

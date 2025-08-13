@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Application.Interfaces.Repositories;
+﻿using FreelanceJobBoard.Application.Features.User.DTOs;
+using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -26,5 +27,26 @@ public class ClientRepository : GenericRepository<Client>, IClientRepository
 			.Include(c => c.Company)
 			.Include(c => c.Jobs)
 			.FirstOrDefaultAsync(c => c.UserId == userId);
+	}
+
+	public async Task<IEnumerable<TopClientDto>> GetTopClientsAsync(int numOfClients)
+	{
+		return await _context.Clients.Select(c => new TopClientDto
+		{
+			Id = c.Id,
+			FullName = c.User.FullName,
+			ProposalsCount = c.Jobs.SelectMany(j => j.Proposals).Count(),
+			Company = c.Company.Name,
+			ProfileImageUrl = c.User.ProfileImageUrl
+		}).OrderByDescending(c => c.ProposalsCount)
+		.Where(j => j.ProposalsCount > 0)
+		.Take(numOfClients)
+		.ToListAsync();
+
+	}
+
+	public async Task<int> GetTotalNumbers()
+	{
+		return await _context.Clients.CountAsync();
 	}
 }

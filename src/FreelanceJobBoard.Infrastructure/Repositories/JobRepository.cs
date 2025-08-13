@@ -307,4 +307,9 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Take(limit)
 			.ToListAsync();
 	}
+
+	public async Task<int> GetNumberOfJobs()
+	{
+		return await _context.Jobs.Where(j => j.Status == JobStatus.Open).CountAsync();
+	}
 }

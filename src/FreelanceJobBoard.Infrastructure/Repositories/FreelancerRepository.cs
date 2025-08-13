@@ -37,4 +37,9 @@ internal class FreelancerRepository : GenericRepository<Freelancer>, IFreelancer
 			.Where(f => f.UserId == userId)
 			.FirstOrDefaultAsync();
 	}
+
+	public async Task<int> GetTotalNumbers()
+	{
+		return await _context.Freelancers.CountAsync();
+	}
 }

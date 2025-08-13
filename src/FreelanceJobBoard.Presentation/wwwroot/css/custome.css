@@ -443,7 +443,7 @@ body {
     }
 
     .search-result-item:hover {
-        background-color: #f9fafb;
+        background-color: #e2e5e7 !important;
     }
 
 /* First row: Title + Budget */

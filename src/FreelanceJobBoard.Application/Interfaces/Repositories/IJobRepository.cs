@@ -16,4 +16,5 @@ public interface IJobRepository : IGenericRepository<Job>
 	IQueryable<Job> getPublicJobDetails(int jobId);
 	Task<IEnumerable<JobSearchDto>> SearchJobsAsync(string query, int limit);
 	Task<IEnumerable<Job>> GetJobsByFreelancerIdAsync(int freelancerId);
+	Task<int> GetNumberOfJobs();
 }

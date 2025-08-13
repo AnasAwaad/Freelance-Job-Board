@@ -5,10 +5,12 @@ using FreelanceJobBoard.Application.Features.Jobs.Queries.GetAllJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobById;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobsByCurrentClient;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetJobsByCurrentFreelancer;
+using FreelanceJobBoard.Application.Features.Jobs.Queries.GetNumberOfJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetPublicJobDeatils;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRecentJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRelatedJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.SearchForJobs;
+using FreelanceJobBoard.Application.Features.User.Queries.GetNumberOfFreelancers;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -422,5 +424,12 @@ public class JobsController : ControllerBase
 			return "Bearer [REDACTED]";
 
 		return headerValue.Length > 100 ? headerValue[..100] + "[TRUNCATED]" : headerValue;
+	}
+
+	[HttpGet("total-jobs")]
+	public async Task<IActionResult> GetNumOfJobs()
+	{
+		var result = await _mediator.Send(new GetNumberOfJobsQuery());
+		return Ok(result);
 	}
 }

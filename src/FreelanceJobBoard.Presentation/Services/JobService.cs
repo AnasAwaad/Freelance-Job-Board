@@ -626,6 +626,16 @@ public class JobService
 		return null;
 	}
 
+	public async Task<int?> GetNumberOfJobsAsync()
+	{
+		var response = await _httpClient.GetAsync($"Jobs/total-jobs");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<int>();
+
+		return null;
+	}
+
 	public async Task<IEnumerable<JobSearchResult>> SearchJobsAsync(string query)
 	{
 		var response = await _httpClient.GetAsync($"Jobs/search?query={query}");
