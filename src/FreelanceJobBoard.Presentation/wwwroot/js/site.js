@@ -69,9 +69,15 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
 function initializeDataTable() {
-    // Check if DataTable element exists and is not already initialized
-    if ($('#datatable').length && !$.fn.DataTable.isDataTable('#datatable')) {
+    // Check if DataTable element exists
+    if ($('#datatable').length) {
+        // Destroy existing DataTable if it exists to prevent reinitialization error
+        if ($.fn.DataTable.isDataTable('#datatable')) {
+            $('#datatable').DataTable().destroy();
+        }
+        
         // Only initialize if there are rows with data
         if ($('#datatable tbody tr').length > 0) {
             datatable = $('#datatable').DataTable({
@@ -104,6 +110,12 @@ function destroyDataTable() {
     }
 }
 
+function reinitializeDataTable() {
+    // Safely reinitialize DataTable
+    destroyDataTable();
+    initializeDataTable();
+}
+
 function onModalFormSuccess(newRow) {
     if (newRow != undefined) {
         if (updatedRow != undefined) {
@@ -117,8 +129,7 @@ function onModalFormSuccess(newRow) {
         }
 
         // Reinitialize DataTable
-        destroyDataTable();
-        initializeDataTable();
+        reinitializeDataTable();
     }
 
     updatedRow = undefined;

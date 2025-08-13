@@ -33,7 +33,7 @@ public class SkillsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateSkillCommand command)
     {
         var skillId = await mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id = skillId }, null);
+        return Ok(skillId);
     }
 
    

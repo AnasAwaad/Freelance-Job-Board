@@ -1,4 +1,12 @@
 ﻿@using System.Security.Claims
+@using FreelanceJobBoard.Domain.Constants
+@{
+    var userName = User.FindFirst(ClaimTypes.Name)?.Value ?? "User";
+    var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+    var profileImageUrl = User.FindFirst("ProfileImageUrl")?.Value;
+    var defaultAvatar = "~/images/avatar.jpg";
+    var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+}
 <header class="header">
     <!-- Top Navigation Bar -->
     <div class="top-nav">
@@ -9,7 +17,7 @@
             <div >
                 <!-- This could be an SVG or a different icon, using a simple text 'j' for now -->
                 <a href="/">
-                    <img src="~/images/logo-white.png" />
+                    <img src="~/images/logo-white.png" alt="Logo" />
                 </a>
 				
             </div>
@@ -23,7 +31,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <!-- Input field -->
-                <input id="Search" type="text" placeholder="search for job" class="search-input">
+                <form asp-controller="Jobs" asp-action="AllJobs" method="get" class="search-form" id="searchForm">
+                    <input id="Search" name="search" type="text" placeholder="search for job" class="search-input" autocomplete="off">
+                </form>
             </div>
         </div>
 
@@ -32,19 +42,22 @@
             <nav class="main-nav">
                 <a asp-controller="Jobs" asp-action="AllJobs" class="main-nav-link">Find Job</a>
             </nav>
-            @if (User.Identity.IsAuthenticated)
+            @if (User.Identity?.IsAuthenticated == true)
             {
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle text-primary" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user fa-lg me-1" style="font-size: 16px; margin-right: 6px;"></i>
-                        <span class="d-none d-lg-inline" style="font-size: 13px;">Welcome, @(User.FindFirst(ClaimTypes.Name)!.Value)</span>
+                        <span class="d-none d-lg-inline" style="font-size: 13px;">Welcome, @userName</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
                         <div class="profile-info">
-                            <img src="@User.FindFirst("ProfileImageUrl")?.Value" class="profile-avatar" alt="User Avatar">
+                            <img src="@(!string.IsNullOrEmpty(profileImageUrl) ? profileImageUrl : defaultAvatar)" class="profile-avatar" alt="User Avatar">
                             <div>
-                                <div class="profile-name">@(User.FindFirst(ClaimTypes.Name)!.Value)</div>
-                                <div class="profile-email">@(User.FindFirst(ClaimTypes.Email)?.Value)</div>
+                                <div class="profile-name">@userName</div>
+                                @if (!string.IsNullOrEmpty(userEmail))
+                                {
+                                    <div class="profile-email">@userEmail</div>
+                                }
                             </div>
                         </div>
                         <li>
@@ -55,14 +68,39 @@
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item profile-link" asp-controller="Proposals" asp-action="MyProposals">
-                                <i class="fa fa-dashboard"></i>
-                                <span>Dashboard</span>
-                            </a>
+                            @if (userRole == AppRoles.Admin)
+                            {
+                                <a class="dropdown-item profile-link" asp-controller="Admin" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span>Admin Dashboard</span>
+                                </a>
+                            }
+                            else if (userRole == AppRoles.Freelancer)
+                            {
+                                <a class="dropdown-item profile-link" asp-controller="Proposals" asp-action="MyProposals">
+                                    <i class="fa fa-dashboard"></i>
+                                    <span>My Proposals</span>
+                                </a>
+                            }
+                            else if (userRole == AppRoles.Client)
+                            {
+                                <a class="dropdown-item profile-link" asp-controller="Jobs" asp-action="MyJobs">
+                                    <i class="fas fa-briefcase"></i>
+                                    <span>My Jobs</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="dropdown-item profile-link" asp-controller="Home" asp-action="Index">
+                                    <i class="fa fa-dashboard"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            }
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
                                 <button type="submit" class="btn logout-button" style="border:none; background:none;">
                                     <i class="fas fa-sign-out-alt"></i> Logout
                                 </button>
@@ -91,4 +129,75 @@
     </div>
 
 </header>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('Search');
+    
+    if (searchForm && searchInput) {
+        // Handle search form submission
+        searchForm.addEventListener('submit', function(e) {
+            const searchValue = searchInput.value.trim();
+            if (searchValue === '') {
+                e.preventDefault();
+                // If search is empty, redirect to AllJobs without search parameter
+                window.location.href = '/Jobs/AllJobs';
+            }
+        });
+        
+        // Handle Enter key press
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const searchValue = searchInput.value.trim();
+                if (searchValue !== '') {
+                    searchForm.submit();
+                } else {
+                    e.preventDefault();
+                    window.location.href = '/Jobs/AllJobs';
+                }
+            }
+        });
+        
+        // Handle search icon click
+        const searchIcon = document.querySelector('.search-icon');
+        if (searchIcon) {
+            searchIcon.addEventListener('click', function() {
+                const searchValue = searchInput.value.trim();
+                if (searchValue !== '') {
+                    searchForm.submit();
+                } else {
+                    window.location.href = '/Jobs/AllJobs';
+                }
+            });
+            
+            // Add cursor pointer style to search icon
+            searchIcon.style.cursor = 'pointer';
+        }
+    }
+    
+    // Handle profile dropdown accessibility
+    const profileDropdown = document.getElementById('profileDropdown');
+    if (profileDropdown) {
+        profileDropdown.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                profileDropdown.click();
+            }
+        });
+    }
+    
+    // Handle logout form confirmation
+    const logoutButton = document.querySelector('.logout-button');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to logout?')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+});
+</script>
 

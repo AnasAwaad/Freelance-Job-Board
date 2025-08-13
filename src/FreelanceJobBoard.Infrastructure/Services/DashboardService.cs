@@ -200,23 +200,40 @@ public class DashboardService : IDashboardService
             var allContracts = await _unitOfWork.Contracts.GetAllAsync();
             var allReviews = await _unitOfWork.Reviews.GetAllAsync();
 
+            // Calculate more accurate statistics using existing repositories
+            var allFreelancers = await _unitOfWork.Freelancers.GetAllAsync();
+            var allClients = await _unitOfWork.Clients.GetAllAsync();
+
+            // Calculate platform revenue (assuming 10% platform fee from completed contracts)
+            var completedContracts = allContracts.Where(c => c.ContractStatus?.Name == "Completed").ToList();
+            var platformRevenue = completedContracts.Sum(c => c.PaymentAmount * 0.1m);
+
+            // Calculate average job approval time
+            var approvedJobs = allJobs.Where(j => j.Status == "Active" && j.CreatedOn != default).ToList();
+            double averageApprovalTime = 24.0; // Default 24 hours
+            if (approvedJobs.Any())
+            {
+                // This is a simplified calculation - you might want to track actual approval timestamps
+                averageApprovalTime = 24.0; // Placeholder for now
+            }
+
             var dashboard = new AdminDashboardDto
             {
                 UserRole = AppRoles.Admin,
-                TotalUsers = 100, // Placeholder
-                TotalFreelancers = 50, // Placeholder
-                TotalClients = 50, // Placeholder
-                JobsPendingApproval = allJobs.Count(j => j.Status == "PendingApproval"),
-                FlaggedJobs = allJobs.Count(j => j.Status == "Rejected"),
+                TotalUsers = allFreelancers.Count() + allClients.Count(), // Approximate count
+                TotalFreelancers = allFreelancers.Count(),
+                TotalClients = allClients.Count(),
+                JobsPendingApproval = allJobs.Count(j => j.Status == "PendingApproval" || j.Status == "Pending"),
+                FlaggedJobs = allJobs.Count(j => j.Status == "Rejected" || j.Status == "Flagged"),
                 TotalJobsPosted = allJobs.Count(),
-                TotalContractsCompleted = allContracts.Count(),
-                ActiveJobs = allJobs.Count(j => j.Status == "Active"),
+                TotalContractsCompleted = completedContracts.Count,
+                ActiveJobs = allJobs.Count(j => j.Status == "Active" || j.Status == "Open"),
                 Proposals = allProposals.Count(),
                 Contracts = allContracts.Count(),
                 Reviews = allReviews.Count(),
-                PendingApprovals = allJobs.Count(j => j.Status == "PendingApproval"),
-                PlatformRevenue = 10000m, // Placeholder
-                AverageJobApprovalTime = 24.0 // Placeholder: 24 hours
+                PendingApprovals = allJobs.Count(j => j.Status == "PendingApproval" || j.Status == "Pending"),
+                PlatformRevenue = platformRevenue,
+                AverageJobApprovalTime = averageApprovalTime
             };
 
             return dashboard;
@@ -224,7 +241,25 @@ public class DashboardService : IDashboardService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get admin dashboard");
-            return new AdminDashboardDto { UserRole = AppRoles.Admin };
+            // Return fallback data instead of empty
+            return new AdminDashboardDto
+            {
+                UserRole = AppRoles.Admin,
+                TotalUsers = 0,
+                TotalFreelancers = 0,
+                TotalClients = 0,
+                JobsPendingApproval = 0,
+                FlaggedJobs = 0,
+                TotalJobsPosted = 0,
+                TotalContractsCompleted = 0,
+                ActiveJobs = 0,
+                Proposals = 0,
+                Contracts = 0,
+                Reviews = 0,
+                PendingApprovals = 0,
+                PlatformRevenue = 0,
+                AverageJobApprovalTime = 24.0
+            };
         }
     }
 

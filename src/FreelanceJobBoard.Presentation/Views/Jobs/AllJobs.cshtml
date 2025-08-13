@@ -22,7 +22,7 @@
                 <div class="job_filter white-bg">
                     <div class="form_inner white-bg">
                         <h3>Filter</h3>
-                        <form method="get" asp-action="AllJobs">
+                        <form method="get" asp-action="AllJobs" id="filterForm">
                             <div class="row">
                                 <div class="col-lg-12">
                                     <div class="single_field">
@@ -36,7 +36,7 @@
                                             <option value="">Category</option>
                                             @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Categories ?? Enumerable.Empty<SelectListItem>())
                                             {
-                                                <option value="@item.Value" selected="@(ViewBag.Category == item.Value)">@item.Text</option>
+                                                <option value="@item.Value" selected="@(ViewBag.Category?.ToString() == item.Value)">@item.Text</option>
                                             }
                                         </select>
                                     </div>
@@ -48,7 +48,7 @@
                                             <option value="">Skills</option>
                                             @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Skills ?? Enumerable.Empty<SelectListItem>())
                                             {
-                                                <option value="@item.Value" selected="@(ViewBag.Skill == item.Value)">@item.Text</option>
+                                                <option value="@item.Value" selected="@(ViewBag.Skill?.ToString() == item.Value)">@item.Text</option>
                                             }
                                         </select>
                                     </div>
@@ -56,12 +56,23 @@
 
                                 <div class="col-lg-12">
                                     <div class="single_field">
-                                        <select name="sortBy"  class="nice-select wide">
+                                        <select name="sortBy" class="nice-select wide">
                                             <option value="">Sort By</option>
                                             <option value="title" selected="@(ViewBag.SortBy == "title")">Title</option>
                                             <option value="deadline" selected="@(ViewBag.SortBy == "deadline")">Deadline</option>
                                             <option value="budget" selected="@(ViewBag.SortBy == "budget")">Budget</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-12">
+                                    <div class="single_field">
+                                        <button type="submit" class="boxed-btn3 w-100">
+                                            <span class="btn-text">Apply Filters</span>
+                                            <span class="btn-loading d-none">
+                                                <i class="fa fa-spinner fa-spin"></i> Filtering...
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -81,16 +92,55 @@
                         <div class="row align-items-center">
                             <div class="col-md-6">
                                 <h4>Job Listing</h4>
+                                @if (Model != null)
+                                {
+                                    <small class="text-muted">
+                                        Showing @Model.Items.Count() of @Model.TotalCount jobs
+                                        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+                                        {
+                                            <span> for "@ViewBag.Search"</span>
+                                        }
+                                    </small>
+                                }
                             </div>
                             <div class="col-md-6">
                                 <div class="serch_cat d-flex justify-content-end">
-                                    <select name="sortDirection" class="wide nice-select" form="filterForm">
+                                    <select name="sortDirection" class="wide nice-select" form="filterForm" onchange="document.getElementById('filterForm').submit();">
                                         <option value="@SortDirection.Ascending" selected="@(ViewBag.SortDirection == SortDirection.Ascending)">Ascending</option>
                                         <option value="@SortDirection.Descending" selected="@(ViewBag.SortDirection == SortDirection.Descending)">Descending</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
+
+                        @* Active Filters Display *@
+                        @if (!string.IsNullOrEmpty(ViewBag.Search as string) || ViewBag.Category != null || ViewBag.Skill != null)
+                        {
+                            <div class="active-filters mt-2">
+                                <small class="text-muted">Active filters:</small>
+                                @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+                                {
+                                    <span class="badge badge-primary mr-1">Search: @ViewBag.Search</span>
+                                }
+                                @if (ViewBag.Category != null)
+                                {
+                                    var selectedCategory = ((List<SelectListItem>)ViewBag.Categories).FirstOrDefault(c => c.Value == ViewBag.Category.ToString());
+                                    if (selectedCategory != null)
+                                    {
+                                        <span class="badge badge-info mr-1">Category: @selectedCategory.Text</span>
+                                    }
+                                }
+                                @if (ViewBag.Skill != null)
+                                {
+                                    var selectedSkill = ((List<SelectListItem>)ViewBag.Skills).FirstOrDefault(s => s.Value == ViewBag.Skill.ToString());
+                                    if (selectedSkill != null)
+                                    {
+                                        <span class="badge badge-success mr-1">Skill: @selectedSkill.Text</span>
+                                    }
+                                }
+                                <a href="@Url.Action("AllJobs")" class="btn btn-sm btn-outline-secondary ml-2">Clear All</a>
+                            </div>
+                        }
                     </div>
                 </div>
 
@@ -98,8 +148,28 @@
                     <div class="row text-center">
                         @if (Model == null || !Model.Items.Any())
                         {
-                            <div class="no_jobs"> <p>No Jobs Availible</p></div>
-                            
+                            <div class="col-12">
+                                <div class="no_jobs text-center py-5">
+                                    <div class="mb-3">
+                                        <i class="fa fa-search fa-3x text-muted"></i>
+                                    </div>
+                                    <h4 class="text-muted">No Jobs Available</h4>
+                                    <p class="text-muted">
+                                        @if (!string.IsNullOrEmpty(ViewBag.Search as string) || ViewBag.Category != null || ViewBag.Skill != null)
+                                        {
+                                            @:No jobs match your current filters. Try adjusting your search criteria.
+                                        }
+                                        else
+                                        {
+                                            @:There are currently no jobs posted. Please check back later.
+                                        }
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(ViewBag.Search as string) || ViewBag.Category != null || ViewBag.Skill != null)
+                                    {
+                                        <a href="@Url.Action("AllJobs")" class="btn btn-primary">Clear Filters</a>
+                                    }
+                                </div>
+                            </div>
                         }
                         else
                         {
@@ -119,25 +189,48 @@
                                                     $@job.BudgetMin - $@job.BudgetMax
                                                 </div>
                                             </div>
-
-                                            <div class="jobs_left d-flex align-items-center mb-3">
-                                                <div class="thumb mx-auto">
-                                                    <img src="~/images/google.svg" alt="Image" />
-                                                </div>
-                                            </div>
-
                                             <div class="jobs_conetent mb-3 mx-auto">
-                                                <a href="#"><h4>@job.ClientId</h4></a>
+                                                @if (!string.IsNullOrEmpty(job.ClientName))
+                                                {
+                                                    <a href="@Url.Action("PublicJobDetails", "Jobs", new { jobId = job.Id })">
+                                                        <h4 class="client-info d-flex align-items-center">
+                                                            @if (!string.IsNullOrEmpty(job.ClientProfileImageUrl))
+                                                            {
+                                                                <img src="@job.ClientProfileImageUrl" alt="@job.ClientName" class="client-avatar me-2" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" />
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="client-avatar-placeholder me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 50%; background-color: #007bff; color: white; font-size: 14px; font-weight: bold;">
+                                                                    @(job.ClientName.Substring(0, 1).ToUpper())
+                                                                </div>
+                                                            }
+                                                            <span>@job.ClientName</span>
+                                                        </h4>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <a href="@Url.Action("PublicJobDetails", "Jobs", new { jobId = job.Id })"><h4>Client ID: @job.ClientId</h4></a>
+                                                }
                                                 <div class="position-info">
-                                                    <p>@job.Title</p>
+                                                    <h5 class="job-title">@job.Title</h5>
+                                                    @if (!string.IsNullOrEmpty(job.Description) && job.Description.Length > 100)
+                                                    {
+                                                        <p class="job-description">@(job.Description.Substring(0, 100))...</p>
+                                                    }
+                                                    else if (!string.IsNullOrEmpty(job.Description))
+                                                    {
+                                                        <p class="job-description">@job.Description</p>
+                                                    }
                                                 </div>
                                             </div>
 
                                             <div class="jobs_right mx-auto">
                                                 <div class="apply_now">
-                                                    <a href="@Url.Action("JobDetails", "Jobs", new { id = job.Id })" class="boxed-btn3">View Details</a>
+                                                    <a href="@Url.Action("PublicJobDetails", "Jobs", new { jobId = job.Id })" class="boxed-btn3">View Details</a>
                                                 </div>
                                                 <div class="date">
+                                                    <p>Posted @job.TimeAgo</p>
                                                     <p>Deadline: @job.Deadline.ToString("MMM dd, yyyy")</p>
                                                 </div>
                                             </div>
@@ -208,4 +301,4 @@
 <script src="~/js/range.js"></script>
 <script src="~/js/jquery.ajaxchimp.min.js"></script>
 <script src="~/js/jquery.validate.min.js"></script>
-@* <script src="~/js/alljobs.js"></script> *@
+<script src="~/js/alljobs.js"></script>

@@ -5,7 +5,27 @@
         <p class="subtitle">
             Unlock your potential with quality job & earn from world leading brands & co.
         </p>
-        <a href="#" class="post-job-btn">Post a Job</a>
+        
+        @if (User.IsInRole(AppRoles.Client))
+        {
+            <a asp-controller="Jobs" asp-action="Create" class="post-job-btn">Post a Job</a>
+        }
+        else if (User.IsInRole(AppRoles.Freelancer))
+        {
+            <a asp-controller="Jobs" asp-action="Index" class="post-job-btn">Browse Jobs</a>
+        }
+        else if (User.IsInRole(AppRoles.Admin))
+        {
+            <a asp-controller="Admin" asp-action="Index" class="post-job-btn">Admin Panel</a>
+        }
+        else if (!User.Identity.IsAuthenticated)
+        {
+            <a asp-controller="Auth" asp-action="Register" class="post-job-btn">Join Now</a>
+        }
+        else
+        {
+            <a asp-controller="Jobs" asp-action="Index" class="post-job-btn">Browse Jobs</a>
+        }
         
     </div>
     <div class="illustration-container">

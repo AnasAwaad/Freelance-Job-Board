@@ -5,6 +5,8 @@ public class JobDto
 {
 	public int Id { get; set; }
 	public int? ClientId { get; set; }
+	public string? ClientName { get; set; }
+	public string? ClientProfileImageUrl { get; set; }
 	public string? Title { get; set; }
 	public string? Description { get; set; }
 	public decimal BudgetMin { get; set; }
@@ -16,6 +18,7 @@ public class JobDto
 	public int ViewsCount { get; set; }
 	public bool IsApproved { get; set; }
 	public int? ApprovedBy { get; set; }
+	public DateTime CreatedOn { get; set; }
 	public ICollection<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
 	public ICollection<SkillDto> Skills { get; set; } = new List<SkillDto>();
 }

@@ -25,6 +25,7 @@
                 </div>
                 <div class="result-meta">
                     <span>{{clientName}}</span>
+                    <span>Posted {{timeAgo}}</span>
                     <span>{{deadline}}</span>
                 </div>
                 <div class="result-desc">{{description}}</div>

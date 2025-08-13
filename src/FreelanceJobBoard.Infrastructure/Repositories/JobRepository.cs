@@ -24,11 +24,14 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 		{
 			var searchValue = search?.ToLower().Trim();
 
-
+			// Changed: Only filter by IsActive by default, let statusFilter handle specific status filtering
 			var query = _context.Jobs
 				.Include(j => j.Categories)
-				.Where(j => searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
-														(j.Description!.ToLower().Contains(searchValue))));
+				.Include(j => j.Client)
+					.ThenInclude(c => c!.User)
+				.Where(j => j.IsActive && 
+					(searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
+											(j.Description!.ToLower().Contains(searchValue)))));
 
 			if (!string.IsNullOrEmpty(statusFilter))
 			{
@@ -94,10 +97,11 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 		try
 		{
+			// Changed: Only filter by IsActive by default, let status parameter handle specific filtering
 			var query = _context.Jobs
 				.Include(j => j.Client)
 					.ThenInclude(c => c!.User)
-				.Where(j => string.IsNullOrEmpty(status) || j.Status == status);
+				.Where(j => j.IsActive && (string.IsNullOrEmpty(status) || j.Status == status));
 
 			_logger?.LogDebug("✅ Jobs queryable created successfully | Status={Status}", status ?? "All");
 			return query;
@@ -234,6 +238,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 	public IQueryable<Job> GetJobWithDetailsQuery(int id)
 	{
+		// Changed: Remove JobStatus.Open filter - job details should be viewable regardless of status
 		return _context.Jobs
 			.Include(j => j.Proposals)
 				.ThenInclude(p => p.Attachments)
@@ -241,12 +246,12 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
 			.Include(j => j.Reviews)
-			.Where(j => j.Id == id && j.Status == JobStatus.Open);
-
+			.Where(j => j.Id == id);
 	}
 
 	public IQueryable<Job> GetRecentOpenedJobsQueryable(int numOfJobs)
 	{
+		// Keep the Open status filter here as this is specifically for browsing "available" jobs
 		return _context.Jobs.
 			Include(j => j.Client)
 			.ThenInclude(c => c.User)
@@ -267,6 +272,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 	public IQueryable<Job> getPublicJobDetails(int jobId)
 	{
+		// Changed: Remove JobStatus.Open filter - public job details should be viewable regardless of status  
 		return _context.Jobs
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
@@ -274,9 +280,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 				.ThenInclude(js => js.Skill)
 			.Include(j => j.Categories)
 				.ThenInclude(jc => jc.Category)
-			.Where(j => j.IsActive && j.Id == jobId && j.Status == JobStatus.Open);
-
-
+			.Where(j => j.IsActive && j.Id == jobId);
 	}
 
 	public IQueryable<Job> GetRelatedJobsQueryable(int jobId)
@@ -291,19 +295,22 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 		var jobCategories = job.Categories.Select(c => c.Category.Id).ToList();
 
+		// Keep Open status filter here as this is for suggesting "available" jobs
 		return _context.Jobs.
 			Include(j => j.Client)
 			.ThenInclude(c => c.User)
 			.OrderByDescending(j => j.CreatedOn)
-			.Where(j => j.IsActive && j.Id != jobId && j.Categories.Any(c => jobCategories.Contains(c.CategoryId)));
+			.Where(j => j.IsActive && j.Id != jobId && j.Status == JobStatus.Open && j.Categories.Any(c => jobCategories.Contains(c.CategoryId)));
 	}
 
 	public async Task<IEnumerable<JobSearchDto>> SearchJobsAsync(string query, int limit)
 	{
+		// Keep Open status filter here as this is for searching "available" jobs
 		return await _context.Jobs
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
 			.Where(j => j.IsActive && j.Status == JobStatus.Open && (j.Title.Contains(query) || j.Description.Contains(query)))
+			.OrderByDescending(j => j.CreatedOn)
 			.Select(j => new JobSearchDto
 			{
 				ClientName = j.Client.User.FullName,
@@ -312,7 +319,8 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 				Id = j.Id,
 				Title = j.Title,
 				Description = j.Description,
-				Deadline = j.Deadline.ToString("yyyy-MM-dd")
+				Deadline = j.Deadline.ToString("yyyy-MM-dd"),
+				CreatedOn = j.CreatedOn
 			})
 			.Take(limit)
 			.ToListAsync();

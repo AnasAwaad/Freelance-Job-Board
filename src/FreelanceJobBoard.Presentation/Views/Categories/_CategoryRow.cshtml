@@ -2,7 +2,7 @@
 
 @if (Model != null)
 {
-    <tr>
+    <tr data-category-id="@Model.Id" data-category-name="@Model.Name">
         <td class="text-center">
             <a asp-action="Details" asp-route-id="@Model.Id" class="text-gray-800 text-hover-primary fw-bold">
                 @(Model.Name ?? "N/A")
@@ -30,49 +30,44 @@
                         <span class="path3"></span>
                     </i>
                 </a>
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-icon btn-light-warning btn-sm"
-                   data-bs-toggle="tooltip" title="Edit Category">
-                    <i class="ki-duotone ki-pencil fs-4">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
-                </a>
-                <a href="javascript:;" 
-                   class="btn btn-icon btn-light-@(Model.IsActive ? "danger" : "success") btn-sm js-render-modal" 
-                   data-url="/Categories/UpdateModal/@Model.Id"
-                   data-title="Update Category"
-                   data-bs-toggle="tooltip" 
-                   title="Edit (Modal)">
-                    <i class="ki-duotone ki-notepad-edit fs-4">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
-                </a>
-                <button type="button" 
-                        class="btn btn-icon btn-light-@(Model.IsActive ? "danger" : "success") btn-sm js-change-status" 
-                        data-status="@Model.IsActive.ToString().ToLower()"
-                        data-url="/Categories/ChangeStatus/@Model.Id"
-                        data-bs-toggle="tooltip" 
-                        title="@(Model.IsActive ? "Deactivate" : "Activate")">
-                    <i class="ki-duotone ki-@(Model.IsActive ? "cross" : "check") fs-4">
-                        <span class="path1"></span>
-                        <span class="path2"></span>
-                    </i>
-                </button>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-icon btn-light-warning btn-sm"
+                       data-bs-toggle="tooltip" title="Edit Category">
+                        <i class="ki-duotone ki-pencil fs-4">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                    </a>
+                    <button type="button" 
+                            class="btn btn-icon btn-light-danger btn-sm js-delete-category-permanently" 
+                            data-category-id="@Model.Id"
+                            data-category-name="@Model.Name"
+                            data-bs-toggle="tooltip" 
+                            title="Delete Category">
+                        <i class="ki-duotone ki-trash fs-4">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                            <span class="path4"></span>
+                            <span class="path5"></span>
+                        </i>
+                    </button>
+                }
             </div>
         </td>
     </tr>
 }
 else
 {
-    <tr>
+    <tr class="text-danger">
         <td colspan="4" class="text-center text-muted">
             <i class="ki-duotone ki-information-4 fs-2">
                 <span class="path1"></span>
                 <span class="path2"></span>
                 <span class="path3"></span>
             </i>
-            Invalid category data
+            Invalid category data (Model is null)
         </td>
     </tr>
 }

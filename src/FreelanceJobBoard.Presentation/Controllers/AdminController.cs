@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using FreelanceJobBoard.Infrastructure.Data;
+using FreelanceJobBoard.Domain.Entities;
+using FreelanceJobBoard.Application.Interfaces.Services;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
 
@@ -20,8 +24,9 @@ public class AdminController : Controller
 	private readonly UserService _userService;
 	private readonly JobService _jobService;
 	private readonly HomeService _homeService;
+	private readonly IDashboardService _dashboardService;
 
-	public AdminController(ILogger<AdminController> logger, HttpClient httpClient, ApplicationDbContext context, UserService userService, JobService jobService, HomeService homeService)
+	public AdminController(ILogger<AdminController> logger, HttpClient httpClient, ApplicationDbContext context, UserService userService, JobService jobService, HomeService homeService, IDashboardService dashboardService)
 	{
 		_logger = logger;
 		_httpClient = httpClient;
@@ -30,6 +35,7 @@ public class AdminController : Controller
 		_userService = userService;
 		_jobService = jobService;
 		_homeService = homeService;
+		_dashboardService = dashboardService;
 	}
 
 	[HttpPost]
@@ -218,12 +224,12 @@ public class AdminController : Controller
 		}
 	}
 
-	public async Task<IActionResult> Index()
-	{
-		try
-		{
-			// Log admin access for security auditing
-			var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+    public IActionResult Index()
+    {
+        try
+        {
+            // Log admin access for security auditing
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 			var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
 			var viewModel = new DashBoardViewModel
@@ -244,12 +250,12 @@ public class AdminController : Controller
 				return RedirectToAction("AccessDenied", "Auth");
 			}
 
-			ViewBag.UserEmail = userEmail;
-			ViewBag.UserRole = userRole;
-			ViewBag.IsAdmin = User.IsInRole(AppRoles.Admin);
+            ViewBag.UserEmail = userEmail;
+            ViewBag.UserRole = userRole;
+            ViewBag.IsAdmin = User.IsInRole(AppRoles.Admin);
 
-			return View(viewModel);
-		}
+            return View();
+        }
 		catch (Exception ex)
 		{
 			_logger.LogError(ex, "Error occurred while accessing admin panel");

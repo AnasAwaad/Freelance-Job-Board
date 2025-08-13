@@ -20,12 +20,34 @@ public class CategoriesController : Controller
 	{
 		try
 		{
+			_logger.LogInformation("Categories Index action called");
+			
 			var categories = await _categoryService.GetAllCategoriesAsync();
 
-			// Ensure we always have a non-null collection
-			categories ??= new List<CategoryViewModel>();
+			// Log the actual count for debugging
+			var categoryCount = categories?.Count() ?? 0;
+			_logger.LogInformation("Retrieved {CategoryCount} categories from service", categoryCount);
 
-			return View(categories);
+			// Ensure we always have a non-null collection
+			if (categories == null)
+			{
+				_logger.LogWarning("Categories service returned null, using empty list");
+				categories = new List<CategoryViewModel>();
+			}
+
+			// Convert to list to avoid multiple enumeration and for easier debugging
+			var categoryList = categories.ToList();
+			
+			_logger.LogInformation("Passing {CategoryCount} categories to view", categoryList.Count);
+			
+			// Log first few category names for debugging
+			if (categoryList.Any())
+			{
+				var sampleNames = string.Join(", ", categoryList.Take(3).Select(c => c.Name));
+				_logger.LogInformation("Sample categories: {SampleNames}", sampleNames);
+			}
+
+			return View(categoryList);
 		}
 		catch (Exception ex)
 		{
@@ -358,6 +380,78 @@ public class CategoriesController : Controller
 		{
 			_logger.LogError(ex, "Error occurred while changing status for category {Id}", id);
 			return StatusCode(500, "An error occurred while changing category status");
+		}
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> DeleteCategory(int id)
+	{
+		try
+		{
+			// "Delete" actually means changing status (deactivate)
+			var result = await _categoryService.ChangeCategoryStatusAsync(id);
+			if (result != null)
+			{
+				var message = result.NewStatus ? "Category activated successfully!" : "Category deactivated successfully!";
+				return Json(new { success = true, message = message });
+			}
+			else
+			{
+				return Json(new { success = false, message = "Failed to change category status. It might be referenced by existing jobs." });
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while changing status for category {Id}", id);
+			return Json(new { success = false, message = "An error occurred while processing the request." });
+		}
+	}
+
+	[HttpPost]
+	public async Task<IActionResult> PermanentDelete(int id)
+	{
+		try
+		{
+			var result = await _categoryService.DeleteCategoryAsync(id);
+			if (result)
+			{
+				TempData["Success"] = "Category deleted successfully!";
+			}
+			else
+			{
+				TempData["Error"] = "Failed to delete category. It might have associated jobs or other dependencies.";
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while permanently deleting category {Id}", id);
+			TempData["Error"] = "An error occurred while deleting the category.";
+		}
+
+		return RedirectToAction(nameof(Index));
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> DeleteCategoryPermanently(int id)
+	{
+		try
+		{
+			var result = await _categoryService.DeleteCategoryAsync(id);
+			if (result)
+			{
+				return Json(new { success = true, message = "Category deleted successfully!" });
+			}
+			else
+			{
+				return Json(new { success = false, message = "Failed to delete category. It might have associated jobs or other dependencies." });
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error occurred while permanently deleting category {Id}", id);
+			return Json(new { success = false, message = "An error occurred while processing the request." });
 		}
 	}
 }

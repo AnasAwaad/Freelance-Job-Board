@@ -8,4 +8,5 @@ public class JobSearchDto
 	public string BudgetMax { get; set; }
 	public string Deadline { get; set; }
 	public string ClientName { get; set; }
+	public DateTime CreatedOn { get; set; }
 }

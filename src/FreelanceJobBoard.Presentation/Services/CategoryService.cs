@@ -402,6 +402,87 @@ public class CategoryService
 		}
 	}
 
+	public async Task<IEnumerable<PublicCategoryViewModel>?> GetTopCategories(int numOfCategories)
+	{
+		var response = await _httpClient.GetAsync($"Categories/top/{numOfCategories}");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<PublicCategoryViewModel>>();
+
+		return new List<PublicCategoryViewModel>();
+	}
+
+	public async Task<bool> DeleteCategoryAsync(int id)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
+		var sessionId = _httpContext?.Session?.Id ?? "NoSession";
+		
+		try
+		{
+			if (id <= 0)
+			{
+				stopwatch.Stop();
+				_logger.LogWarning("⚠️ Invalid category ID for deletion | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms", 
+					id, userId, stopwatch.ElapsedMilliseconds);
+				return false;
+			}
+
+			_logger.LogInformation("🗑️ Deleting category | CategoryId={CategoryId}, User={UserId}, Session={SessionId}", 
+				id, userId, sessionId);
+
+			LogRequestHeaders("DELETE_CATEGORY");
+
+			// This will call DELETE /api/Categories/{id}
+			var response = await _httpClient.DeleteAsync($"Categories/{id}");
+
+			_logger.LogDebug("📥 API Response | CategoryId={CategoryId}, Status={StatusCode} {ReasonPhrase}", 
+				id, (int)response.StatusCode, response.StatusCode, response.ReasonPhrase);
+
+			if (response.IsSuccessStatusCode)
+			{
+				stopwatch.Stop();
+				_logger.LogInformation("✅ Category deleted successfully! CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms", 
+					id, userId, stopwatch.ElapsedMilliseconds);
+
+				return true;
+			}
+
+			stopwatch.Stop();
+			if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+				_logger.LogWarning("❌ Category not found for deletion | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms", 
+					id, userId, stopwatch.ElapsedMilliseconds);
+			}
+			else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+			{
+				var errorContent = await response.Content.ReadAsStringAsync();
+				_logger.LogWarning("⚠️ Cannot delete category | CategoryId={CategoryId}, User={UserId}, Error={Error}, Duration={ElapsedMs}ms", 
+					id, userId, errorContent, stopwatch.ElapsedMilliseconds);
+			}
+			else
+			{
+				_logger.LogWarning("⚠️ Failed to delete category | CategoryId={CategoryId}, User={UserId}, Status={StatusCode} {ReasonPhrase}, Duration={ElapsedMs}ms", 
+					id, userId, (int)response.StatusCode, response.ReasonPhrase, stopwatch.ElapsedMilliseconds);
+			}
+			return false;
+		}
+		catch (HttpRequestException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "🌐 HTTP error while deleting category | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms", 
+				id, userId, stopwatch.ElapsedMilliseconds);
+			return false;
+		}
+		catch (Exception ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "🔥 Unexpected error while deleting category | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms", 
+				id, userId, stopwatch.ElapsedMilliseconds);
+			return false;
+		}
+	}
+
 	private void LogRequestHeaders(string operation)
 	{
 		try
@@ -461,15 +542,5 @@ public class CategoryService
 			return "Bearer [REDACTED]";
 
 		return headerValue.Length > 100 ? headerValue[..100] + "[TRUNCATED]" : headerValue;
-	}
-
-	public async Task<IEnumerable<PublicCategoryViewModel>?> GetTopCategories(int numOfCategories)
-	{
-		var response = await _httpClient.GetAsync($"Categories/top/{numOfCategories}");
-
-		if (response.IsSuccessStatusCode)
-			return await response.Content.ReadFromJsonAsync<IEnumerable<PublicCategoryViewModel>>();
-
-		return new List<PublicCategoryViewModel>();
 	}
 }

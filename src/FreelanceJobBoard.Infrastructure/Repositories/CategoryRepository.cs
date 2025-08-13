@@ -35,10 +35,26 @@ public class CategoryRepository : GenericRepository<Category>, ICategoryReposito
 
 	public async Task<IEnumerable<Category>> GetTopCategoriesAsync(int numOfCategories)
 	{
-		return await _context.Categories
-			.Include(c => c.JobCategories)
-			.OrderByDescending(c => c.JobCategories.Count)
-			.Take(numOfCategories)
-			.ToListAsync();
+		_logger?.LogDebug("🔍 Getting top active categories | RequestedCount={RequestedCount}", numOfCategories);
+		
+		try
+		{
+			var categories = await _context.Categories
+				.Where(c => c.IsActive) // Only include active categories
+				.Include(c => c.JobCategories)
+				.OrderByDescending(c => c.JobCategories.Count)
+				.Take(numOfCategories)
+				.ToListAsync();
+
+			_logger?.LogDebug("✅ Top active categories retrieved | RequestedCount={RequestedCount}, FoundCount={FoundCount}", 
+				numOfCategories, categories.Count);
+			
+			return categories;
+		}
+		catch (Exception ex)
+		{
+			_logger?.LogError(ex, "❌ Failed to get top active categories | RequestedCount={RequestedCount}", numOfCategories);
+			throw;
+		}
 	}
 }

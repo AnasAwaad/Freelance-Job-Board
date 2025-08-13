@@ -116,6 +116,17 @@
                                         <span class="text-dark fw-bold fs-4">$@job.BudgetMin - $@job.BudgetMax</span>
                                         <span class="text-muted fs-7">Deadline: @job.Deadline.ToString("MMM dd, yyyy")</span>
                                     </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-muted fs-8">
+                                            <i class="ki-duotone ki-time fs-6 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Posted @job.TimeAgo
+                                        </span>
+                                        <span class="text-muted fs-8">@job.ViewsCount views</span>
+                                    </div>
 
                                     @if (job.Categories.Any())
                                     {
@@ -132,7 +143,6 @@
                                     }
 
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="text-muted fs-8">@job.ViewsCount views</span>
                                         <div class="d-flex gap-2">
                                             <a asp-action="Details" asp-route-id="@job.Id" class="btn btn-sm btn-light-primary">View Details</a>
                                             
@@ -222,4 +232,4 @@
         </div>
     </div>
     <!--end::Content-->
-</div>
+</div></div>
