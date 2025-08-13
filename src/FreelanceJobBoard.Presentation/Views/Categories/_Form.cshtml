@@ -11,7 +11,7 @@
             </div>
             <form 
                 id="ModalForm"
-                asp-action="@(Model?.Id > 0 ?"Update":"Create")"
+                asp-action="@(Model?.Id > 0 ?"UpdateModal":"CreateModal")"
                 method="post" 
                 class="form">
                 <div class="modal-body">
@@ -43,7 +43,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
                         @(Model?.Id > 0 ? "Update" : "Create") Category
                     </button>
                 </div>
@@ -55,12 +55,24 @@
 
 <script>
     $(document).ready(function() {
-        // Show modal
-        $('#categoryModal').modal('show');
+        // Initialize the modal properly
+        const modal = new bootstrap.Modal(document.getElementById('categoryModal'));
         
-        // Handle modal form submission
-        $('#ModalForm').on('submit', function(e) {
+        // Show the modal now that it's properly initialized
+        modal.show();
+        
+        // Remove any existing form handlers to prevent conflicts
+        $('#ModalForm').off('submit.categoryForm');
+        
+        // Handle modal form submission with improved duplicate prevention
+        $('#ModalForm').on('submit.categoryForm', function(e) {
             e.preventDefault();
+            
+            // Prevent multiple submissions
+            const submitBtn = $('#submitBtn');
+            if (submitBtn.prop('disabled')) {
+                return false;
+            }
             
             // Clear any existing validation errors
             $('.text-danger').text('');
@@ -69,8 +81,7 @@
             const form = $(this);
             const formData = new FormData(this);
             
-            // Disable submit button to prevent double submission
-            const submitBtn = form.find('button[type="submit"]');
+            // Disable submit button immediately to prevent double submission
             const originalText = submitBtn.text();
             submitBtn.prop('disabled', true).text('Saving...');
             
@@ -90,17 +101,16 @@
                         } else {
                             // Add new row
                             if ($('.js-tbody tr').length === 0 || $('.js-tbody tr').first().find('td[colspan]').length > 0) {
-                                // First category or empty state
+                                // First category or empty state - reload to handle empty state properly
                                 location.reload();
                                 return;
                             } else {
                                 $('.js-tbody').prepend(response);
                             }
                         }
-                        $('#categoryModal').modal('hide');
                         
-                        // Show success message
-                        alert('Category saved successfully!');
+                        // Simply hide the modal without showing any confirmation message
+                        modal.hide();
                     } else {
                         // Form validation errors - replace modal content
                         const modalContent = $('#categoryModal .modal-content');
@@ -108,18 +118,34 @@
                         modalContent.html(newContent.find('.modal-content').html());
                         
                         // Re-initialize validation
-                        $.validator.unobtrusive.parse('#ModalForm');
+                        if (typeof $.validator !== 'undefined' && $.validator.unobtrusive) {
+                            $.validator.unobtrusive.parse('#ModalForm');
+                        }
+                        
+                        // Re-enable submit button for new content
+                        $('#submitBtn').prop('disabled', false);
                     }
                 },
                 error: function(xhr) {
                     console.error('Form submission failed:', xhr);
-                    alert('An error occurred while saving the category. Please try again.');
-                },
-                complete: function() {
-                    // Re-enable submit button
+                    // Show error message only for actual errors
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('An error occurred while saving the category. Please try again.');
+                    } else {
+                        alert('An error occurred while saving the category. Please try again.');
+                    }
+                    // Re-enable submit button on error
                     submitBtn.prop('disabled', false).text(originalText);
                 }
             });
+            
+            return false; // Prevent any other form submission
+        });
+        
+        // Clean up when modal is hidden
+        $('#categoryModal').on('hidden.bs.modal', function () {
+            // Remove the modal from DOM to prevent duplicates
+            $(this).remove();
         });
     });
 </script>

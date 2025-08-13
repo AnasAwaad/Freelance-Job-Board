@@ -25,7 +25,7 @@ public class CategoriesController : ControllerBase
 		_logger = logger;
 	}
 
-	[RateLimit(5, 60)]
+	[RateLimit(100, 60)] // Increased from 5 to 100 requests per minute - categories are read-only data that changes infrequently
 	[HttpGet]
 	public async Task<IActionResult> GetAll()
 	{
@@ -65,12 +65,15 @@ public class CategoriesController : ControllerBase
 		}
 	}
 
+	[RateLimit(50, 60)] // Also increase rate limit for top categories as it's frequently used
 	[HttpGet("top/{numOfCategories}")]
 	public async Task<IActionResult> GetTopCategories([FromRoute] int numOfCategories)
 	{
 		var result = await _mediator.Send(new GetTopCategoriesQuery(numOfCategories));
 		return Ok(result);
 	}
+	
+	[RateLimit(50, 60)] // Reasonable limit for individual category retrieval
 	[HttpGet("{id}")]
 	public async Task<IActionResult> GetById([FromRoute] int id)
 	{
@@ -112,6 +115,7 @@ public class CategoriesController : ControllerBase
 		}
 	}
 
+	[RateLimit(10, 60)] // Keep stricter limits for write operations
 	[HttpPost]
 	public async Task<IActionResult> Create([FromBody] CreateCategoryCommand command)
 	{
@@ -169,6 +173,7 @@ public class CategoriesController : ControllerBase
 		}
 	}
 
+	[RateLimit(10, 60)] // Keep stricter limits for write operations
 	[HttpPut("{id}")]
 	public async Task<IActionResult> Update([FromRoute] int id, UpdateCategoryCommand command)
 	{
@@ -225,6 +230,7 @@ public class CategoriesController : ControllerBase
 		}
 	}
 
+	[RateLimit(10, 60)] // Keep stricter limits for status changes
 	[HttpPost("{id}/ChangeStatus")]
 	public async Task<IActionResult> ChangeStatus([FromRoute] int id)
 	{
@@ -270,6 +276,58 @@ public class CategoriesController : ControllerBase
 			_logger.LogError(ex, "🔥 Category status change failed! CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms | RequestId: {RequestId}",
 				id, userId, stopwatch.ElapsedMilliseconds, requestId);
 			return StatusCode(500, "An error occurred while changing the category status");
+		}
+	}
+
+	[RateLimit(5, 60)] // Keep strict limits for delete operations
+	[HttpDelete("{id}")]
+	public async Task<IActionResult> Delete([FromRoute] int id)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		var userId = User?.Identity?.Name ?? "Anonymous";
+		var requestId = HttpContext.TraceIdentifier;
+
+		try
+		{
+			_logger.LogInformation("🗑️ Starting category deletion | CategoryId={CategoryId}, User={UserId} | RequestId: {RequestId}", id, userId, requestId);
+
+			LogRequestHeaders("DELETE_CATEGORY");
+
+			var result = await _mediator.Send(new DeleteCategoryCommand(id));
+
+			stopwatch.Stop();
+			_logger.LogInformation("✅ Category deleted successfully! CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms | RequestId: {RequestId}",
+				id, userId, stopwatch.ElapsedMilliseconds, requestId);
+
+			return Ok(new { success = true, message = "Category deleted successfully" });
+		}
+		catch (UnauthorizedAccessException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogWarning("🚫 Unauthorized category deletion attempt | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms, Error={ErrorMessage} | RequestId: {RequestId}",
+				id, userId, stopwatch.ElapsedMilliseconds, ex.Message, requestId);
+			return Unauthorized();
+		}
+		catch (Domain.Exceptions.NotFoundException)
+		{
+			stopwatch.Stop();
+			_logger.LogWarning("❌ Category not found for deletion | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms | RequestId: {RequestId}",
+				id, userId, stopwatch.ElapsedMilliseconds, requestId);
+			return NotFound(new { success = false, message = "Category not found" });
+		}
+		catch (InvalidOperationException ex)
+		{
+			stopwatch.Stop();
+			_logger.LogWarning("⚠️ Cannot delete category with dependencies | CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms, Error='{ErrorMessage}' | RequestId: {RequestId}",
+				id, userId, stopwatch.ElapsedMilliseconds, ex.Message, requestId);
+			return BadRequest(new { success = false, message = ex.Message });
+		}
+		catch (Exception ex)
+		{
+			stopwatch.Stop();
+			_logger.LogError(ex, "🔥 Category deletion failed! CategoryId={CategoryId}, User={UserId}, Duration={ElapsedMs}ms | RequestId: {RequestId}",
+				id, userId, stopwatch.ElapsedMilliseconds, requestId);
+			return StatusCode(500, new { success = false, message = "An error occurred while deleting the category" });
 		}
 	}
 
