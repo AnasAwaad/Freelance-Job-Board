@@ -56,7 +56,7 @@ public class SkillsController : Controller
         if (skillId.HasValue)
         {
             TempData["Success"] = "Skill created successfully!";
-            return RedirectToAction(nameof(Details), new { id = skillId.Value });
+            return RedirectToAction(nameof(Index));
         }
 
         ModelState.AddModelError("", "Failed to create skill. The skill name might already exist.");
@@ -95,7 +95,7 @@ public class SkillsController : Controller
         if (success)
         {
             TempData["Success"] = "Skill updated successfully!";
-            return RedirectToAction(nameof(Details), new { id = viewModel.Id });
+            return RedirectToAction(nameof(Index));
         }
 
         ModelState.AddModelError("", "Failed to update skill. The skill name might already exist.");
