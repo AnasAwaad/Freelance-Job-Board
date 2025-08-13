@@ -40,6 +40,19 @@
 	<script src="~/lib/handlebars.js/handlebars.min.js"></script>
 	<script src="~/lib/typeahead.js/typeahead.bundle.min.js"></script>
 	<script src="~/js/search.js"></script>
+	<script>
+        $(document).ready(function () {
+            $.get("/Categories/GetTopCategories", function (categories) {
+                let list = $("#secondary-nav-list");
+                list.empty();
+                categories.forEach(function (category) {
+                    list.append(
+                        `<li><a href="/Jobs/AllJobs?category=${category.id}">${category.name}</a></li>`
+                    );
+                });
+            });
+        });
+	</script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

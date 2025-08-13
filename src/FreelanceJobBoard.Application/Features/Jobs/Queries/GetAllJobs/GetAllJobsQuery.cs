@@ -9,6 +9,6 @@ public class GetAllJobsQuery : IRequest<PagedResult<JobDto>>
 	public int PageSize { get; set; }
 	public string? Search { get; set; }
 	public string? SortBy { get; set; }
-	public string SortDirection { get; set; }
+	public string? SortDirection { get; set; }
 	public int? Category { get; set; }
 }

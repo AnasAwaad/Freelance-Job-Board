@@ -105,51 +105,90 @@
                         {
                             @foreach (var job in Model.Items)
                             {
-                                <div class="col-lg-6 col-md-12">
-                                    <div class="single_jobs white-bg flex-column d-flex">
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="single_jobs white-bg flex-column d-flex">
 
-                                        <div class="top-info d-flex justify-content-between align-items-center mb-3 w-100">
-                                            <div class="category_jobs">
-                                                @foreach (var category in job.Categories)
-                                                {
-                                                    @category.Name
-                                                }
+                                            <div class="top-info d-flex justify-content-between align-items-center mb-3 w-100">
+                                                <div class="category_jobs">
+                                                    @foreach (var category in job.Categories)
+                                                    {
+                                                        @category.Name
+                                                    }
+                                                </div>
+                                                <div class="price_jobs">
+                                                    $@job.BudgetMin - $@job.BudgetMax
+                                                </div>
                                             </div>
-                                            <div class="price_jobs">
-                                                $@job.BudgetMin - $@job.BudgetMax
+
+                                            <div class="jobs_left d-flex align-items-center mb-3">
+                                                <div class="thumb mx-auto">
+                                                    <img src="~/images/google.svg" alt="Image" />
+                                                </div>
                                             </div>
+
+                                            <div class="jobs_conetent mb-3 mx-auto">
+                                                <a href="#"><h4>@job.ClientId</h4></a>
+                                                <div class="position-info">
+                                                    <p>@job.Title</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="jobs_right mx-auto">
+                                                <div class="apply_now">
+                                                    <a href="@Url.Action("JobDetails", "Jobs", new { id = job.Id })" class="boxed-btn3">View Details</a>
+                                                </div>
+                                                <div class="date">
+                                                    <p>Deadline: @job.Deadline.ToString("MMM dd, yyyy")</p>
+                                                </div>
+                                            </div>
+
                                         </div>
-
-                                        <div class="jobs_left d-flex align-items-center mb-3">
-                                            <div class="thumb mx-auto">
-                                                <img src="~/images/google.svg" alt="Image" />
-                                            </div>
-                                        </div>
-
-                                        <div class="jobs_conetent mb-3 mx-auto">
-                                            <a href="#"><h4>@job.ClientId</h4></a>
-                                            <div class="position-info">
-                                                <p>@job.Title</p>
-                                            </div>
-                                        </div>
-
-                                        <div class="jobs_right mx-auto">
-                                            <div class="apply_now">
-                                                <a href="@Url.Action("JobDetails", "Jobs", new { id = job.Id })" class="boxed-btn3">View Details</a>
-                                            </div>
-                                            <div class="date">
-                                                <p>Deadline: @job.Deadline.ToString("MMM dd, yyyy")</p>
-                                            </div>
-                                        </div>
-
                                     </div>
-                                </div>
+                                
                             }
                         }
                     </div>
 
-                    <div class="load_more">
-                        <a href="#">Load More ...</a>
+                    <div class="row">
+                        <ul class="pagination" id="paginationContainer">
+                            @if (Model.HasPreviousPage)
+                            {
+                                var prevPageUrl = $"/Jobs/AllJobs?pageNumber={Model.PageNumber - 1}&search={ViewBag.Search}&category={ViewBag.Category}&skill={ViewBag.Skill}&sortBy={ViewBag.SortBy}&sortDirection={ViewBag.SortDirection}";
+                                <li>
+                                    <a href="@prevPageUrl">&laquo;</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="disabled">
+                                    <a href="#">&laquo;</a>
+                                </li>
+                            }
+
+                            @* Page Number Links *@
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                var pageUrl = $"/Jobs/AllJobs?pageNumber={i}&search={ViewBag.Search}&category={ViewBag.Category}&skill={ViewBag.Skill}&sortBy={ViewBag.SortBy}&sortDirection={ViewBag.SortDirection}";
+                                <li class="@(i == Model.PageNumber ? "active" : "")">
+                                    <a href="@pageUrl">@i</a>
+                                </li>
+                            }
+
+                            @* Next Page Link *@
+                            @if (Model.HasNextPage)
+                            {
+                                var nextPageUrl = $"/Jobs/AllJobs?pageNumber={Model.PageNumber + 1}&search={ViewBag.Search}&category={ViewBag.Category}&skill={ViewBag.Skill}&sortBy={ViewBag.SortBy}&sortDirection={ViewBag.SortDirection}";
+                                <li>
+                                    <a href="@nextPageUrl">&raquo;</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="disabled">
+                                    <a href="#">&raquo;</a>
+                                </li>
+                            }
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -169,4 +208,4 @@
 <script src="~/js/range.js"></script>
 <script src="~/js/jquery.ajaxchimp.min.js"></script>
 <script src="~/js/jquery.validate.min.js"></script>
-<script src="~/js/alljobs.js"></script>
+@* <script src="~/js/alljobs.js"></script> *@

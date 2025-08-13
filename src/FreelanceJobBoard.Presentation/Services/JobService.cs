@@ -93,7 +93,7 @@ public class JobService
 						result.Items?.Count() ?? 0, result.TotalCount, result.PageNumber, result.TotalPages, userId, stopwatch.ElapsedMilliseconds);
 
 					// Log performance metrics
-					if (stopwatch.ElapsedMilliseconds > 1000)
+					if (stopwatch.ElapsedMilliseconds > 10000)
 					{
 						_logger.LogWarning("?? Slow API response | Operation=GetAllJobs, Duration={ElapsedMs}ms, User={UserId}",
 							stopwatch.ElapsedMilliseconds, userId);

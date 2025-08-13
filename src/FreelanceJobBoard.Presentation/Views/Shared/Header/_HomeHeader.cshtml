@@ -8,7 +8,10 @@
             <!-- Green circle -->
             <div >
                 <!-- This could be an SVG or a different icon, using a simple text 'j' for now -->
-				<img src="~/images/logo-white.png" />
+                <a href="/">
+                    <img src="~/images/logo-white.png" />
+                </a>
+				
             </div>
         </div>
 
@@ -27,16 +30,14 @@
         <!-- Auth and Links -->
         <div class="auth-links">
             <nav class="main-nav">
-                <a href="#" class="main-nav-link">Find Job</a>
-                <a href="#" class="main-nav-link">Find Talents</a>
-                <a href="#" class="main-nav-link">Pages</a>
+                <a asp-controller="Jobs" asp-action="AllJobs" class="main-nav-link">Find Job</a>
             </nav>
             @if (User.Identity.IsAuthenticated)
             {
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle text-primary" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user fa-lg me-1"></i>
-                        <span class="d-none d-lg-inline">Welcome, @(User.FindFirst(ClaimTypes.Name)!.Value)</span>
+                        <i class="fas fa-user fa-lg me-1" style="font-size: 16px; margin-right: 6px;"></i>
+                        <span class="d-none d-lg-inline" style="font-size: 13px;">Welcome, @(User.FindFirst(ClaimTypes.Name)!.Value)</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
                         <div class="profile-info">
@@ -78,78 +79,16 @@
                 </a>
             }
 
-            @* <div class="dropdown">
-                <a class="nav-link dropdown-toggle text-primary" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-user fa-lg me-1"></i>
-                    <span class="d-none d-lg-inline">Welcome, Anas</span>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
-                    
-                    <div class="profile-info">
-                        <img src="https://placehold.co/60x60/d4e4f7/0d6efd?text=AA" class="profile-avatar" alt="User Avatar">
-                        <div>
-                            <div class="profile-name">Anas Awaad</div>
-                            <div class="profile-email">anas.shaban.awaad@gmail.com</div>
-                        </div>
-                    </div>
-                    <li>
-                        <a class="dropdown-item profile-link" href="#">
-                            <i class="fas fa-user"></i>
-                            <span>Profile</span>
-                        </a>
-                    </li>
-                    <hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item profile-link" href="#">
-                            <i class="fa fa-dashboard"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" style="display:inline;">
-                                <button type="submit" class="btn logout-button" style="border:none; background:none;">Logout</button>
-                            </form>
-                        }
-                        else
-                        {
-                            <li>
-                                <a asp-controller="Auth" asp-action="Login" class="dropdown-item profile-link">
-                                    <i class="fas fa-user"></i>
-                                    <span>Register</span>
-                                </a>
-                                <hr class="dropdown-divider">
-
-                            </li>
-                            <li>
-                                <a asp-controller="Auth" asp-action="Register" class="dropdown-item profile-link">
-                                <i class="fa fa-sign-in"></i>
-                                    <span>Login</span>
-                                </a>
-                            </li>
-                        }
-                </ul>
-            </div>
-             *@
         </div>
     </div>
 
     <!-- Secondary Navigation -->
     <div class="secondary-nav-wrapper">
         <nav class="secondary-nav">
-            <ul class="secondary-nav-list">
-                <li><a href="#">Design & Creative</a></li>
-                <li><a href="#">IT & Development</a></li>
-                <li><a href="#">Trending</a></li>
-                <li><a href="#">Web & Mobile Dev</a></li>
-                <li><a href="#">Writing</a></li>
-                <li><a href="#">Sales & Marketing</a></li>
-                <li><a href="#">Music & Audio</a></li>
-                <li><a href="#">Video & Animation</a></li>
-                
+            <ul class="secondary-nav-list" id="secondary-nav-list">
             </ul>
         </nav>
     </div>
 
 </header>
+

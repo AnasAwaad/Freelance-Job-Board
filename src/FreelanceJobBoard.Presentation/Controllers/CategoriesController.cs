@@ -1,7 +1,5 @@
-﻿using FreelanceJobBoard.Domain.Constants;
-using FreelanceJobBoard.Presentation.Models.ViewModels;
+﻿using FreelanceJobBoard.Presentation.Models.ViewModels;
 using FreelanceJobBoard.Presentation.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
@@ -23,26 +21,31 @@ public class CategoriesController : Controller
 		try
 		{
 			var categories = await _categoryService.GetAllCategoriesAsync();
-			
+
 			// Ensure we always have a non-null collection
 			categories ??= new List<CategoryViewModel>();
-			
+
 			return View(categories);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogError(ex, "Error occurred while loading categories index");
 			TempData["Error"] = "An error occurred while loading categories. Please try again.";
-			
+
 			// Return empty list to prevent null reference in view
 			return View(new List<CategoryViewModel>());
 		}
 	}
 
+	public async Task<IActionResult> GetTopCategories()
+	{
+		return Ok(await _categoryService.GetTopCategories(8));
+	}
+
 	public async Task<IActionResult> Details(int id)
 	{
 		var category = await _categoryService.GetCategoryByIdAsync(id);
-		
+
 		if (category == null)
 		{
 			return NotFound();
@@ -84,13 +87,13 @@ public class CategoriesController : Controller
 			};
 
 			var category = await _categoryService.CreateCategoryAsync(categoryForm);
-			
+
 			if (category != null)
 			{
 				TempData["Success"] = "Category created successfully!";
 				return RedirectToAction(nameof(Details), new { id = category.Id });
 			}
-			
+
 			ModelState.AddModelError("", "Failed to create category. The category name might already exist.");
 			return View(viewModel);
 		}
@@ -119,7 +122,7 @@ public class CategoriesController : Controller
 				Description = category.Description,
 				IsActive = category.IsActive
 			};
-			
+
 			return View(viewModel);
 		}
 		catch (Exception ex)
@@ -150,13 +153,13 @@ public class CategoriesController : Controller
 			};
 
 			var category = await _categoryService.UpdateCategoryAsync(categoryForm);
-			
+
 			if (category != null)
 			{
 				TempData["Success"] = "Category updated successfully!";
 				return RedirectToAction(nameof(Details), new { id = viewModel.Id });
 			}
-			
+
 			ModelState.AddModelError("", "Failed to update category. The category name might already exist.");
 			return View(viewModel);
 		}
@@ -196,7 +199,7 @@ public class CategoriesController : Controller
 	public async Task<IActionResult> ConfirmDelete(int id)
 	{
 		var category = await _categoryService.GetCategoryByIdAsync(id);
-		
+
 		if (category == null)
 		{
 			return NotFound();
@@ -233,7 +236,7 @@ public class CategoriesController : Controller
 			};
 
 			var category = await _categoryService.CreateCategoryAsync(categoryForm);
-			
+
 			if (category != null)
 			{
 				return Ok(category);
@@ -278,7 +281,7 @@ public class CategoriesController : Controller
 			{
 				return PartialView("_CategoryRow", category);
 			}
-			
+
 			ModelState.AddModelError("", "Failed to create category. Please try again.");
 			return PartialView("_Form", viewModel);
 		}
@@ -299,7 +302,7 @@ public class CategoriesController : Controller
 			{
 				return NotFound();
 			}
-			
+
 			return PartialView("_Form", category);
 		}
 		catch (Exception ex)
@@ -325,7 +328,7 @@ public class CategoriesController : Controller
 			{
 				return PartialView("_CategoryRow", category);
 			}
-			
+
 			ModelState.AddModelError("", "Failed to update category. Please try again.");
 			return PartialView("_Form", viewModel);
 		}
@@ -348,7 +351,7 @@ public class CategoriesController : Controller
 			{
 				return Ok(result);
 			}
-			
+
 			return BadRequest("Failed to change category status");
 		}
 		catch (Exception ex)
