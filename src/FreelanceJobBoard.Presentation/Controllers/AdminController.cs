@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using FreelanceJobBoard.Infrastructure.Data;
 using FreelanceJobBoard.Domain.Entities;
+using FreelanceJobBoard.Application.Interfaces.Services;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
 
@@ -17,12 +18,18 @@ public class AdminController : Controller
     private readonly ILogger<AdminController> _logger;
     private readonly HttpClient _httpClient;
     private readonly ApplicationDbContext _context;
+    private readonly IDashboardService _dashboardService;
 
-    public AdminController(ILogger<AdminController> logger, HttpClient httpClient, ApplicationDbContext context)
+    public AdminController(
+        ILogger<AdminController> logger, 
+        HttpClient httpClient, 
+        ApplicationDbContext context,
+        IDashboardService dashboardService)
     {
         _logger = logger;
         _httpClient = httpClient;
         _context = context;
+        _dashboardService = dashboardService;
         _httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
     }
 
@@ -209,7 +216,7 @@ public class AdminController : Controller
         }
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
         try
         {
@@ -226,9 +233,99 @@ public class AdminController : Controller
                 return RedirectToAction("AccessDenied", "Auth");
             }
 
+            // Get real dashboard data
+            var adminDashboard = await _dashboardService.GetAdminDashboardAsync();
+
+            // Get additional statistics directly from database
+            var totalUsers = await _context.Users.CountAsync();
+            
+            // Get user counts by checking role assignments through UserRoles table
+            var freelancerRoleId = await _context.Roles
+                .Where(r => r.Name == "Freelancer")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+            var clientRoleId = await _context.Roles
+                .Where(r => r.Name == "Client")
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            var totalFreelancers = freelancerRoleId != null 
+                ? await _context.UserRoles.CountAsync(ur => ur.RoleId == freelancerRoleId)
+                : 0;
+            var totalClients = clientRoleId != null 
+                ? await _context.UserRoles.CountAsync(ur => ur.RoleId == clientRoleId)
+                : 0;
+
+            // Calculate revenue based on completed contracts (placeholder - implement based on your business logic)
+            var completedStatusId = await _context.ContractStatuses
+                .Where(cs => cs.Name == "Completed")
+                .Select(cs => cs.Id)
+                .FirstOrDefaultAsync();
+
+            var totalRevenue = completedStatusId > 0
+                ? await _context.Contracts
+                    .Where(c => c.ContractStatusId == completedStatusId)
+                    .SumAsync(c => c.PaymentAmount * 0.1m) // Assuming 10% platform fee
+                : 0;
+
+            // Get recent active users based on users who have recent notifications or activities
+            var recentActiveUsers = await _context.Users
+                .Where(u => u.Notifications.Any(n => n.CreatedOn > DateTime.UtcNow.AddDays(-30)))
+                .Take(10)
+                .Select(u => new { u.FullName, u.ProfileImageUrl })
+                .ToListAsync();
+
+            // If no recent users from notifications, get some users anyway
+            if (!recentActiveUsers.Any())
+            {
+                recentActiveUsers = await _context.Users
+                    .OrderByDescending(u => u.Id)
+                    .Take(10)
+                    .Select(u => new { u.FullName, u.ProfileImageUrl })
+                    .ToListAsync();
+            }
+
+            // Set ViewBag properties for the view
             ViewBag.UserEmail = userEmail;
             ViewBag.UserRole = userRole;
             ViewBag.IsAdmin = User.IsInRole(AppRoles.Admin);
+            
+            // Real dashboard statistics
+            ViewBag.TotalUsers = totalUsers;
+            ViewBag.TotalFreelancers = totalFreelancers;
+            ViewBag.TotalClients = totalClients;
+            ViewBag.TotalJobs = adminDashboard.TotalJobsPosted;
+            ViewBag.JobsPendingApproval = adminDashboard.JobsPendingApproval;
+            ViewBag.ActiveProjects = adminDashboard.Contracts;
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.CompletedContracts = adminDashboard.TotalContractsCompleted;
+            ViewBag.PendingContracts = adminDashboard.Contracts - adminDashboard.TotalContractsCompleted;
+            ViewBag.RecentActiveUsers = recentActiveUsers;
+
+            // Calculate progress percentages
+            if (totalUsers > 0)
+            {
+                ViewBag.FreelancerPercentage = (int)((double)totalFreelancers / totalUsers * 100);
+                ViewBag.ClientPercentage = (int)((double)totalClients / totalUsers * 100);
+            }
+            else
+            {
+                ViewBag.FreelancerPercentage = 0;
+                ViewBag.ClientPercentage = 0;
+            }
+
+            if (adminDashboard.Contracts > 0)
+            {
+                ViewBag.ProjectProgressPercentage = (int)((double)adminDashboard.TotalContractsCompleted / adminDashboard.Contracts * 100);
+            }
+            else
+            {
+                ViewBag.ProjectProgressPercentage = 0;
+            }
+
+            // Additional performance metrics
+            ViewBag.MonthlyRevenue = totalRevenue / 12; // Simple calculation
+            ViewBag.AverageJobApprovalTime = adminDashboard.AverageJobApprovalTime;
 
             return View();
         }
