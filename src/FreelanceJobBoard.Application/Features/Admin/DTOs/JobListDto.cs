@@ -8,5 +8,5 @@ public class JobListDto
 	public DateTime Deadline { get; set; }
 	public string Status { get; set; }
 	public string? ClientName { get; set; }
-	public DateTime CreatedAt { get; set; }
+	public DateTime CreatedOn { get; set; }
 }

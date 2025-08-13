@@ -10,7 +10,7 @@ public class JobListViewModel
 	public string ClientName { get; set; }
 	public decimal BudgetMin { get; set; }
 	public decimal BudgetMax { get; set; }
-	public DateTime CreatedDate { get; set; }
+	public DateTime CreatedOn { get; set; }
 	public List<string> Tags { get; set; } = new();
 	public string ClientProfileImage { get; set; }
 	public string Status { get; set; }
@@ -19,7 +19,7 @@ public class JobListViewModel
 	{
 		get
 		{
-			var timeSpan = DateTime.Now - CreatedDate;
+			var timeSpan = DateTime.Now - CreatedOn;
 
 			if (timeSpan.TotalMinutes < 1)
 				return "Just now";

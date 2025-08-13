@@ -9,5 +9,7 @@ public class RecentJobDto
 	public string? ClientProfileImage { get; set; }
 	public decimal BudgetMax { get; set; }
 	public DateTime CreatedDate { get; set; }
+	public string Status { get; set; }
 	public List<string>? Tags { get; set; }
+	public DateTime CreatedOn { get; set; }
 }

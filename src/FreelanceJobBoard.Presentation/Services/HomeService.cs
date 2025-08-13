@@ -18,6 +18,16 @@ public class HomeService
 
 	}
 
+	public async Task<IEnumerable<JobListViewModel>?> GetRecentOpenedJobsAsync()
+	{
+		var response = await _httpClient.GetAsync("recent-opened-jobs/6");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<JobListViewModel>>();
+
+		return new List<JobListViewModel>();
+	}
+
 	public async Task<IEnumerable<JobListViewModel>?> GetRecentJobsAsync()
 	{
 		var response = await _httpClient.GetAsync("recent-jobs/6");

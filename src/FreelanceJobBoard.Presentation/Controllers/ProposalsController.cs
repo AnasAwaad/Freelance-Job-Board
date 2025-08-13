@@ -41,6 +41,13 @@ public class ProposalsController : Controller
 		}
 	}
 
+	[HttpGet]
+	public async Task<IActionResult> GetProposalsPerDay()
+	{
+
+		var proposals = await _proposalService.GetProposalsPerDayAsync();
+		return Ok(proposals);
+	}
 	// Client views proposals for their job
 	[HttpGet]
 	[Authorize(Roles = AppRoles.Client)]

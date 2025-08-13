@@ -1,8 +1,9 @@
+@using FreelanceJobBoard.Domain.Constants
 @model DashBoardViewModel
 
 @{
-    ViewData["Title"] = "Admin Dashboard";
-    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+	ViewData["Title"] = "Admin Dashboard";
+	Layout = "~/Views/Shared/_DashboardLayout.cshtml";
 }
 
 
@@ -43,7 +44,7 @@
 					<!--end::Breadcrumb-->
 				</div>
 				<!--end::Page title-->
-				
+
 			</div>
 			<!--end::Toolbar container-->
 		</div>
@@ -59,9 +60,9 @@
 						<!--begin::Engage widget 6-->
 						<div class="card flex-grow-1 bgi-no-repeat bgi-size-contain bgi-position-x-end  " style="background-color:#020202;background-image:url('/images/flat-lay-hobby-study-work-concept-blue-background.jpg');background-size:cover;">
 							<!--begin::Body-->
-							<div class="card-body d-flex justify-content-between flex-column ps-xl-18 glass">
+							<div class="card-body d-flex justify-content-between flex-column ps-xl-18 ">
 								<!--begin::Heading-->
-								<div class="mb-4 pt-xl-13">
+								<div class="mb-4 pt-xl-13 glass ">
 									<!--begin::Title-->
 									<h3 class="fw-bold text-white fs-4x mb-5 ms-n1">Hire Desck</h3>
 									<!--end::Title-->
@@ -112,7 +113,7 @@
 								<!--end::Heading-->
 								<!--begin::Action-->
 								<div class="mb-xl-10 mb-3">
-									<a asp-controller="Admin" asp-action="JobManagement" class="btn btn-primary fw-semibold me-2" >Manage pending jobs</a>
+									<a asp-controller="Admin" asp-action="JobManagement" class="btn btn-primary fw-semibold me-2">Manage pending jobs</a>
 									<a asp-controller="Jobs" asp-action="Index" class="btn btn-color-white bg-transparent btn-outline fw-semibold" style="border: 1px solid rgba(255, 255, 255, 0.3)">All jobs</a>
 								</div>
 								<!--begin::Action-->
@@ -127,273 +128,76 @@
 				<!--end::Row-->
 				<!--begin::Row-->
 				<div class="row g-5 g-xl-10 mb-5 mb-xl-10">
-					<!--begin::Col-->
-					<div class="col-xl-8">
-						<!--begin::Player widget 1-->
+					<div class="col-xl-8 mb-5 mb-xl-10">
+						<!--begin::Table Widget 4-->
 						<div class="card card-flush h-xl-100">
-							<!--begin::Header-->
+							<!--begin::Card header-->
 							<div class="card-header pt-7">
 								<!--begin::Title-->
 								<h3 class="card-title align-items-start flex-column">
-									<span class="card-label fw-bold text-dark">Recently Played</span>
-									<span class="text-gray-400 mt-1 fw-semibold fs-6">Updated 37 minutes ago</span>
+									<span class="card-label fw-bold text-gray-800">Recently Jobs</span>
 								</h3>
 								<!--end::Title-->
-								<!--begin::Toolbar-->
-								<div class="card-toolbar">
-									<a href="../../demo1/dist/account/statements.html" class="btn btn-sm btn-light">History</a>
-								</div>
-								<!--end::Toolbar-->
+
 							</div>
-							<!--end::Header-->
+							<!--end::Card header-->
 							<!--begin::Card body-->
-							<div class="card-body pt-7">
-								<!--begin::Row-->
-								<div class="row g-5 g-xl-9 mb-5 mb-xl-9">
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-61.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Daily Podcast</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Darlene Robertson</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-60.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Neon Lights</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Wade Warren</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-63.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Single Eye</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Robert Fox</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-56.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Radiohead</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Jacob Jones</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
+							<div class="card-body pt-2">
+								<!--begin::Table-->
+								<div id="kt_table_widget_4_table_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+									<div class="table-responsive">
+										<table class="table align-middle table-row-dashed fs-6 gy-3 dataTable no-footer" id="kt_table_widget_4_table">
+											<!--begin::Table head-->
+											<thead>
+												<!--begin::Table row-->
+												<tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0"><th class="min-w-100px sorting_disabled" rowspan="1" colspan="1" style="width: 101.766px;">Job ID</th><th class="text-end min-w-100px sorting_disabled" rowspan="1" colspan="1" style="width: 101.922px;">Created</th><th class="text-end min-w-125px sorting_disabled" rowspan="1" colspan="1" style="width: 127.328px;">Client</th><th class="text-end min-w-100px sorting_disabled" rowspan="1" colspan="1" style="width: 101.922px;">Budget</th><th class="text-end min-w-50px sorting_disabled" rowspan="1" colspan="1" style="width: 91.1875px;">Status</th></tr>
+												<!--end::Table row-->
+											</thead>
+											<!--end::Table head-->
+											<!--begin::Table body-->
+											<tbody class="fw-bold text-gray-600">
+												@foreach (var job in Model.RecentlyJobs)
+												{
+													<tr class="odd">
+														<td>
+															<a asp-controller="Job" asp-action="Details" asp-route-Id="@job.Id" class="text-gray-800 text-hover-primary">@job.Id</a>
+														</td>
+														<td class="text-end">@job.CreatedOn</td>
+														<td class="text-end">
+															<a href="#" class="text-gray-600 text-hover-primary">@job.ClientName</a>
+														</td>
+														<td class="text-end">
+															<span class="text-gray-800 fw-bolder">@job.BudgetMax</span>
+														</td>
+														<td class="text-end">
+															@if(job.Status == JobStatus.Pending)
+															{
+																<span class="badge py-3 px-4 fs-7 badge-light-warning">@job.Status</span>
+															}else if(job.Status == JobStatus.Open)
+															{
+																<span class="badge py-3 px-4 fs-7 badge-light-success">@job.Status</span>
+															}
+															else if (job.Status == JobStatus.Completed)
+															{
+																<span class="badge py-3 px-4 fs-7 badge-light-primary">@job.Status</span>
+															}else
+															{
+																<span class="badge py-3 px-4 fs-7 badge-light-warning">@job.Status</span>
+															}
+														</td>
+													</tr>
+												}
+											</tbody>
+											<!--end::Table body-->
+										</table>
+									</div><div class="row"><div class="col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start"></div><div class="col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end"></div></div>
 								</div>
-								<!--end::Row-->
-								<!--begin::Row-->
-								<div class="row g-5 g-xl-9 mb-xl-3">
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-57.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">It is what it is</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Jane Cooper</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-58.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Broken Mirros</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Jenny Wilson</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-sm-3 mb-3 mb-sm-0">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-55.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">The Hood</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Albert Flores</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-sm-3">
-										<!--begin::Player card-->
-										<div class="m-0">
-											<!--begin::User pic-->
-											<div class="card-rounded position-relative mb-5">
-												<!--begin::Img-->
-												<div class="bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded" style="background-image:url('assets/media/stock/600x600/img-64.jpg')"></div>
-												<!--end::Img-->
-												<!--begin::Play-->
-												<button class="btn btn-icon h-auto w-auto p-0 ms-4 mb-4 position-absolute bottom-0 right-0" data-kt-element="list-play-button">
-													<i class="bi bi-play-fill text-white fs-2x" data-kt-element="list-play-icon"></i>
-													<i class="bi bi-pause-fill text-white fs-2x d-none" data-kt-element="list-pause-icon"></i>
-												</button>
-												<!--end::Play-->
-											</div>
-											<!--end::User pic-->
-											<!--begin::Info-->
-											<div class="m-0">
-												<!--begin::Title-->
-												<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Cirle Lights</a>
-												<!--end::Title-->
-												<span class="fw-bold fs-6 text-gray-400 d-block lh-1">Dianne Russell</span>
-											</div>
-											<!--end::Info-->
-										</div>
-										<!--end::Player card-->
-									</div>
-									<!--end::Col-->
-								</div>
-								<!--end::Row-->
+								<!--end::Table-->
 							</div>
 							<!--end::Card body-->
 						</div>
-						<!--end::Player widget 1-->
+						<!--end::Table Widget 4-->
 					</div>
-					<!--end::Col-->
 					<!--begin::Col-->
 					<div class="col-xl-4">
 						<!--begin::List widget 24-->
@@ -407,7 +211,7 @@
 							<!--end::Header-->
 							<!--begin::Body-->
 							<div class="card-body pt-6">
-								@if(Model.TopClients is not null && Model.TopClients.Count() > 0)
+								@if (Model.TopClients is not null && Model.TopClients.Count() > 0)
 								{
 									@foreach (var client in Model?.TopClients)
 									{
@@ -443,7 +247,7 @@
 
 
 								}
-								
+
 							</div>
 							<!--end::Body-->
 						</div>
@@ -457,120 +261,12 @@
 					<!--begin::Col-->
 					<div class="col-xl-8">
 						<!--begin::Engage widget 7-->
-						<div class="card card-flush h-xl-100">
-							<!--begin::Header-->
-							<div class="card-header pt-7">
-								<!--begin::Title-->
-								<h3 class="card-title align-items-start flex-column">
-									<span class="card-label fw-bold text-dark">Recent Followers</span>
-									<span class="text-gray-400 mt-1 fw-semibold fs-6">Total 424,567 deliveries</span>
-								</h3>
-								<!--end::Title-->
-								<!--begin::Toolbar-->
-								<div class="card-toolbar">
-									<a href="../../demo1/dist/account/statements.html" class="btn btn-sm btn-light">History</a>
-								</div>
-								<!--end::Toolbar-->
-							</div>
-							<!--end::Header-->
-							<!--begin::Card body-->
-							<div class="card-body pt-7">
-								<!--begin::Row-->
-								<div class="row align-items-end h-100 gx-5 gx-xl-10">
-									<!--begin::Col-->
-									<div class="col-md-4 mb-11 mb-md-0">
-										<!--begin::Overlay-->
-										<a class="d-block overlay" data-fslightbox="lightbox-hot-sales" href="assets/media/stock/900x600/42.jpg">
-											<!--begin::Image-->
-											<div class="overlay-wrapper bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded mb-3" style="height: 266px;background-image:url('assets/media/stock/900x600/42.jpg"></div>
-											<!--end::Image-->
-											<!--begin::Action-->
-											<div class="overlay-layer card-rounded bg-dark bg-opacity-25">
-												<i class="ki-duotone ki-eye fs-3x text-white">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>
-											</div>
-											<!--end::Action-->
-										</a>
-										<!--end::Overlay-->
-										<!--begin::Info-->
-										<div class="m-0">
-											<!--begin::Title-->
-											<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Feeling Good</a>
-											<!--end::Title-->
-											<!--begin::Time-->
-											<span class="fw-bold fs-6 text-gray-400 d-block lh-1">2 hours</span>
-											<!--end::Time-->
-										</div>
-										<!--end::Info-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-md-4 mb-11 mb-md-0">
-										<!--begin::Overlay-->
-										<a class="d-block overlay" data-fslightbox="lightbox-hot-sales" href="assets/media/stock/900x600/40.jpg">
-											<!--begin::Image-->
-											<div class="overlay-wrapper bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded mb-3" style="height: 266px;background-image:url('assets/media/stock/900x600/40.jpg"></div>
-											<!--end::Image-->
-											<!--begin::Action-->
-											<div class="overlay-layer card-rounded bg-dark bg-opacity-25">
-												<i class="ki-duotone ki-eye fs-3x text-white">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>
-											</div>
-											<!--end::Action-->
-										</a>
-										<!--end::Overlay-->
-										<!--begin::Info-->
-										<div class="m-0">
-											<!--begin::Title-->
-											<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Both Sides</a>
-											<!--end::Title-->
-											<!--begin::Time-->
-											<span class="fw-bold fs-6 text-gray-400 d-block lh-1">52 mins</span>
-											<!--end::Time-->
-										</div>
-										<!--end::Info-->
-									</div>
-									<!--end::Col-->
-									<!--begin::Col-->
-									<div class="col-md-4">
-										<!--begin::Overlay-->
-										<a class="d-block overlay" data-fslightbox="lightbox-hot-sales" href="assets/media/stock/900x600/41.jpg">
-											<!--begin::Image-->
-											<div class="overlay-wrapper bgi-position-center bgi-no-repeat bgi-size-cover h-200px card-rounded mb-3" style="height: 266px;background-image:url('assets/media/stock/900x600/41.jpg"></div>
-											<!--end::Image-->
-											<!--begin::Action-->
-											<div class="overlay-layer card-rounded bg-dark bg-opacity-25">
-												<i class="ki-duotone ki-eye fs-3x text-white">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>
-											</div>
-											<!--end::Action-->
-										</a>
-										<!--end::Overlay-->
-										<!--begin::Info-->
-										<div class="m-0">
-											<!--begin::Title-->
-											<a href="#" class="text-gray-800 text-hover-primary fs-3 fw-bold d-block mb-2">Birds in the Sky</a>
-											<!--end::Title-->
-											<!--begin::Time-->
-											<span class="fw-bold fs-6 text-gray-400 d-block lh-1">5 hours</span>
-											<!--end::Time-->
-										</div>
-										<!--end::Info-->
-									</div>
-									<!--end::Col-->
-								</div>
-								<!--end::Row-->
-							</div>
-							<!--end::Card body-->
+						<div class="card card-flush h-xl-100 p-4">
+							<h3 class="card-title d-flex align-items-start flex-column">
+								<span class="card-label fw-bold text-dark">Proposals</span>
+								<span class="text-gray-400 mt-1 fw-semibold fs-6 text-center">Per day (Last 30 days)</span>
+							</h3>
+							<div id="ProposalsPerDay" style="height: 350px;"></div>
 						</div>
 						<!--end::Engage widget 7-->
 					</div>
@@ -1362,27 +1058,6 @@
 	<!--end::Footer-->
 </div>
 <!--end:::Main-->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @* 
 <div class="d-flex flex-column flex-column-fluid">
     <!--begin::Toolbar-->
@@ -1824,3 +1499,7 @@
     </div>
     <!--end::Content-->
 </div> *@
+
+@section Scripts{
+	<script src="~/js/dashboard.js"></script>
+}

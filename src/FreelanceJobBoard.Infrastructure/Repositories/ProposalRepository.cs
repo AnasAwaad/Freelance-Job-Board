@@ -1,4 +1,5 @@
-﻿using FreelanceJobBoard.Application.Interfaces.Repositories;
+﻿using FreelanceJobBoard.Application.Features.Proposals.DTOs;
+using FreelanceJobBoard.Application.Interfaces.Repositories;
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -97,5 +98,19 @@ public class ProposalRepository : GenericRepository<Proposal>, IProposalReposito
 			.Include(p => p.Attachments)
 				.ThenInclude(a => a.Attachment)
 			.Where(p => p.Id == proposalId);
+	}
+
+	public async Task<IEnumerable<ProposalsPerDayResultDto>> GetNumOfProposalsPerDayAsync()
+	{
+		var startDay = DateTime.Today.AddDays(-29);
+		var endDay = DateTime.Today;
+		return await _context.Proposals
+			.Where(p => p.CreatedOn >= startDay && p.CreatedOn <= endDay)
+			.GroupBy(p => new { Date = p.CreatedOn.Day })
+			.Select(p => new ProposalsPerDayResultDto
+			{
+				Text = p.Key.Date.ToString(""),
+				Value = p.Count().ToString()
+			}).ToListAsync();
 	}
 }

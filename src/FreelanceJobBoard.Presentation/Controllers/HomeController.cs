@@ -31,7 +31,7 @@ public class HomeController : Controller
 		var homeViewModel = new HomeViewModel
 		{
 			TopCategories = await _categoryService.GetTopCategories(8),
-			RecentJobs = await _homeService.GetRecentJobsAsync()
+			RecentJobs = await _homeService.GetRecentOpenedJobsAsync()
 
 		};
 

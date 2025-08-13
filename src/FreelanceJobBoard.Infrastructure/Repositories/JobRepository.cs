@@ -245,13 +245,23 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 
 	}
 
-	public IQueryable<Job> GetRecentJobsQueryable(int numOfJobs)
+	public IQueryable<Job> GetRecentOpenedJobsQueryable(int numOfJobs)
 	{
 		return _context.Jobs.
 			Include(j => j.Client)
 			.ThenInclude(c => c.User)
 			.OrderByDescending(j => j.CreatedOn)
 			.Where(j => j.IsActive && j.Status == JobStatus.Open)
+			.Take(numOfJobs);
+	}
+
+	public IQueryable<Job> GetRecentJobsQueryable(int numOfJobs)
+	{
+		return _context.Jobs.
+			Include(j => j.Client)
+			.ThenInclude(c => c.User)
+			.OrderByDescending(j => j.CreatedOn)
+			.Where(j => j.IsActive)
 			.Take(numOfJobs);
 	}
 

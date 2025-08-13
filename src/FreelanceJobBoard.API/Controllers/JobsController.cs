@@ -10,7 +10,6 @@ using FreelanceJobBoard.Application.Features.Jobs.Queries.GetPublicJobDeatils;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRecentJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.GetRelatedJobs;
 using FreelanceJobBoard.Application.Features.Jobs.Queries.SearchForJobs;
-using FreelanceJobBoard.Application.Features.User.Queries.GetNumberOfFreelancers;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +30,14 @@ public class JobsController : ControllerBase
 	{
 		_mediator = mediator;
 		_logger = logger;
+	}
+
+
+	[HttpGet("recent-opened-jobs/{numOfJobs}")]
+	public async Task<IActionResult> GetRecentOpenedJobs(int numOfJobs)
+	{
+		var jobs = await _mediator.Send(new GetRecentOpenedJobsQuery(numOfJobs));
+		return Ok(jobs);
 	}
 
 

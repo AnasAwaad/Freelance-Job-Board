@@ -1,5 +1,6 @@
 using FreelanceJobBoard.Application.Features.Proposals.DTOs;
 using FreelanceJobBoard.Presentation.Models;
+using FreelanceJobBoard.Presentation.Models.DTOs;
 using FreelanceJobBoard.Presentation.Models.ViewModels;
 using System.Security.Claims;
 using System.Text.Json;
@@ -83,6 +84,17 @@ public class ProposalService
 		}
 
 		return null;
+	}
+
+
+	public async Task<IEnumerable<ProposalsPerDayDto>> GetProposalsPerDayAsync()
+	{
+		var response = await _httpClient.GetAsync("Proposals/proposals-per-day");
+
+		if (response.IsSuccessStatusCode)
+			return await response.Content.ReadFromJsonAsync<IEnumerable<ProposalsPerDayDto>>();
+
+		return new List<ProposalsPerDayDto>();
 	}
 
 	public async Task<List<ProposalViewModel>> GetFreelancerProposalsAsync()

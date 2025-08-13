@@ -4,6 +4,7 @@ using FreelanceJobBoard.Application.Features.Proposals.Commands.RejectOtherPropo
 using FreelanceJobBoard.Application.Features.Proposals.Commands.UpdateProposalStatus;
 using FreelanceJobBoard.Application.Features.Proposals.DTOs;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.GetFreelancerProposals;
+using FreelanceJobBoard.Application.Features.Proposals.Queries.GetNumOfProposalsPerDay;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.GetProposalById;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.GetProposalsForJob;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.HasFreelancerApplied;
@@ -116,5 +117,12 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	{
 		await mediator.Send(command);
 		return Ok();
+	}
+
+	[HttpGet("proposals-per-day")]
+	public async Task<IActionResult> GetNumOfProposalsPerDay()
+	{
+		var result = await mediator.Send(new GetNumOfProposalsPerDayQuery());
+		return Ok(result);
 	}
 }

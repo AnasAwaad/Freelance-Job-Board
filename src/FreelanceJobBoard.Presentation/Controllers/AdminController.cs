@@ -19,8 +19,9 @@ public class AdminController : Controller
 	private readonly ApplicationDbContext _context;
 	private readonly UserService _userService;
 	private readonly JobService _jobService;
+	private readonly HomeService _homeService;
 
-	public AdminController(ILogger<AdminController> logger, HttpClient httpClient, ApplicationDbContext context, UserService userService, JobService jobService)
+	public AdminController(ILogger<AdminController> logger, HttpClient httpClient, ApplicationDbContext context, UserService userService, JobService jobService, HomeService homeService)
 	{
 		_logger = logger;
 		_httpClient = httpClient;
@@ -28,6 +29,7 @@ public class AdminController : Controller
 		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/");
 		_userService = userService;
 		_jobService = jobService;
+		_homeService = homeService;
 	}
 
 	[HttpPost]
@@ -229,7 +231,8 @@ public class AdminController : Controller
 				NumOfClients = await _userService.GetNumberOfClientsAsync(),
 				NumOfFreelancers = await _userService.GetNumberOfFreelancersAsync(),
 				NumOfJobs = await _jobService.GetNumberOfJobsAsync(),
-				TopClients = await _userService.GetTopClientsAsync(8)
+				TopClients = await _userService.GetTopClientsAsync(8),
+				RecentlyJobs = await _homeService.GetRecentJobsAsync()
 			};
 
 			_logger.LogInformation("Admin panel accessed by user: {Email}, Role: {Role}", userEmail, userRole);
