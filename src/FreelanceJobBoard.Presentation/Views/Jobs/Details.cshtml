@@ -76,7 +76,7 @@
                         </button>
                     </form>
                 }
-                @if (User.IsInRole("Client") && ViewBag.IsOwner == true)
+                @if (User.IsInRole("Client") && ViewBag.IsOwner == true && (Model.Status == JobStatus.Pending))
                 {
                     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm fw-bold btn-light-primary">
                         <i class="ki-duotone ki-pencil fs-4"></i>
@@ -642,11 +642,14 @@
                                 <div class="d-flex flex-column gap-3">
                                     @if (Model.Status != "Completed")
                                     {
-                                        <a asp-controller="Jobs" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
-                                            <i class="ki-duotone ki-pencil fs-4 me-1"></i>
-                                            Edit Job
-                                        </a>
-                                        
+                                        @if (Model.Status == JobStatus.Pending)
+                                        {
+                                            <a asp-controller="Jobs" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
+                                                <i class="ki-duotone ki-pencil fs-4 me-1"></i>
+                                                Edit Job
+                                            </a>
+                                        }
+
                                         <button type="button" class="btn btn-light-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
                                             <i class="ki-duotone ki-trash fs-4 me-1"></i>
                                             Delete Job
