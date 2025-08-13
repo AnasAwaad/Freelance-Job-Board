@@ -113,19 +113,19 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 		builder.HasOne(n => n.Job)
 			   .WithMany() // No back navigation to avoid circular references
 			   .HasForeignKey(n => n.JobId)
-			   .OnDelete(DeleteBehavior.Restrict)
+			   .OnDelete(DeleteBehavior.Cascade)
 			   .IsRequired(false);
 
 		builder.HasOne(n => n.Proposal)
 			   .WithMany() // No back navigation to avoid circular references
 			   .HasForeignKey(n => n.ProposalId)
-			   .OnDelete(DeleteBehavior.Restrict)
+			   .OnDelete(DeleteBehavior.Cascade)
 			   .IsRequired(false);
 
 		builder.HasOne(n => n.Contract)
 			   .WithMany() // No back navigation to avoid circular references
 			   .HasForeignKey(n => n.ContractId)
-			   .OnDelete(DeleteBehavior.Restrict)
+			   .OnDelete(DeleteBehavior.Cascade)
 			   .IsRequired(false);
 
 		builder.HasOne(n => n.Review)
