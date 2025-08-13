@@ -113,7 +113,9 @@ public class ProposalsController : Controller
 				JobDescription = job.Description ?? "",
 				BudgetMin = job.BudgetMin,
 				BudgetMax = job.BudgetMax,
-				Deadline = job.Deadline
+				Deadline = job.Deadline,
+				ClientAverageRating = job.ClientAverageRating,
+				ClientTotalReviews = job.ClientTotalReviews
 			};
 
 			return View(viewModel);

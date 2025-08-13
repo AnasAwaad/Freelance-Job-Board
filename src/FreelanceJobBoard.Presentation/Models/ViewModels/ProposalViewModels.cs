@@ -21,6 +21,17 @@ public class ProposalViewModel
     public decimal JobBudgetMax { get; set; }
     public DateTime JobDeadline { get; set; }
     public string? ClientName { get; set; }
+    
+    // Freelancer information (for JobProposals view - when client views proposals)
+    public string? FreelancerName { get; set; }
+    public string? FreelancerProfileImageUrl { get; set; }
+    public decimal FreelancerAverageRating { get; set; }
+    public int FreelancerTotalReviews { get; set; }
+    
+    // Client information (for freelancer proposal details)
+    public string? ClientProfileImageUrl { get; set; }
+    public decimal ClientAverageRating { get; set; }
+    public int ClientTotalReviews { get; set; }
 }
 
 public class SubmitProposalViewModel
@@ -57,6 +68,10 @@ public class SubmitProposalViewModel
 
     [Display(Name = "Portfolio Files (Optional)")]
     public List<IFormFile>? PortfolioFiles { get; set; }
+    
+    // Client rating information for display in submission view
+    public decimal ClientAverageRating { get; set; }
+    public int ClientTotalReviews { get; set; }
 }
 
 public class AttachmentViewModel

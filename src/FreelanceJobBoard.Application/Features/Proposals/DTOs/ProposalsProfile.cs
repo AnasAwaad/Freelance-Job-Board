@@ -11,6 +11,19 @@ public class ProposalsProfile : Profile
 		CreateMap<CreateProposalCommand, Proposal>();
 
 		CreateMap<Proposal, ProposalDto>()
+			.ForMember(dest => dest.JobTitle, opt => opt.MapFrom(src => src.Job.Title))
+			.ForMember(dest => dest.JobDescription, opt => opt.MapFrom(src => src.Job.Description))
+			.ForMember(dest => dest.JobBudgetMin, opt => opt.MapFrom(src => src.Job.BudgetMin))
+			.ForMember(dest => dest.JobBudgetMax, opt => opt.MapFrom(src => src.Job.BudgetMax))
+			.ForMember(dest => dest.JobDeadline, opt => opt.MapFrom(src => src.Job.Deadline))
+			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client != null ? src.Client.User.FullName : null))
+			.ForMember(dest => dest.ClientProfileImageUrl, opt => opt.MapFrom(src => src.Client != null ? src.Client.User.ProfileImageUrl : null))
+			.ForMember(dest => dest.ClientAverageRating, opt => opt.MapFrom(src => src.Client != null ? src.Client.AverageRating : 0))
+			.ForMember(dest => dest.ClientTotalReviews, opt => opt.MapFrom(src => src.Client != null ? src.Client.TotalReviews : 0))
+			.ForMember(dest => dest.FreelancerName, opt => opt.MapFrom(src => src.Freelancer != null ? src.Freelancer.User.FullName : null))
+			.ForMember(dest => dest.FreelancerProfileImageUrl, opt => opt.MapFrom(src => src.Freelancer != null ? src.Freelancer.User.ProfileImageUrl : null))
+			.ForMember(dest => dest.FreelancerAverageRating, opt => opt.MapFrom(src => src.Freelancer != null ? src.Freelancer.AverageRating : 0))
+			.ForMember(dest => dest.FreelancerTotalReviews, opt => opt.MapFrom(src => src.Freelancer != null ? src.Freelancer.TotalReviews : 0))
 			.ForMember(dest => dest.Attachments, opt => opt.MapFrom(src =>
 				src.Attachments.Select(pa => new AttachmentDto
 				{

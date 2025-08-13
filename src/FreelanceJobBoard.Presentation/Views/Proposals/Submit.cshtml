@@ -71,6 +71,45 @@
                                     @(daysRemaining > 0 ? $"{daysRemaining} days" : "Expired")
                                 </span>
                             </div>
+                            
+                            <div class="separator my-5"></div>
+                            
+                            <!-- Client Rating Information -->
+                            <div class="mb-3">
+                                <h5 class="fw-bold text-gray-900 mb-3">Client Rating</h5>
+                                <div class="d-flex align-items-center">
+                                    @{
+                                        var clientFullStars = (int)Math.Floor((double)Model.ClientAverageRating);
+                                        var clientHasHalfStar = (double)Model.ClientAverageRating - clientFullStars >= 0.5;
+                                        var clientEmptyStars = 5 - clientFullStars - (clientHasHalfStar ? 1 : 0);
+                                    }
+                                    @for (int i = 0; i < clientFullStars; i++)
+                                    {
+                                        <i class="ki-duotone ki-star fs-5 text-warning">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    }
+                                    @if (clientHasHalfStar)
+                                    {
+                                        <i class="ki-duotone ki-star-half fs-5 text-warning">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    }
+                                    @for (int i = 0; i < clientEmptyStars; i++)
+                                    {
+                                        <i class="ki-duotone ki-star fs-5 text-gray-300">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                    }
+                                    <div class="ms-2">
+                                        <div class="fw-bold text-gray-900">@Model.ClientAverageRating.ToString("F1")</div>
+                                        <div class="text-gray-600 fs-7">@Model.ClientTotalReviews review@(Model.ClientTotalReviews == 1 ? "" : "s")</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

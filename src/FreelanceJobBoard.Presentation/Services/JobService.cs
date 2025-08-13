@@ -561,6 +561,12 @@ public class JobService
 			ClientId = dto.ClientId,
 			ClientName = dto.ClientName,
 			ClientProfileImageUrl = dto.ClientProfileImageUrl,
+			ClientAverageRating = dto.ClientAverageRating,
+			ClientTotalReviews = dto.ClientTotalReviews,
+			AssignedFreelancerName = dto.AssignedFreelancerName,
+			AssignedFreelancerProfileImageUrl = dto.AssignedFreelancerProfileImageUrl,
+			AssignedFreelancerAverageRating = dto.AssignedFreelancerAverageRating,
+			AssignedFreelancerTotalReviews = dto.AssignedFreelancerTotalReviews,
 			Title = dto.Title,
 			Description = dto.Description,
 			BudgetMin = dto.BudgetMin,
@@ -596,6 +602,14 @@ public class JobService
 		{
 			Id = dto.Id,
 			ClientId = dto.Client?.Id,
+			ClientName = dto.Client?.FullName,
+			ClientProfileImageUrl = dto.Client?.ProfileImageUrl,
+			ClientAverageRating = dto.Client?.AverageRating ?? 0,
+			ClientTotalReviews = dto.Client?.TotalReviews ?? 0,
+			AssignedFreelancerName = dto.AssignedFreelancer?.FullName,
+			AssignedFreelancerProfileImageUrl = dto.AssignedFreelancer?.ProfileImageUrl,
+			AssignedFreelancerAverageRating = dto.AssignedFreelancer?.AverageRating ?? 0,
+			AssignedFreelancerTotalReviews = dto.AssignedFreelancer?.TotalReviews ?? 0,
 			Title = dto.Title,
 			Description = dto.Description,
 			BudgetMin = dto.BudgetMin,
@@ -661,6 +675,12 @@ public class ApiJobDto
 	public int? ClientId { get; set; }
 	public string? ClientName { get; set; }
 	public string? ClientProfileImageUrl { get; set; }
+	public decimal ClientAverageRating { get; set; }
+	public int ClientTotalReviews { get; set; }
+	public string? AssignedFreelancerName { get; set; }
+	public string? AssignedFreelancerProfileImageUrl { get; set; }
+	public decimal AssignedFreelancerAverageRating { get; set; }
+	public int AssignedFreelancerTotalReviews { get; set; }
 	public string? Title { get; set; }
 	public string? Description { get; set; }
 	public decimal BudgetMin { get; set; }
@@ -687,6 +707,7 @@ public class ApiJobDetailsDto
 	public string Status { get; set; } = null!;
 	public DateTime Deadline { get; set; }
 	public ApiClientDto? Client { get; set; }
+	public ApiFreelancerDto? AssignedFreelancer { get; set; }
 }
 
 public class ApiCategoryDto
@@ -706,6 +727,18 @@ public class ApiClientDto
 {
 	public int Id { get; set; }
 	public string? FullName { get; set; }
+	public string? ProfileImageUrl { get; set; }
+	public decimal AverageRating { get; set; }
+	public int TotalReviews { get; set; }
+}
+
+public class ApiFreelancerDto
+{
+	public int Id { get; set; }
+	public string? FullName { get; set; }
+	public string? ProfileImageUrl { get; set; }
+	public decimal AverageRating { get; set; }
+	public int TotalReviews { get; set; }
 }
 
 
