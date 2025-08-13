@@ -332,7 +332,99 @@
     // });
 
 
-
-
-
-})(jQuery);	
+    $(document).ready(function() {
+        console.log('AllJobs page initializing...');
+        
+        // Initialize nice-select with custom configuration
+        if (typeof $.fn.niceSelect !== 'undefined') {
+            $('select.nice-select').niceSelect();
+            console.log('Nice-select initialized successfully');
+        } else {
+            console.warn('Nice-select plugin not found, using default selects');
+        }
+        
+        // Handle filter form changes with debouncing
+        $('#filterForm select').on('change', function() {
+            var selectName = $(this).attr('name');
+            console.log('Filter changed:', selectName, '=', $(this).val());
+            
+            // Auto-submit form when any select changes (except sort direction which has its own handler)
+            if (selectName !== 'sortDirection') {
+                $('#filterForm').submit();
+            }
+        });
+        
+        // Handle search input with delay to prevent excessive requests
+        let searchTimeout;
+        $('#filterForm input[name="search"]').on('input', function() {
+            var searchValue = $(this).val();
+            console.log('Search input changed:', searchValue);
+            
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                console.log('Auto-submitting search after delay');
+                $('#filterForm').submit();
+            }, 800); // 800ms delay to allow user to finish typing
+        });
+        
+        // Prevent double submission and show loading state
+        $('#filterForm').on('submit', function(e) {
+            var $submitBtn = $(this).find('button[type="submit"]');
+            var originalText = $submitBtn.text();
+            
+            // Disable submit button temporarily
+            $submitBtn.prop('disabled', true).text('Filtering...');
+            
+            // Re-enable after 3 seconds (fallback)
+            setTimeout(function() {
+                $submitBtn.prop('disabled', false).text(originalText);
+            }, 3000);
+            
+            console.log('Filter form submitted');
+        });
+        
+        // Handle pagination clicks with loading indication
+        $('.pagination a').on('click', function(e) {
+            var $link = $(this);
+            if (!$link.parent().hasClass('disabled') && !$link.parent().hasClass('active')) {
+                $link.text('Loading...');
+                console.log('Pagination clicked:', $link.attr('href'));
+            }
+        });
+        
+        // Add smooth scroll to top when pagination is used
+        if (window.location.search.includes('pageNumber')) {
+            $('html, body').animate({
+                scrollTop: $('.job_listing_area').offset().top - 100
+            }, 500);
+        }
+        
+        // Add hover effects to job cards
+        $('.single_jobs').hover(
+            function() {
+                $(this).addClass('shadow-lg').css('transform', 'translateY(-2px)');
+            },
+            function() {
+                $(this).removeClass('shadow-lg').css('transform', 'translateY(0)');
+            }
+        );
+        
+        // Initialize job count display
+        var jobCount = $('.single_jobs').length;
+        var totalCount = $('.pagination').length > 0 ? 'of many' : 'total';
+        console.log('Showing', jobCount, 'jobs', totalCount);
+        
+        // Add loading overlay utility
+        window.showJobsLoading = function() {
+            if ($('#jobsLoadingOverlay').length === 0) {
+                $('body').append('<div id="jobsLoadingOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+            }
+        };
+        
+        window.hideJobsLoading = function() {
+            $('#jobsLoadingOverlay').remove();
+        };
+        
+        console.log('AllJobs page initialized successfully with', jobCount, 'jobs displayed');
+    });
+})(jQuery);

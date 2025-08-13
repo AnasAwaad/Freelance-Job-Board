@@ -25,7 +25,7 @@ public class JobService
 			new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 	}
 
-	public async Task<PagedResultDto<JobViewModel>?> GetAllJobsAsync(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, string? sortDirection = null)
+	public async Task<PagedResultDto<JobViewModel>?> GetAllJobsAsync(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, int? skill = null, string? sortDirection = null)
 	{
 		var stopwatch = Stopwatch.StartNew();
 		var userId = _httpContext?.User?.Identity?.Name ?? "Anonymous";
@@ -33,8 +33,8 @@ public class JobService
 
 		try
 		{
-			_logger.LogInformation("?? Fetching jobs | User={UserId}, Session={SessionId}, Page={PageNumber}, Size={PageSize}, Search='{Search}', Sort={SortBy}:{SortDirection}",
-				userId, sessionId, pageNumber, pageSize, search ?? "none", sortBy ?? "none", sortDirection ?? "none");
+			_logger.LogInformation("?? Fetching jobs | User={UserId}, Session={SessionId}, Page={PageNumber}, Size={PageSize}, Search='{Search}', Sort={SortBy}:{SortDirection}, Category={Category}, Skill={Skill}",
+				userId, sessionId, pageNumber, pageSize, search ?? "none", sortBy ?? "none", sortDirection ?? "none", category?.ToString() ?? "none", skill?.ToString() ?? "none");
 
 			var queryParams = new List<string>();
 
@@ -52,6 +52,9 @@ public class JobService
 
 			if (category.HasValue)
 				queryParams.Add($"category={category.Value}");
+
+			if (skill.HasValue)
+				queryParams.Add($"skill={skill.Value}");
 
 			var queryString = string.Join("&", queryParams);
 			var apiUrl = $"Jobs?{queryString}";
@@ -556,6 +559,8 @@ public class JobService
 		{
 			Id = dto.Id,
 			ClientId = dto.ClientId,
+			ClientName = dto.ClientName,
+			ClientProfileImageUrl = dto.ClientProfileImageUrl,
 			Title = dto.Title,
 			Description = dto.Description,
 			BudgetMin = dto.BudgetMin,
@@ -654,6 +659,8 @@ public class ApiJobDto
 {
 	public int Id { get; set; }
 	public int? ClientId { get; set; }
+	public string? ClientName { get; set; }
+	public string? ClientProfileImageUrl { get; set; }
 	public string? Title { get; set; }
 	public string? Description { get; set; }
 	public decimal BudgetMin { get; set; }

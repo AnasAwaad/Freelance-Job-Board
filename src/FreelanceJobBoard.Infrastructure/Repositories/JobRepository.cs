@@ -27,6 +27,8 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			// Changed: Only filter by IsActive by default, let statusFilter handle specific status filtering
 			var query = _context.Jobs
 				.Include(j => j.Categories)
+				.Include(j => j.Client)
+					.ThenInclude(c => c!.User)
 				.Where(j => j.IsActive && 
 					(searchValue == null || (j.Title!.ToLower().Contains(searchValue) ||
 											(j.Description!.ToLower().Contains(searchValue)))));

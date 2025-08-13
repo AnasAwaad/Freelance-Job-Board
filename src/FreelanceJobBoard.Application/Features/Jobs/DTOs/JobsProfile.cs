@@ -18,6 +18,8 @@ public class JobsProfile : Profile
 
 		CreateMap<Job, JobDto>()
 			.ForMember(dest => dest.CreatedOn, opt => opt.MapFrom(src => src.CreatedOn))
+			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client != null ? src.Client.User.FullName : null))
+			.ForMember(dest => dest.ClientProfileImageUrl, opt => opt.MapFrom(src => src.Client != null ? src.Client.User.ProfileImageUrl : null))
 			.ForMember(dest => dest.Categories, opt =>
 			opt.MapFrom(src => src.Categories.Select(c => new CategoryDto
 			{
@@ -31,7 +33,6 @@ public class JobsProfile : Profile
 				Id = s.Skill.Id,
 				Name = s.Skill.Name
 			})));
-
 
 		CreateMap<Job, JobDetailsDto>()
 			.ForMember(dest => dest.CreatedOn, opt => opt.MapFrom(src => src.CreatedOn))

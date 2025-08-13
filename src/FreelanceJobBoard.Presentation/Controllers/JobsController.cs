@@ -41,24 +41,42 @@ public class JobsController : Controller
 		return Ok(jobs);
 	}
 
-	public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, string? sortDirection = null)
+	public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, int? skill = null, string? sortDirection = null)
 	{
-		var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, category, sortDirection);
+		var jobs = await _jobService.GetAllJobsAsync(
+			pageNumber: pageNumber, 
+			pageSize: pageSize, 
+			search: search, 
+			sortBy: sortBy, 
+			category: category, 
+			skill: skill, 
+			sortDirection: sortDirection);
 
 		ViewBag.Search = search;
 		ViewBag.SortBy = sortBy;
 		ViewBag.SortDirection = sortDirection;
-		ViewBag.Categroy = category;
+		ViewBag.Category = category;
+		ViewBag.Skill = skill;
 
 		return View(jobs);
 	}
 
-	public async Task<IActionResult> AllJobs(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, string? sortDirection = null)
+	public async Task<IActionResult> AllJobs(int pageNumber = 1, int pageSize = 10, string? search = null, string? sortBy = null, int? category = null, int? skill = null, string? sortDirection = null)
 	{
-		var jobs = await _jobService.GetAllJobsAsync(pageNumber, pageSize, search, sortBy, category, sortDirection);
+		var jobs = await _jobService.GetAllJobsAsync(
+			pageNumber: pageNumber, 
+			pageSize: pageSize, 
+			search: search, 
+			sortBy: sortBy, 
+			category: category, 
+			skill: skill, 
+			sortDirection: sortDirection);
+			
 		ViewBag.Search = search;
 		ViewBag.SortBy = sortBy;
 		ViewBag.SortDirection = sortDirection;
+		ViewBag.Category = category;
+		ViewBag.Skill = skill;
 
 		var categories = await _categoryService.GetAllCategoriesAsync();
 		ViewBag.Categories = categories.Select(c => new SelectListItem
@@ -66,6 +84,14 @@ public class JobsController : Controller
 			Value = c.Id.ToString(),
 			Text = c.Name,
 			Selected = category.HasValue && category.Value == c.Id
+		}).ToList();
+
+		var skills = await _skillService.GetAllSkillsAsync(isActive: true);
+		ViewBag.Skills = skills.Select(s => new SelectListItem
+		{
+			Value = s.Id.ToString(),
+			Text = s.Name,
+			Selected = skill.HasValue && skill.Value == s.Id
 		}).ToList();
 
 		return View(jobs);

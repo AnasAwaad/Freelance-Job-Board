@@ -1435,3 +1435,46 @@ p {
     text-decoration: none;
     font-weight: 500;
 }
+
+/* Client information styling */
+.client-info {
+    color: #0178e1 !important;
+    font-size: 18px !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.client-info:hover {
+    color: #004ba3 !important;
+    text-decoration: none;
+}
+
+.client-avatar {
+    border: 2px solid #e8e8e8;
+    transition: border-color 0.3s ease;
+}
+
+.client-info:hover .client-avatar {
+    border-color: #0178e1;
+}
+
+.client-avatar-placeholder {
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.job-title {
+    color: #191d34;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.job-description {
+    color: #7a838b;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 0;
+}
