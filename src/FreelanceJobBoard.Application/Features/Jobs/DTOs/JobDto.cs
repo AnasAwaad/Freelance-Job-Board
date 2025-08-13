@@ -7,6 +7,12 @@ public class JobDto
 	public int? ClientId { get; set; }
 	public string? ClientName { get; set; }
 	public string? ClientProfileImageUrl { get; set; }
+	public decimal ClientAverageRating { get; set; }
+	public int ClientTotalReviews { get; set; }
+	public string? AssignedFreelancerName { get; set; }
+	public string? AssignedFreelancerProfileImageUrl { get; set; }
+	public decimal AssignedFreelancerAverageRating { get; set; }
+	public int AssignedFreelancerTotalReviews { get; set; }
 	public string? Title { get; set; }
 	public string? Description { get; set; }
 	public decimal BudgetMin { get; set; }

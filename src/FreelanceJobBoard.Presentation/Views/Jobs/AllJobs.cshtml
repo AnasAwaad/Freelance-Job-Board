@@ -193,7 +193,7 @@
                                                 @if (!string.IsNullOrEmpty(job.ClientName))
                                                 {
                                                     <a href="@Url.Action("PublicJobDetails", "Jobs", new { jobId = job.Id })">
-                                                        <h4 class="client-info d-flex align-items-center">
+                                                        <h4 class="client-info d-flex align-items-center mb-2">
                                                             @if (!string.IsNullOrEmpty(job.ClientProfileImageUrl))
                                                             {
                                                                 <img src="@job.ClientProfileImageUrl" alt="@job.ClientName" class="client-avatar me-2" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" />
@@ -207,6 +207,30 @@
                                                             <span>@job.ClientName</span>
                                                         </h4>
                                                     </a>
+                                                    <!-- Client Rating Display -->
+                                                    <div class="client-rating mb-2 d-flex align-items-center">
+                                                        @{
+                                                            var fullStars = (int)Math.Floor((double)job.ClientAverageRating);
+                                                            var hasHalfStar = (double)job.ClientAverageRating - fullStars >= 0.5;
+                                                            var emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                                        }
+                                                        @for (int i = 0; i < fullStars; i++)
+                                                        {
+                                                            <i class="fa fa-star text-warning"></i>
+                                                        }
+                                                        @if (hasHalfStar)
+                                                        {
+                                                            <i class="fa fa-star-half-alt text-warning"></i>
+                                                        }
+                                                        @for (int i = 0; i < emptyStars; i++)
+                                                        {
+                                                            <i class="fa fa-star text-muted"></i>
+                                                        }
+                                                        <span class="rating-text ms-2 small text-muted">
+                                                            @job.ClientAverageRating.ToString("F1") 
+                                                            (@job.ClientTotalReviews review@(job.ClientTotalReviews == 1 ? "" : "s"))
+                                                        </span>
+                                                    </div>
                                                 }
                                                 else
                                                 {

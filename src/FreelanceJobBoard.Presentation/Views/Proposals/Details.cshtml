@@ -285,6 +285,68 @@
                             }
 
                             <div class="separator my-5"></div>
+                            
+                            <!-- Client Information with Rating -->
+                            @if (!string.IsNullOrEmpty(Model.ClientName))
+                            {
+                                <div class="mb-5">
+                                    <h5 class="fw-bold text-gray-900 mb-3">Client Information</h5>
+                                    <div class="d-flex align-items-center mb-3">
+                                        @if (!string.IsNullOrEmpty(Model.ClientProfileImageUrl))
+                                        {
+                                            <div class="symbol symbol-40px me-3">
+                                                <img src="@Model.ClientProfileImageUrl" alt="@Model.ClientName" class="w-100" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="symbol symbol-40px me-3">
+                                                <span class="symbol-label bg-light-primary text-primary fs-6 fw-bold">
+                                                    @(Model.ClientName.Substring(0, 1).ToUpper())
+                                                </span>
+                                            </div>
+                                        }
+                                        <div>
+                                            <div class="fw-bold text-gray-900">@Model.ClientName</div>
+                                            <!-- Client Rating Display -->
+                                            <div class="d-flex align-items-center">
+                                                @{
+                                                    var clientFullStars = (int)Math.Floor((double)Model.ClientAverageRating);
+                                                    var clientHasHalfStar = (double)Model.ClientAverageRating - clientFullStars >= 0.5;
+                                                    var clientEmptyStars = 5 - clientFullStars - (clientHasHalfStar ? 1 : 0);
+                                                }
+                                                @for (int i = 0; i < clientFullStars; i++)
+                                                {
+                                                    <i class="ki-duotone ki-star fs-6 text-warning">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                }
+                                                @if (clientHasHalfStar)
+                                                {
+                                                    <i class="ki-duotone ki-star-half fs-6 text-warning">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                }
+                                                @for (int i = 0; i < clientEmptyStars; i++)
+                                                {
+                                                    <i class="ki-duotone ki-star fs-6 text-gray-300">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                    </i>
+                                                }
+                                                <span class="text-gray-600 fs-8 ms-2">
+                                                    @Model.ClientAverageRating.ToString("F1") 
+                                                    (@Model.ClientTotalReviews review@(Model.ClientTotalReviews == 1 ? "" : "s"))
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="separator my-5"></div>
+                            }
 
                             @if (Model.Status == "Submitted" || Model.Status == "Pending")
                             {

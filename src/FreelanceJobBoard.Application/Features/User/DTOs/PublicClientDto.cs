@@ -4,5 +4,6 @@ public class PublicClientDto
 	public string FullName { get; set; } = null!;
 	public string? ProfileImageUrl { get; set; }
 	public decimal AverageRating { get; set; }
+	public int TotalReviews { get; set; }
 	public CompanyDto Company { get; set; }
 }
