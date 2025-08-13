@@ -1,10 +1,13 @@
 ﻿using FreelanceJobBoard.Application.Features.Proposals.Commands.CreateProposal;
 using FreelanceJobBoard.Application.Features.Proposals.Commands.DeleteFreelancerProposal;
+using FreelanceJobBoard.Application.Features.Proposals.Commands.RejectOtherProposals;
 using FreelanceJobBoard.Application.Features.Proposals.Commands.UpdateProposalStatus;
 using FreelanceJobBoard.Application.Features.Proposals.DTOs;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.GetFreelancerProposals;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.GetProposalById;
 using FreelanceJobBoard.Application.Features.Proposals.Queries.GetProposalsForJob;
+using FreelanceJobBoard.Application.Features.Proposals.Queries.HasFreelancerApplied;
+using FreelanceJobBoard.Application.Features.Proposals.Queries.HasJobAcceptedProposal;
 using FreelanceJobBoard.Domain.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -85,6 +88,33 @@ public class ProposalsController(IMediator mediator) : ControllerBase
 	{
 		await mediator.Send(new DeleteProposalForFreelancerCommand(proposalId));
 
+		return Ok();
+	}
+
+	[HttpGet("freelancer/applied/{jobId}")]
+	[Authorize(Roles = AppRoles.Freelancer)]
+	public async Task<IActionResult> HasFreelancerApplied([FromRoute] int jobId)
+	{
+		var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+		var query = new HasFreelancerAppliedQuery(jobId, userId);
+		var result = await mediator.Send(query);
+		return Ok(result);
+	}
+
+	[HttpGet("job/{jobId}/has-accepted")]
+	[Authorize]
+	public async Task<IActionResult> HasJobAcceptedProposal([FromRoute] int jobId)
+	{
+		var query = new HasJobAcceptedProposalQuery(jobId);
+		var result = await mediator.Send(query);
+		return Ok(result);
+	}
+
+	[HttpPost("reject-others")]
+	[Authorize(Roles = AppRoles.Client)]
+	public async Task<IActionResult> RejectOtherProposals([FromBody] RejectOtherProposalsCommand command)
+	{
+		await mediator.Send(command);
 		return Ok();
 	}
 }

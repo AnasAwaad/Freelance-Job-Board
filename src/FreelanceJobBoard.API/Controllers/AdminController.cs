@@ -13,23 +13,23 @@ public class AdminController(IMediator mediator) : ControllerBase
 {
 
 	[HttpPost("jobs/{jobId}/approve")]
-	public async Task<IActionResult> ApproveJob([FromRoute] int jobId, string message)
+	public async Task<IActionResult> ApproveJob([FromRoute] int jobId, [FromBody] ApprovalRequest request)
 	{
 		//string adminId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 		string adminId = Convert.ToString(1);
-		await mediator.Send(new UpdateJobStatusCommand(jobId, JobStatus.Open, adminId, message));
+		await mediator.Send(new UpdateJobStatusCommand(jobId, JobStatus.Open, adminId, request?.Message ?? string.Empty));
 
 		return Ok("Job approved successfully.");
 	}
 
 
 	[HttpPost("jobs/{jobId}/reject")]
-	public async Task<IActionResult> RejectJob(int jobId, string message)
+	public async Task<IActionResult> RejectJob([FromRoute] int jobId, [FromBody] ApprovalRequest request)
 	{
 		//string adminId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 		string adminId = Convert.ToString(1);
 
-		await mediator.Send(new UpdateJobStatusCommand(jobId, JobStatus.Cancelled, adminId, message));
+		await mediator.Send(new UpdateJobStatusCommand(jobId, JobStatus.Cancelled, adminId, request?.Message ?? string.Empty));
 
 		return Ok("Job rejected successfully.");
 	}
@@ -46,4 +46,9 @@ public class AdminController(IMediator mediator) : ControllerBase
 	{
 		return Ok(await mediator.Send(new GetAllJobsWithStatusQuery(status)));
 	}
+}
+
+public class ApprovalRequest
+{
+	public string? Message { get; set; }
 }

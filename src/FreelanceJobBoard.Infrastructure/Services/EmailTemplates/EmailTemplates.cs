@@ -201,4 +201,180 @@ public static class EmailTemplates
     </div>
 </body>
 </html>";
+
+    public static string JobCompletedClientNotificationTemplate => @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Job Completed - Time to Review!</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #28a745; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .completion-details { background: white; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #28a745; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #ff9500; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 5px;
+            text-decoration: none;
+        }
+        .btn-secondary { 
+            background: #6c757d; 
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>?? Job Completed Successfully!</h1>
+        </div>
+        <div class='content'>
+            <h2>Hello {{ClientName}},</h2>
+            <p>Great news! Your freelancer has marked the following job as completed:</p>
+            <div class='completion-details'>
+                <h3>{{JobTitle}}</h3>
+                <p><strong>Completed by:</strong> {{FreelancerName}}</p>
+                <p><strong>Completion Date:</strong> {{CompletionDate}}</p>
+            </div>
+            <p>Now it's time to review the work and share your experience with {{FreelancerName}}. Your review helps build our community and assists other clients in finding quality freelancers.</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{{ReviewUrl}}' class='btn'>Leave a Review</a>
+                <a href='/jobs/{{JobId}}' class='btn btn-secondary'>View Job Details</a>
+            </div>
+            <p><strong>Why Reviews Matter:</strong></p>
+            <ul>
+                <li>Help other clients find quality freelancers</li>
+                <li>Provide valuable feedback to improve services</li>
+                <li>Build a trustworthy community</li>
+                <li>Enhance the freelancer's reputation</li>
+            </ul>
+            <p>Thank you for using FreelanceJobBoard!</p>
+            <p>Best regards,<br>FreelanceJobBoard Team</p>
+        </div>
+        <div class='footer'>
+            <p>&copy; 2024 FreelanceJobBoard. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+    public static string JobCompletedFreelancerNotificationTemplate => @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Job Completed - Review Your Client!</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #17a2b8; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .completion-details { background: white; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #17a2b8; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #ff9500; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 5px;
+        }
+        .btn-secondary { 
+            background: #6c757d; 
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>?? Congratulations on Completing Your Job!</h1>
+        </div>
+        <div class='content'>
+            <h2>Hello {{FreelancerName}},</h2>
+            <p>Excellent work! You've successfully completed:</p>
+            <div class='completion-details'>
+                <h3>{{JobTitle}}</h3>
+                <p><strong>Client:</strong> {{ClientName}}</p>
+                <p><strong>Completion Date:</strong> {{CompletionDate}}</p>
+            </div>
+            <p>Now it's time to share your experience working with {{ClientName}}. Your review helps other freelancers understand what it's like to work with this client.</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{{ReviewUrl}}' class='btn'>Review Your Client</a>
+                <a href='/jobs/{{JobId}}' class='btn btn-secondary'>View Job Details</a>
+            </div>
+            <p><strong>Benefits of Reviewing Clients:</strong></p>
+            <ul>
+                <li>Help other freelancers make informed decisions</li>
+                <li>Provide feedback to improve client experience</li>
+                <li>Build a transparent and trustworthy platform</li>
+                <li>Share insights about working relationships</li>
+            </ul>
+            <p>Keep up the great work, and we look forward to seeing more successful projects from you!</p>
+            <p>Best regards,<br>FreelanceJobBoard Team</p>
+        </div>
+        <div class='footer'>
+            <p>&copy; 2024 FreelanceJobBoard. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+    public static string ReviewReminderTemplate => @"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Don't Forget to Leave a Review!</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #ffc107; color: #212529; padding: 20px; text-align: center; }
+        .content { padding: 20px; background: #f9f9f9; }
+        .job-details { background: white; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ffc107; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+        .btn { 
+            display: inline-block; 
+            padding: 12px 24px; 
+            background: #ff9500; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>?? Review Reminder</h1>
+        </div>
+        <div class='content'>
+            <h2>Hello {{UserName}},</h2>
+            <p>We hope you had a great experience with your recently completed job! We noticed you haven't left a review yet.</p>
+            <div class='job-details'>
+                <h3>{{JobTitle}}</h3>
+                <p><strong>{{ReviewType}}:</strong> {{OtherPartyName}}</p>
+                <p><strong>Completed:</strong> {{CompletionDate}}</p>
+            </div>
+            <p>Your review is valuable to our community and helps maintain quality standards. It only takes a few minutes!</p>
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{{ReviewUrl}}' class='btn'>Leave Your Review Now</a>
+            </div>
+            <p><em>This is a friendly reminder. Reviews help build trust and improve our platform for everyone.</em></p>
+            <p>Best regards,<br>FreelanceJobBoard Team</p>
+        </div>
+        <div class='footer'>
+            <p>&copy; 2024 FreelanceJobBoard. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>";
 }

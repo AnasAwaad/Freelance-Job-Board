@@ -5,6 +5,7 @@ namespace FreelanceJobBoard.Application.Interfaces.Repositories;
 public interface IReviewRepository : IGenericRepository<Review>
 {
     Task<Review?> GetByJobIdAsync(int jobId);
+    Task<IEnumerable<Review>> GetReviewsByJobIdAsync(int jobId);
     Task<IEnumerable<Review>> GetByReviewerIdAsync(string reviewerId);
     Task<IEnumerable<Review>> GetByRevieweeIdAsync(string revieweeId);
     Task<IEnumerable<Review>> GetVisibleReviewsByRevieweeIdAsync(string revieweeId);

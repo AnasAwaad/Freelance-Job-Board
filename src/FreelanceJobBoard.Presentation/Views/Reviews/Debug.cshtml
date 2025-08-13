@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Reviews Debug";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                    Reviews Debug Information
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Authentication Debug Information</h3>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.DebugInfo != null)
+                    {
+                        var debugInfo = ViewBag.DebugInfo;
+                        
+                        <div class="row g-6">
+                            <div class="col-lg-6">
+                                <div class="card border border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="card-title mb-0">Current User Service</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Is Authenticated:</strong></td>
+                                                <td>
+                                                    <span class="badge @(debugInfo.IsAuthenticated ? "badge-success" : "badge-danger")">
+                                                        @debugInfo.IsAuthenticated
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>User ID:</strong></td>
+                                                <td><code>@(debugInfo.CurrentUserId ?? "NULL")</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Email:</strong></td>
+                                                <td><code>@(debugInfo.UserEmail ?? "NULL")</code></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="card border border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title mb-0">Identity Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Name:</strong></td>
+                                                <td><code>@(debugInfo.Identity?.Name ?? "NULL")</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Authentication Type:</strong></td>
+                                                <td><code>@(debugInfo.Identity?.AuthenticationType ?? "NULL")</code></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Is Authenticated:</strong></td>
+                                                <td>
+                                                    <span class="badge @(debugInfo.Identity?.IsAuthenticated == true ? "badge-success" : "badge-danger")">
+                                                        @(debugInfo.Identity?.IsAuthenticated ?? false)
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Timestamp:</strong></td>
+                                                <td><code>@debugInfo.Timestamp</code></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="card border border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="card-title mb-0">User Claims</h5>
+                                </div>
+                                <div class="card-body">
+                                    @if (debugInfo.UserClaims != null && debugInfo.UserClaims.Count > 0)
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Claim Type</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var claim in debugInfo.UserClaims)
+                                                    {
+                                                        <tr class="@(claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" ? "table-info" : "")">
+                                                            <td><code>@claim.Type</code></td>
+                                                            <td><code>@claim.Value</code></td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            No claims found for the current user.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="card border border-secondary">
+                                <div class="card-header bg-secondary text-white">
+                                    <h5 class="card-title mb-0">Raw Debug Data</h5>
+                                </div>
+                                <div class="card-body">
+                                    <pre style="background: #f8f9fa; padding: 20px; border-radius: 5px; overflow-x: auto; font-size: 12px;">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DebugInfo, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }))</pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Troubleshooting Tips:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>No User ID:</strong> Check if the NameIdentifier claim is present in the JWT token during login</li>
+                                    <li><strong>Not Authenticated:</strong> Verify that the user has logged in successfully and cookies are enabled</li>
+                                    <li><strong>Missing Claims:</strong> Check the AuthController.SignInUserAsync method to ensure all required claims are being set</li>
+                                    <li><strong>Token Issues:</strong> Verify that the JWT token contains the necessary user information</li>
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No debug information available.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

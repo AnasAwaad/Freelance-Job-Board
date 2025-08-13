@@ -1,0 +1,94 @@
+﻿@using System.Security.Claims
+<header class="header">
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+
+        <!-- Logo -->
+        <div class="logo-container">
+            <!-- Green circle -->
+            <div >
+                <!-- This could be an SVG or a different icon, using a simple text 'j' for now -->
+                <a href="/">
+                    <img src="~/images/logo-white.png" />
+                </a>
+				
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-bar">
+                <!-- Search Icon (Using a simple SVG) -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <!-- Input field -->
+                <input id="Search" type="text" placeholder="search for job" class="search-input">
+            </div>
+        </div>
+
+        <!-- Auth and Links -->
+        <div class="auth-links">
+            <nav class="main-nav">
+                <a asp-controller="Jobs" asp-action="AllJobs" class="main-nav-link">Find Job</a>
+            </nav>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle text-primary" href="#" role="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user fa-lg me-1" style="font-size: 16px; margin-right: 6px;"></i>
+                        <span class="d-none d-lg-inline" style="font-size: 13px;">Welcome, @(User.FindFirst(ClaimTypes.Name)!.Value)</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end profile-dropdown" aria-labelledby="profileDropdown">
+                        <div class="profile-info">
+                            <img src="@User.FindFirst("ProfileImageUrl")?.Value" class="profile-avatar" alt="User Avatar">
+                            <div>
+                                <div class="profile-name">@(User.FindFirst(ClaimTypes.Name)!.Value)</div>
+                                <div class="profile-email">@(User.FindFirst(ClaimTypes.Email)?.Value)</div>
+                            </div>
+                        </div>
+                        <li>
+                            <a class="dropdown-item profile-link" asp-controller="Profile" asp-action="Index">
+                                <i class="fas fa-user"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item profile-link" asp-controller="Proposals" asp-action="MyProposals">
+                                <i class="fa fa-dashboard"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" style="display:inline;">
+                                <button type="submit" class="btn logout-button" style="border:none; background:none;">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <a class="nav-link text-primary" asp-controller="Auth" asp-action="Login">
+                    <i class="fas fa-user fa-lg me-1"></i>
+                    <span class="d-none d-lg-inline">Login / Register</span>
+                </a>
+            }
+
+        </div>
+    </div>
+
+    <!-- Secondary Navigation -->
+    <div class="secondary-nav-wrapper">
+        <nav class="secondary-nav">
+            <ul class="secondary-nav-list" id="secondary-nav-list">
+            </ul>
+        </nav>
+    </div>
+
+</header>
+

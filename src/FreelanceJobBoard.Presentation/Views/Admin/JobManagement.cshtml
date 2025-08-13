@@ -1,0 +1,314 @@
+@model List<dynamic>
+@{
+    ViewData["Title"] = "Job Management";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Job Management</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Admin" asp-action="Index" class="text-muted text-hover-primary">Admin</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Job Management</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <div class="btn-group" role="group">
+                    <a asp-action="JobManagement" class="btn btn-sm btn-@(ViewBag.CurrentStatus == null ? "primary" : "light-primary")">
+                        All Jobs
+                    </a>
+                    <a asp-action="JobManagement" asp-route-status="Pending" class="btn btn-sm btn-@(ViewBag.CurrentStatus == "Pending" ? "warning" : "light-warning")">
+                        Pending (@ViewBag.PendingCount)
+                    </a>
+                    <a asp-action="JobManagement" asp-route-status="Open" class="btn btn-sm btn-@(ViewBag.CurrentStatus == "Open" ? "success" : "light-success")">
+                        Approved
+                    </a>
+                    <a asp-action="JobManagement" asp-route-status="Cancelled" class="btn btn-sm btn-@(ViewBag.CurrentStatus == "Cancelled" ? "danger" : "light-danger")">
+                        Rejected
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!--begin::Card-->
+            <div class="card">
+                <!--begin::Card header-->
+                <div class="card-header border-0 pt-6">
+                    <div class="card-title">
+                        <div class="d-flex align-items-center position-relative my-1">
+                            <h3 class="fw-bold">
+                                @if (ViewBag.CurrentStatus == "Pending")
+                                {
+                                    <span>Jobs Pending Approval</span>
+                                }
+                                else if (ViewBag.CurrentStatus == "Open")
+                                {
+                                    <span>Approved Jobs</span>
+                                }
+                                else if (ViewBag.CurrentStatus == "Cancelled")
+                                {
+                                    <span>Rejected Jobs</span>
+                                }
+                                else
+                                {
+                                    <span>All Jobs</span>
+                                }
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card header-->
+
+                <!--begin::Card body-->
+                <div class="card-body py-4">
+                    @if (Model != null && Model.Any())
+                    {
+                        <!--begin::Table-->
+                        <div class="table-responsive">
+                            <table class="table table-rounded table-striped border gy-7 gs-7">
+                                <thead>
+                                    <tr class="fw-semibold fs-6 text-gray-800 border-bottom-2 border-gray-200">
+                                        <th>Job Title</th>
+                                        <th>Client</th>
+                                        <th>Budget</th>
+                                        <th>Status</th>
+                                        <th>Created Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.Count; i++)
+                                    {
+                                        var job = Model[i];
+                                        var title = job.TryGetProperty("title", out System.Text.Json.JsonElement titleElement) ? titleElement.GetString() ?? "N/A" : "N/A";
+                                        var id = job.TryGetProperty("id", out System.Text.Json.JsonElement idElement) ? idElement.GetInt32() : 0;
+                                        var client = job.TryGetProperty("clientName", out System.Text.Json.JsonElement clientElement) ? clientElement.GetString() ?? "Unknown" : "Unknown";
+                                        var minBudget = job.TryGetProperty("budgetMin", out System.Text.Json.JsonElement minElement) ? minElement.GetDecimal() : 0;
+                                        var maxBudget = job.TryGetProperty("budgetMax", out System.Text.Json.JsonElement maxElement) ? maxElement.GetDecimal() : 0;
+                                        var status = job.TryGetProperty("status", out System.Text.Json.JsonElement statusElement) ? statusElement.GetString() ?? "Unknown" : "Unknown";
+                                        var createdDate = job.TryGetProperty("createdAt", out System.Text.Json.JsonElement createdAtElement) ? createdAtElement.GetString() :
+                                                         job.TryGetProperty("createdOn", out System.Text.Json.JsonElement createdOnElement) ? createdOnElement.GetString() : DateTime.Now.ToString();
+                                        
+                                        var badgeClass = status switch
+                                        {
+                                            "Pending" => "badge-light-warning",
+                                            "Open" => "badge-light-success", 
+                                            "Cancelled" => "badge-light-danger",
+                                            _ => "badge-light-secondary"
+                                        };
+
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="text-gray-800 fw-bold fs-6">@title</span>
+                                                    <span class="text-gray-400 fw-semibold fs-7">ID: @id</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-gray-600 fw-semibold">@client</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-gray-800 fw-bold">
+                                                    $@minBudget.ToString("N0") - $@maxBudget.ToString("N0")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @badgeClass">@status</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-gray-600 fw-semibold">
+                                                    @{
+                                                        try
+                                                        {
+                                                            var date = DateTime.Parse(createdDate ?? DateTime.Now.ToString());
+                                                            @date.ToString("MMM dd, yyyy")
+                                                        }
+                                                        catch
+                                                        {
+                                                            @(createdDate ?? "N/A")
+                                                        }
+                                                    }
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-2">
+                                                    <a asp-action="JobDetails" asp-route-jobId="@id" 
+                                                       class="btn btn-sm btn-light-primary">
+                                                        <i class="ki-duotone ki-eye fs-4"></i>
+                                                        Details
+                                                    </a>
+                                                    
+                                                    @if (status == "Pending")
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-success" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#approveModal" 
+                                                                data-job-id="@id" 
+                                                                data-job-title="@title">
+                                                            <i class="ki-duotone ki-check fs-4"></i>
+                                                            Approve
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#rejectModal" 
+                                                                data-job-id="@id" 
+                                                                data-job-title="@title">
+                                                            <i class="ki-duotone ki-cross fs-4"></i>
+                                                            Reject
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <!--end::Table-->
+                    }
+                    else
+                    {
+                        <div class="text-center py-10">
+                            <div class="mb-7">
+                                <i class="ki-duotone ki-questionnaire-tablet fs-3x text-gray-400">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </div>
+                            <h3 class="text-gray-600 fw-semibold mb-2">No Jobs Found</h3>
+                            <p class="text-gray-400">
+                                @if (ViewBag.CurrentStatus == "Pending")
+                                {
+                                    <span>There are no jobs pending approval at this time.</span>
+                                }
+                                else
+                                {
+                                    <span>No jobs match the current filter criteria.</span>
+                                }
+                            </p>
+                        </div>
+                    }
+                </div>
+                <!--end::Card body-->
+            </div>
+            <!--end::Card-->
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+<!-- Approve Job Modal -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="ApproveJob" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approveModalLabel">Approve Job</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="jobId" id="approveJobId" />
+                    <p>Are you sure you want to approve the job "<strong id="approveJobTitle"></strong>"?</p>
+                    <div class="mb-3">
+                        <label for="approveMessage" class="form-label">Message to Client (Optional)</label>
+                        <textarea name="message" id="approveMessage" class="form-control" rows="3" 
+                                  placeholder="Enter any message you'd like to send to the client..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="ki-duotone ki-check fs-4"></i>
+                        Approve Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Job Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="RejectJob" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectModalLabel">Reject Job</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="jobId" id="rejectJobId" />
+                    <p>Are you sure you want to reject the job "<strong id="rejectJobTitle"></strong>"?</p>
+                    <div class="mb-3">
+                        <label for="rejectMessage" class="form-label">Reason for Rejection *</label>
+                        <textarea name="message" id="rejectMessage" class="form-control" rows="3" required
+                                  placeholder="Please provide a reason for rejecting this job..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="ki-duotone ki-cross fs-4"></i>
+                        Reject Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle approve modal
+            document.getElementById('approveModal').addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const jobId = button.getAttribute('data-job-id');
+                const jobTitle = button.getAttribute('data-job-title');
+                
+                document.getElementById('approveJobId').value = jobId;
+                document.getElementById('approveJobTitle').textContent = jobTitle;
+            });
+
+            // Handle reject modal
+            document.getElementById('rejectModal').addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const jobId = button.getAttribute('data-job-id');
+                const jobTitle = button.getAttribute('data-job-title');
+                
+                document.getElementById('rejectJobId').value = jobId;
+                document.getElementById('rejectJobTitle').textContent = jobTitle;
+            });
+        });
+    </script>
+}

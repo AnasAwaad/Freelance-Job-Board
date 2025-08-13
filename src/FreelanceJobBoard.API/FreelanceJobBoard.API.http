@@ -1,4 +1,4 @@
-@FreelanceJobBoard.API_HostAddress = http://localhost:5102
+@FreelanceJobBoard.API_HostAddress = http://localhost:7000
 
 GET {{FreelanceJobBoard.API_HostAddress}}/weatherforecast/
 Accept: application/json

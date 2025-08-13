@@ -10,4 +10,9 @@ public class CreateReviewCommand : IRequest<int>
     public string Comment { get; set; } = null!;
     public string ReviewType { get; set; } = null!;
     public bool IsVisible { get; set; } = true;
+    public int? CommunicationRating { get; set; }
+    public int? QualityRating { get; set; }
+    public int? TimelinessRating { get; set; }
+    public bool WouldRecommend { get; set; }
+    public string? Tags { get; set; }
 }

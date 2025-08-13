@@ -11,14 +11,16 @@ public class AuthService
 	private readonly IWebHostEnvironment _webHostEnvironment;
 	private readonly ILogger<AuthService> _logger;
 	private readonly IEmailService _emailService;
+	private readonly IHttpContextAccessor _httpContextAccessor;
 
-	public AuthService(HttpClient httpClient, IWebHostEnvironment webHostEnvironment, ILogger<AuthService> logger, IEmailService emailService)
+	public AuthService(HttpClient httpClient, IWebHostEnvironment webHostEnvironment, ILogger<AuthService> logger, IEmailService emailService, IHttpContextAccessor httpContextAccessor)
 	{
 		_httpClient = httpClient;
 		_webHostEnvironment = webHostEnvironment;
 		_logger = logger;
 		_emailService = emailService;
-		_httpClient.BaseAddress = new Uri("http://localhost:5102/api/Auth/");
+		_httpContextAccessor = httpContextAccessor;
+		_httpClient.BaseAddress = new Uri("https://localhost:7000/api/Auth/");
 	}
 
 	public async Task<AuthResponseDto?> LoginAsync(LoginViewModel viewModel)
@@ -139,24 +141,35 @@ public class AuthService
 		}
 	}
 
-	private async Task<string> UploadProfilePhotoAsync(IFormFile? photo)
+	public async Task<string> UploadProfilePhotoAsync(IFormFile? photo)
 	{
 		if (photo == null) return string.Empty;
 
-		using var formData = new MultipartFormDataContent();
-		using var stream = photo.OpenReadStream();
-		var content = new StreamContent(stream);
-		content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(photo.ContentType);
-		formData.Add(content, "ImageFile", photo.FileName);
-
-		var response = await _httpClient.PostAsync("upload-image-profile", formData);
-
-		if (response.IsSuccessStatusCode)
+		try
 		{
-			var url = await response.Content.ReadAsStringAsync();
-		}
+			using var formData = new MultipartFormDataContent();
+			using var stream = photo.OpenReadStream();
+			var content = new StreamContent(stream);
+			content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(photo.ContentType);
+			formData.Add(content, "ImageFile", photo.FileName);
 
-		return string.Empty;
+			var response = await _httpClient.PostAsync("upload-image-profile", formData);
+
+			if (response.IsSuccessStatusCode)
+			{
+				var url = await response.Content.ReadAsStringAsync();
+				// Clean the URL if it's wrapped in quotes
+				return url?.Trim('"') ?? string.Empty;
+			}
+
+			_logger.LogWarning("Profile photo upload failed. Status: {StatusCode}", response.StatusCode);
+			return string.Empty;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error uploading profile photo");
+			return string.Empty;
+		}
 	}
 
 	public async Task<bool> ResetPasswordAsync(ResetPasswordViewModel viewModel)
@@ -193,13 +206,32 @@ public class AuthService
 	{
 		try
 		{
+			// Get JWT token from current HttpContext
+			var context = _httpContextAccessor.HttpContext;
+			string? jwtToken = null;
+
+			if (context?.User?.Identity?.IsAuthenticated == true)
+			{
+				jwtToken = context.User.FindFirst("jwt")?.Value;
+			}
+
 			var dto = new ChangePasswordDto
 			{
 				CurrentPassword = viewModel.CurrentPassword,
 				NewPassword = viewModel.NewPassword
 			};
 
-			var response = await _httpClient.PostAsJsonAsync("change-password", dto);
+			// Create a new HttpClient request with Authorization header
+			using var request = new HttpRequestMessage(HttpMethod.Post, "change-password");
+			request.Content = JsonContent.Create(dto);
+
+			if (!string.IsNullOrEmpty(jwtToken))
+			{
+				request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+			}
+
+			var response = await _httpClient.SendAsync(request);
+
 			if (response.IsSuccessStatusCode)
 			{
 				_logger.LogInformation("Password changed successfully for current user");

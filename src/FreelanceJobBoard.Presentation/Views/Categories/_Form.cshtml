@@ -1,7 +1,5 @@
 ﻿@model CategoryFormViewModel
-@{
-    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-}
+
 <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -15,11 +13,7 @@
                 id="ModalForm"
                 asp-action="@(Model?.Id > 0 ?"Update":"Create")"
                 method="post" 
-                class="form"
-                data-ajax-method="post"
-                data-ajax="true"
-                data-ajax-success="onModalFormSuccess"
-                data-ajax-failure="onModalFormFailure">
+                class="form">
                 <div class="modal-body">
                     @if (Model?.Id > 0)
                     {
@@ -53,6 +47,7 @@
                         @(Model?.Id > 0 ? "Update" : "Create") Category
                     </button>
                 </div>
+                @Html.AntiForgeryToken()
             </form>
         </div>
     </div>
@@ -63,30 +58,66 @@
         // Show modal
         $('#categoryModal').modal('show');
         
-        // Handle form submission
-        $('#categoryModal form').on('submit', function(e) {
+        // Handle modal form submission
+        $('#ModalForm').on('submit', function(e) {
             e.preventDefault();
             
+            // Clear any existing validation errors
+            $('.text-danger').text('');
+            $('.is-invalid').removeClass('is-invalid');
+            
             const form = $(this);
-            const formData = form.serialize();
-            const url = form.attr('action');
+            const formData = new FormData(this);
+            
+            // Disable submit button to prevent double submission
+            const submitBtn = form.find('button[type="submit"]');
+            const originalText = submitBtn.text();
+            submitBtn.prop('disabled', true).text('Saving...');
             
             $.ajax({
-                url: url,
+                url: form.attr('action'),
                 type: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
-                    if (response.includes('_CategoryRow')) {
-                        // If it's a partial view of the row, refresh the page
-                        location.reload();
+                    if (response && response.includes('<tr>')) {
+                        // Successfully created/updated - response contains the new row
+                        if ($('#ModalForm input[name="Id"]').val()) {
+                            // Update existing row
+                            const id = $('#ModalForm input[name="Id"]').val();
+                            $(`tr:has([data-url*="${id}"])`).replaceWith(response);
+                        } else {
+                            // Add new row
+                            if ($('.js-tbody tr').length === 0 || $('.js-tbody tr').first().find('td[colspan]').length > 0) {
+                                // First category or empty state
+                                location.reload();
+                                return;
+                            } else {
+                                $('.js-tbody').prepend(response);
+                            }
+                        }
+                        $('#categoryModal').modal('hide');
+                        
+                        // Show success message
+                        alert('Category saved successfully!');
                     } else {
-                        // If there are validation errors, update the modal content
-                        $('#categoryModal .modal-content').html($(response).html());
+                        // Form validation errors - replace modal content
+                        const modalContent = $('#categoryModal .modal-content');
+                        const newContent = $(response);
+                        modalContent.html(newContent.find('.modal-content').html());
+                        
+                        // Re-initialize validation
+                        $.validator.unobtrusive.parse('#ModalForm');
                     }
                 },
                 error: function(xhr) {
-                    alert('An error occurred. Please try again.');
-                    console.error('Form submission error:', xhr);
+                    console.error('Form submission failed:', xhr);
+                    alert('An error occurred while saving the category. Please try again.');
+                },
+                complete: function() {
+                    // Re-enable submit button
+                    submitBtn.prop('disabled', false).text(originalText);
                 }
             });
         });

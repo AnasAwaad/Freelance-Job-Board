@@ -1,21 +1,16 @@
-﻿@page
-@{
-}
-
-
-
-<div class="d-flex align-items-center ms-1 ms-lg-2">
+﻿<div class="d-flex align-items-center ms-1 ms-lg-2">
     <!--begin::Menu wrapper-->
     <div class="btn btn-icon btn-active-light btn-active-color-primary position-relative w-30px h-30px w-md-40px h-md-40px"
          data-kt-menu-trigger="click"
          data-kt-menu-attach="parent"
-         data-kt-menu-placement="bottom-end">
-        <i class=" ki-duotone ki-abstract-36 fs-1">
+         data-kt-menu-placement="bottom-end"
+         id="notification-bell">
+        <i class="ki-duotone ki-abstract-36 fs-1">
             <span class="path1"></span>
             <span class="path2"></span>
         </i>
         <!-- Notification Count Badge -->
-        <span class="badge badge-dot badge-danger position-absolute top-0 end-0 notification-count">1</span>
+        <span class="badge badge-dot badge-danger position-absolute top-0 end-0 notification-count" style="display: none;">0</span>
     </div>
 
     <!--begin::Menu-->
@@ -24,47 +19,57 @@
          id="kt_menu_notifications">
         <!--begin::Heading-->
         <div class="d-flex flex-column bgi-no-repeat rounded-top"
-             style="
-                        background-image: url('assets/media/misc/menu-header-bg.jpg');
-                      ">
+             style="background-image: url('/assets/media/misc/menu-header-bg.jpg');">
             <h3 class="text-white fw-semibold px-9 mt-10 mb-6">
                 Notifications
-                <span class="fs-8 opacity-75 ps-3 notification-total">1 Notification</span>
+                <span class="fs-8 opacity-75 ps-3 notification-total">0 Notifications</span>
             </h3>
         </div>
         <!--end::Heading-->
-        <!--begin::Notification List-->
-        <div id="notifications-container"
-             class="scroll-y mh-325px my-5 px-8">
-            <!--begin::Notification Item-->
-            <div class="d-flex flex-stack py-4 notification-item"
-                 data-id="alice-project">
-                <!--begin::Section-->
-                <div class="d-flex align-items-center">
-                    <!--begin::Details-->
-                    <div class="mb-0 me-2">
-                        <a href="#"
-                           class="fs-6 text-gray-800 text-hover-primary fw-bold">
-                            Project Alice
-                        </a>
-                        <div class="text-gray-400 fs-7">
-                            Phase 1 development has been completed.
-                        </div>
-                    </div>
-                    <!--end::Details-->
-                </div>
-                <!--end::Section-->
-                <!--begin::Timestamp-->
-                <span class="badge badge-light fs-8">1 hr ago</span>
-                <!--end::Timestamp-->
+        
+        <!--begin::Tab Buttons-->
+        <div class="d-flex px-9 py-3 border-bottom">
+            <button type="button" class="btn btn-sm btn-light me-2 active" data-filter="all" id="all-notifications-btn">
+                All
+            </button>
+            <button type="button" class="btn btn-sm btn-light-primary" data-filter="unread" id="unread-notifications-btn">
+                Unread
+            </button>
+            <div class="ms-auto">
+                <button type="button" class="btn btn-sm btn-light-success" id="mark-all-read-btn">
+                    Mark All Read
+                </button>
             </div>
-            <!--end::Notification Item-->
+        </div>
+        <!--end::Tab Buttons-->
+
+        <!--begin::Notification List-->
+        <div id="notifications-container" class="scroll-y mh-325px my-5 px-8">
+            <!-- Loading state -->
+            <div id="notifications-loading" class="text-center py-10">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2">Loading notifications...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div id="notifications-empty" class="text-center py-10" style="display: none;">
+                <i class="ki-duotone ki-notification-bing fs-3x text-gray-400 mb-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                <p class="text-muted">No notifications yet</p>
+            </div>
+            
+            <!-- Notifications will be loaded here -->
         </div>
         <!--end::Notification List-->
+        
         <!--begin::View more-->
         <div class="py-3 text-center border-top">
-            <a href="/Notifications/All"
-               class="btn btn-color-gray-600 btn-active-color-primary">
+            <a href="/Notifications" class="btn btn-color-gray-600 btn-active-color-primary">
                 View All
                 <i class="ki-duotone ki-arrow-right fs-5">
                     <span class="path1"></span>
@@ -76,3 +81,474 @@
     </div>
     <!--end::Menu-->
 </div>
+
+<script src="https://unpkg.com/@@microsoft/signalr@@latest/dist/browser/signalr.js"></script>
+<script>
+class NotificationManager {
+    constructor() {
+        this.currentFilter = 'all';
+        this.notifications = [];
+        this.connection = null;
+        this.init();
+    }
+
+    async init() {
+        this.bindEvents();
+        await this.initializeSignalR();
+        await this.loadNotifications();
+        
+        // Refresh notifications every 30 seconds as fallback
+        setInterval(() => this.loadNotifications(), 30000);
+    }
+
+    async initializeSignalR() {
+        try {
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/notifications")
+                .withAutomaticReconnect([0, 2000, 10000, 30000])
+                .build();
+
+            // Handle incoming notifications
+            this.connection.on("ReceiveNotification", (notificationData) => {
+                this.handleNewNotification(notificationData);
+            });
+
+            // Handle notification read updates
+            this.connection.on("NotificationMarkedAsRead", (notificationId) => {
+                this.handleNotificationMarkedAsRead(notificationId);
+            });
+
+            // Handle all notifications marked as read
+            this.connection.on("AllNotificationsMarkedAsRead", () => {
+                this.handleAllNotificationsMarkedAsRead();
+            });
+
+            // Handle notification deletion
+            this.connection.on("NotificationDeleted", (notificationId) => {
+                this.handleNotificationDeleted(notificationId);
+            });
+
+            // Handle unread count updates
+            this.connection.on("UpdateUnreadCount", (count) => {
+                this.updateNotificationCountDisplay(count);
+            });
+
+            // Start the connection
+            await this.connection.start();
+            console.log("SignalR connected successfully");
+
+            // Handle connection state changes
+            this.connection.onreconnecting(() => {
+                console.log("SignalR reconnecting...");
+            });
+
+            this.connection.onreconnected(() => {
+                console.log("SignalR reconnected");
+                this.loadNotifications(); // Refresh notifications on reconnect
+            });
+
+            this.connection.onclose(() => {
+                console.log("SignalR connection closed");
+            });
+
+        } catch (error) {
+            console.error("SignalR connection failed:", error);
+        }
+    }
+
+    bindEvents() {
+        // Filter buttons
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.setFilter(e.target.dataset.filter);
+            });
+        });
+
+        // Mark all as read
+        document.getElementById('mark-all-read-btn').addEventListener('click', () => {
+            this.markAllAsRead();
+        });
+
+        // Notification bell click
+        document.getElementById('notification-bell').addEventListener('click', () => {
+            this.loadNotifications();
+        });
+    }
+
+    handleNewNotification(notificationData) {
+        // Show browser notification if supported and permission granted
+        this.showBrowserNotification(notificationData.title, notificationData.message);
+        
+        // Play notification sound (optional)
+        this.playNotificationSound();
+        
+        // Refresh the notification list
+        this.loadNotifications();
+        
+        // Show toast notification
+        this.showToastNotification(notificationData.title, notificationData.message);
+    }
+
+    handleNotificationMarkedAsRead(notificationId) {
+        const notification = this.notifications.find(n => n.id === notificationId);
+        if (notification) {
+            notification.isRead = true;
+            this.renderNotifications();
+            this.updateNotificationCount();
+        }
+    }
+
+    handleAllNotificationsMarkedAsRead() {
+        this.notifications.forEach(n => n.isRead = true);
+        this.renderNotifications();
+        this.updateNotificationCount();
+    }
+
+    handleNotificationDeleted(notificationId) {
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        this.renderNotifications();
+        this.updateNotificationCount();
+    }
+
+    showBrowserNotification(title, message) {
+        if ("Notification" in window) {
+            // Check if notifications are in quiet hours
+            if (this.isInQuietHours()) {
+                console.log('Notification suppressed due to quiet hours');
+                return;
+            }
+            
+            if (Notification.permission === "granted") {
+                new Notification(title, {
+                    body: message,
+                    icon: "/favicon.ico",
+                    tag: "freelancejobboard-notification",
+                    requireInteraction: false,
+                    silent: false
+                });
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification(title, {
+                            body: message,
+                            icon: "/favicon.ico",
+                            tag: "freelancejobboard-notification",
+                            requireInteraction: false,
+                            silent: false
+                        });
+                    }
+                });
+            }
+        }
+    }
+
+    isInQuietHours() {
+        // Default quiet hours: 10 PM to 8 AM
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTime = currentHour * 60 + currentMinute;
+        
+        // Default quiet hours
+        const quietStart = 22 * 60; // 10 PM
+        const quietEnd = 8 * 60;    // 8 AM
+        
+        // Check if current time is within quiet hours
+        if (quietStart > quietEnd) {
+            // Quiet hours span midnight (e.g., 10 PM to 8 AM)
+            return currentTime >= quietStart || currentTime <= quietEnd;
+        } else {
+            // Quiet hours don't span midnight
+            return currentTime >= quietStart && currentTime <= quietEnd;
+        }
+    }
+
+    playNotificationSound() {
+        // Optional: Play a subtle notification sound
+        try {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoDAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAA');
+            audio.volume = 0.3;
+            audio.play().catch(() => {
+                // Ignore audio play errors (browser might block autoplay)
+            });
+        } catch (error) {
+            // Ignore errors
+        }
+    }
+
+    showToastNotification(title, message) {
+        // Create a simple toast notification
+        const toast = document.createElement('div');
+        toast.className = 'notification-toast position-fixed top-0 end-0 m-3 p-3 bg-primary text-white rounded shadow';
+        toast.style.zIndex = '9999';
+        toast.style.maxWidth = '300px';
+        toast.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong>${this.escapeHtml(title)}</strong>
+                    <div class="mt-1">${this.escapeHtml(message)}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+
+    setFilter(filter) {
+        this.currentFilter = filter;
+        
+        // Update button states
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.filter === filter) {
+                btn.classList.add('active');
+            }
+        });
+
+        this.renderNotifications();
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch('/Notifications/GetNotifications');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    this.notifications = data.notifications;
+                    this.updateNotificationCount();
+                    this.renderNotifications();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load notifications:', error);
+        }
+    }
+
+    renderNotifications() {
+        const container = document.getElementById('notifications-container');
+        const loading = document.getElementById('notifications-loading');
+        const empty = document.getElementById('notifications-empty');
+        
+        // Hide loading
+        loading.style.display = 'none';
+
+        // Filter notifications
+        let filteredNotifications = this.notifications;
+        if (this.currentFilter === 'unread') {
+            filteredNotifications = this.notifications.filter(n => !n.isRead);
+        }
+
+        if (filteredNotifications.length === 0) {
+            empty.style.display = 'block';
+            // Clear existing notifications
+            const existingNotifications = container.querySelectorAll('.notification-item');
+            existingNotifications.forEach(n => n.remove());
+            return;
+        }
+
+        empty.style.display = 'none';
+
+        // Clear existing notifications
+        const existingNotifications = container.querySelectorAll('.notification-item');
+        existingNotifications.forEach(n => n.remove());
+
+        // Render notifications (limit to 10 most recent)
+        filteredNotifications.slice(0, 10).forEach(notification => {
+            const notificationElement = this.createNotificationElement(notification);
+            container.appendChild(notificationElement);
+        });
+    }
+
+    createNotificationElement(notification) {
+        const div = document.createElement('div');
+        div.className = `d-flex flex-stack py-4 notification-item ${!notification.isRead ? 'bg-light-primary' : ''}`;
+        div.dataset.id = notification.id;
+
+        const timeAgo = this.getTimeAgo(new Date(notification.createdOn));
+        
+        div.innerHTML = `
+            <div class="d-flex align-items-start flex-grow-1">
+                <div class="symbol symbol-35px me-3">
+                    <div class="symbol-label bg-light-primary">
+                        <i class="ki-duotone ki-notification-bing fs-2 text-primary">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fs-6 text-gray-800 fw-bold mb-1">${this.escapeHtml(notification.title)}</div>
+                    <div class="text-gray-600 fs-7 mb-1">${this.escapeHtml(this.truncateMessage(notification.message, 80))}</div>
+                    <div class="text-gray-500 fs-8">${timeAgo}</div>
+                </div>
+                ${!notification.isRead ? `
+                <button type="button" class="btn btn-sm btn-light-primary ms-2" onclick="notificationManager.markAsRead(${notification.id})">
+                    Mark Read
+                </button>
+                ` : ''}
+            </div>
+        `;
+
+        return div;
+    }
+
+    async markAsRead(notificationId) {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+            
+            const response = await fetch('/Notifications/MarkAsRead', {
+                method: 'POST',
+                headers: headers,
+                body: `id=${notificationId}${token ? `&__RequestVerificationToken=${encodeURIComponent(token)}` : ''}`
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update local data
+                    const notification = this.notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.isRead = true;
+                    }
+                    this.updateNotificationCount();
+                    this.renderNotifications();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    }
+
+    async markAllAsRead() {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+            
+            const response = await fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: headers,
+                body: token ? `__RequestVerificationToken=${encodeURIComponent(token)}` : ''
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Update local data
+                    this.notifications.forEach(n => n.isRead = true);
+                    this.updateNotificationCount();
+                    this.renderNotifications();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+        }
+    }
+
+    updateNotificationCount() {
+        const unreadCount = this.notifications.filter(n => !n.isRead).length;
+        this.updateNotificationCountDisplay(unreadCount);
+    }
+
+    updateNotificationCountDisplay(unreadCount) {
+        const countBadge = document.querySelector('.notification-count');
+        const totalSpan = document.querySelector('.notification-total');
+        
+        if (unreadCount > 0) {
+            countBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            countBadge.style.display = 'block';
+        } else {
+            countBadge.style.display = 'none';
+        }
+        
+        totalSpan.textContent = `${this.notifications.length} Notification${this.notifications.length !== 1 ? 's' : ''}`;
+    }
+
+    truncateMessage(message, maxLength) {
+        if (message.length <= maxLength) return message;
+        return message.substring(0, maxLength) + '...';
+    }
+
+    getTimeAgo(date) {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// Initialize notification manager when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    window.notificationManager = new NotificationManager();
+});
+
+// Request notification permission on page load
+document.addEventListener('DOMContentLoaded', function() {
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+});
+</script>
+
+<style>
+.notification-toast {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.notification-count {
+    animation: pulse 2s infinite;
+}
+
+@@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+</style>

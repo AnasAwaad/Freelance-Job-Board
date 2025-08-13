@@ -18,7 +18,14 @@
                         <span class="bullet bg-gray-400 w-5px h-2px"></span>
                     </li>
                     <li class="breadcrumb-item text-muted">
-                        <a asp-action="MyJobs" class="text-muted text-hover-primary">My Jobs</a>
+                        @if (User.IsInRole("Client") || User.IsInRole("Freelancer"))
+                        {
+                            <a asp-action="MyJobs" class="text-muted text-hover-primary">My Jobs</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Index" class="text-muted text-hover-primary">Browse Jobs</a>
+                        }
                     </li>
                     <li class="breadcrumb-item">
                         <span class="bullet bg-gray-400 w-5px h-2px"></span>
@@ -27,10 +34,97 @@
                 </ul>
             </div>
             <div class="d-flex align-items-center gap-2 gap-lg-3">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm fw-bold btn-light-primary">
-                    <i class="ki-duotone ki-pencil fs-4"></i>
-                    Edit Job
-                </a>
+                @* Show review and completion actions for completed jobs *@
+                @if (Model.Status == "Completed")
+                {
+                    <a asp-controller="Reviews" asp-action="JobReviews" asp-route-jobId="@Model.Id" class="btn btn-sm fw-bold btn-light-warning">
+                        <i class="ki-duotone ki-star fs-4"></i>
+                        View Reviews
+                    </a>
+                    
+                    @* Show review buttons based on user role and if they haven't reviewed yet *@
+                    @if (User.IsInRole("Client") && ViewBag.IsOwner == true && ViewBag.CanReview == true)
+                    {
+                        <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@Model.Id" asp-route-type="ClientToFreelancer" class="btn btn-sm fw-bold btn-warning">
+                            <i class="ki-duotone ki-star fs-4"></i>
+                            Review Freelancer
+                        </a>
+                    }
+                    else if (User.IsInRole("Freelancer") && ViewBag.CanReview == true)
+                    {
+                        <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@Model.Id" asp-route-type="FreelancerToClient" class="btn btn-sm fw-bold btn-warning">
+                            <i class="ki-duotone ki-star fs-4"></i>
+                            Review Client
+                        </a>
+                    }
+                    else if (ViewBag.HasReviewed == true)
+                    {
+                        <span class="btn btn-sm btn-light-success" disabled>
+                            <i class="ki-duotone ki-check fs-4"></i>
+                            Review Submitted
+                        </span>
+                    }
+                }
+                @* Show completion button for in-progress jobs *@
+                else if (Model.Status == "In Progress" && (ViewBag.IsOwner == true || ViewBag.HasFreelancerApplied == true))
+                {
+                    <form asp-action="MarkAsCompleted" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-sm fw-bold btn-success" onclick="return confirm('Are you sure you want to mark this job as completed? This will allow both parties to leave reviews.')">
+                            <i class="ki-duotone ki-check fs-4"></i>
+                            Mark as Completed
+                        </button>
+                    </form>
+                }
+                @if (User.IsInRole("Client") && ViewBag.IsOwner == true)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm fw-bold btn-light-primary">
+                        <i class="ki-duotone ki-pencil fs-4"></i>
+                        Edit Job
+                    </a>
+                }
+                @if (User.IsInRole("Freelancer") && Model.Status == "Open" && ViewBag.HasFreelancerApplied != true && ViewBag.HasAcceptedProposal != true)
+                {
+                    <a asp-controller="Proposals" asp-action="Submit" asp-route-jobId="@Model.Id" class="btn btn-sm fw-bold btn-success">
+                        <i class="ki-duotone ki-paper-plane fs-4 me-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Apply for Job
+                    </a>
+                }
+                else if (User.IsInRole("Freelancer") && ViewBag.HasFreelancerApplied == true)
+                {
+                    <span class="btn btn-sm fw-bold btn-light-info disabled">
+                        <i class="ki-duotone ki-check fs-4 me-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Already Applied
+                    </span>
+                }
+                else if (User.IsInRole("Freelancer") && ViewBag.HasAcceptedProposal == true)
+                {
+                    <span class="btn btn-sm fw-bold btn-light-warning disabled">
+                        <i class="ki-duotone ki-information fs-4 me-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                        Job Assigned
+                    </span>
+                }
+                @* Mark as Complete button for assigned freelancer *@
+                @if (User.IsInRole("Freelancer") && ViewBag.IsAssignedFreelancer == true && Model.Status == "InProgress")
+                {
+                    <button type="button" class="btn btn-sm fw-bold btn-success" data-bs-toggle="modal" data-bs-target="#completeJobModal">
+                        <i class="ki-duotone ki-check fs-4 me-1">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        Mark as Complete
+                    </button>
+                }
             </div>
         </div>
     </div>
@@ -48,6 +142,68 @@
                 </div>
             }
 
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @* Show review prompt for completed jobs *@
+            @if (Model.Status == "Completed" && ViewBag.CanReview == true)
+            {
+                <div class="card bg-light-warning border-warning mb-8">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="symbol symbol-50px me-5">
+                                <span class="symbol-label bg-warning text-white">
+                                    <i class="ki-duotone ki-star fs-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h4 class="text-gray-800 fw-bold mb-1">?? Job Completed Successfully!</h4>
+                                <p class="text-gray-600 fs-6 mb-0">
+                                    @if (User.IsInRole("Client"))
+                                    {
+                                        <span>Share your experience working with the freelancer. Your review helps build our community!</span>
+                                    }
+                                    else
+                                    {
+                                        <span>How was your experience with this client? Your review helps other freelancers!</span>
+                                    }
+                                </p>
+                            </div>
+                            <div>
+                                @if (User.IsInRole("Client"))
+                                {
+                                    <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@Model.Id" asp-route-type="ClientToFreelancer" class="btn btn-warning">
+                                        <i class="ki-duotone ki-star fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Review Freelancer
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@Model.Id" asp-route-type="FreelancerToClient" class="btn btn-warning">
+                                        <i class="ki-duotone ki-star fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Review Client
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
             <div class="row">
                 <!-- Job Details -->
                 <div class="col-xl-8">
@@ -57,12 +213,157 @@
                                 <h3 class="fw-bold text-dark">Job Information</h3>
                             </div>
                             <div class="card-toolbar">
-                                <span class="badge badge-light-@(Model.Status == "Open" ? "success" : Model.Status == "Cancelled" ? "danger" : "warning") fs-7 fw-bold">
+                                <span class="badge badge-light-@(Model.Status == "Open" ? "success" : Model.Status == "Cancelled" ? "danger" : Model.Status == "Completed" ? "info" : "warning") fs-7 fw-bold">
                                     @Model.Status
                                 </span>
                             </div>
                         </div>
                         <div class="card-body">
+                            @if (Model.Status == "Pending")
+                            {
+                                @if (User.IsInRole("Client"))
+                                {
+                                    <div class="alert alert-warning">
+                                        <i class="ki-duotone ki-warning-2 fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        <strong>Pending Approval:</strong> Your job is currently under review by our admin team. 
+                                        Once approved, it will be visible to freelancers and you can start receiving proposals.
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">
+                                        <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        <strong>Job Under Review:</strong> This job is currently being reviewed by our admin team.
+                                    </div>
+                                }
+                            }
+                            else if (Model.Status == "Cancelled")
+                            {
+                                @if (User.IsInRole("Client"))
+                                {
+                                    <div class="alert alert-danger">
+                                        <i class="ki-duotone ki-cross-circle fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        <strong>Job Rejected:</strong> Your job posting has been rejected. 
+                                        Please review any feedback and make necessary changes before resubmitting.
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-danger">
+                                        <i class="ki-duotone ki-cross-circle fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        <strong>Job Unavailable:</strong> This job posting has been cancelled and is no longer accepting proposals.
+                                    </div>
+                                }
+                            }
+                            else if (Model.Status == "Completed")
+                            {
+                                <div class="alert alert-success">
+                                    <i class="ki-duotone ki-check-circle fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <strong>Job Completed:</strong> This job has been successfully completed! 
+                                    @if (ViewBag.CompletedDate != null)
+                                    {
+                                        <span>Completed on @((DateTime)ViewBag.CompletedDate).ToString("MMMM dd, yyyy")</span>
+                                    }
+                                </div>
+                            }
+                            else if (Model.Status == "InProgress")
+                            {
+                                <div class="alert alert-info">
+                                    <i class="ki-duotone ki-gear fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <strong>Job In Progress:</strong> This job is currently being worked on by the assigned freelancer.
+                                </div>
+                            }
+                            else if (Model.Status == "Open")
+                            {
+                                @if (User.IsInRole("Client"))
+                                {
+                                    <div class="alert alert-success">
+                                        <i class="ki-duotone ki-check-circle fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        <strong>Job Active:</strong> Your job is now live and visible to freelancers!
+                                    </div>
+                                }
+                                else if (User.IsInRole("Freelancer"))
+                                {
+                                    @if (ViewBag.HasAcceptedProposal == true)
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="ki-duotone ki-shield-tick fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <strong>Job Assigned:</strong> This job has been assigned to another freelancer.
+                                        </div>
+                                    }
+                                    else if (ViewBag.HasFreelancerApplied == true)
+                                    {
+                                        <div class="alert alert-info">
+                                            <i class="ki-duotone ki-check-circle fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <strong>Application Submitted:</strong> You have already applied to this job. You can view your proposal in "My Proposals".
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-success">
+                                            <i class="ki-duotone ki-check-circle fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <strong>Job Available:</strong> This job is accepting proposals. Click "Apply for Job" to submit your proposal!
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    @if (ViewBag.HasAcceptedProposal == true)
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="ki-duotone ki-shield-tick fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <strong>Job Assigned:</strong> This job has been assigned to a freelancer.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info">
+                                            <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                            <strong>Job Available:</strong> This job is currently accepting proposals from freelancers.
+                                        </div>
+                                    }
+                                }
+                            }
+
                             <div class="mb-8">
                                 <h4 class="fs-5 fw-bold text-gray-900 mb-3">Description</h4>
                                 <div class="text-gray-700 fs-6">
@@ -110,6 +411,41 @@
                             }
                         </div>
                     </div>
+
+                    @* Show reviews section for completed jobs *@
+                    @if (Model.Status == "Completed")
+                    {
+                        <div class="card mb-8">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <h3 class="fw-bold text-dark">
+                                        <i class="ki-duotone ki-star fs-2 text-warning me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Reviews & Feedback
+                                    </h3>
+                                </div>
+                                <div class="card-toolbar">
+                                    <a asp-controller="Reviews" asp-action="JobReviews" asp-route-jobId="@Model.Id" class="btn btn-sm btn-light-primary">
+                                        View All Reviews
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                @* This would be populated with actual reviews if ViewBag.JobReviews was available *@
+                                <div class="text-center py-5">
+                                    <i class="ki-duotone ki-star fs-3x text-gray-400 mb-3">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    <p class="text-gray-600 fs-6">
+                                        <a asp-controller="Reviews" asp-action="JobReviews" asp-route-jobId="@Model.Id" class="fw-bold">Click here to view all reviews for this job</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <!-- Job Summary -->
@@ -123,7 +459,7 @@
                         <div class="card-body">
                             <div class="d-flex flex-stack mb-5">
                                 <span class="text-gray-700 fw-bold fs-6">Budget Range:</span>
-                                <span class="text-dark fw-bold fs-4">$@Model.BudgetMin - $@Model.BudgetMax</span>
+                                <span class="text-dark fw-bold fs-4">$@Model.BudgetMin.ToString("N0") - $@Model.BudgetMax.ToString("N0")</span>
                             </div>
                             
                             <div class="d-flex flex-stack mb-5">
@@ -133,7 +469,7 @@
 
                             <div class="d-flex flex-stack mb-5">
                                 <span class="text-gray-700 fw-bold fs-6">Status:</span>
-                                <span class="badge badge-light-@(Model.Status == "Open" ? "success" : Model.Status == "Cancelled" ? "danger" : "warning")">
+                                <span class="badge badge-light-@(Model.Status == "Open" ? "success" : Model.Status == "Cancelled" ? "danger" : Model.Status == "Completed" ? "info" : "warning")">
                                     @Model.Status
                                 </span>
                             </div>
@@ -158,19 +494,198 @@
                                 </div>
                             }
 
+                            @if (Model.Status == "Completed" && ViewBag.CompletedDate != null)
+                            {
+                                <div class="d-flex flex-stack mb-5">
+                                    <span class="text-gray-700 fw-bold fs-6">Completed:</span>
+                                    <span class="text-dark fw-bold fs-6">@((DateTime)ViewBag.CompletedDate).ToString("MMM dd, yyyy")</span>
+                                </div>
+                            }
+
                             <div class="separator my-5"></div>
 
-                            <div class="d-flex flex-column gap-3">
-                                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
-                                    <i class="ki-duotone ki-pencil fs-4 me-1"></i>
-                                    Edit Job
-                                </a>
-                                
-                                <button type="button" class="btn btn-light-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                                    <i class="ki-duotone ki-trash fs-4 me-1"></i>
-                                    Delete Job
-                                </button>
-                            </div>
+                            @* Show different actions based on user role and job status *@
+                            @if (User.IsInRole("Client") && ViewBag.IsOwner == true)
+                            {
+                                <div class="d-flex flex-column gap-3">
+                                    @if (Model.Status != "Completed")
+                                    {
+                                        <a asp-controller="Jobs" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-sm">
+                                            <i class="ki-duotone ki-pencil fs-4 me-1"></i>
+                                            Edit Job
+                                        </a>
+                                        
+                                        <button type="button" class="btn btn-light-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                            <i class="ki-duotone ki-trash fs-4 me-1"></i>
+                                            Delete Job
+                                        </button>
+                                    }
+                                    
+                                    @if (Model.Status == "Open")
+                                    {
+                                        <a asp-controller="Proposals" asp-action="JobProposals" asp-route-jobId="@Model.Id" class="btn btn-success btn-sm">
+                                            <i class="ki-duotone ki-questionnaire-tablet fs-4 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            View Proposals
+                                        </a>
+                                    }
+                                    
+                                    @if (Model.Status == "Completed" && ViewBag.CanReview == true)
+                                    {
+                                        <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@Model.Id" asp-route-type="ClientToFreelancer" class="btn btn-warning btn-sm">
+                                            <i class="ki-duotone ki-star fs-4 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Review Freelancer
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else if (User.IsInRole("Freelancer"))
+                            {
+                                @if (Model.Status == "Open")
+                                {
+                                    @if (ViewBag.HasAcceptedProposal == true)
+                                    {
+                                        <div class="d-flex flex-column gap-3">
+                                            <span class="btn btn-light-warning disabled">
+                                                <i class="ki-duotone ki-shield-tick fs-4 me-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Job Assigned
+                                            </span>
+                                            
+                                            <div class="alert alert-light-warning">
+                                                <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                <strong>Job Assigned:</strong> This job has been assigned to another freelancer.
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (ViewBag.HasFreelancerApplied == true)
+                                    {
+                                        <div class="d-flex flex-column gap-3">
+                                            <span class="btn btn-light-info disabled">
+                                                <i class="ki-duotone ki-check fs-4 me-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Already Applied
+                                            </span>
+                                            
+                                            <div class="alert alert-light-info">
+                                                <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                <strong>Application Submitted:</strong> You have already applied to this job. Check "My Proposals" to view your application status.
+                                            </div>
+                                            
+                                            <a asp-controller="Proposals" asp-action="MyProposals" class="btn btn-primary btn-sm">
+                                                <i class="ki-duotone ki-questionnaire-tablet fs-4 me-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                View My Proposals
+                                            </a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex flex-column gap-3">
+                                            <a asp-controller="Proposals" asp-action="Submit" asp-route-jobId="@Model.Id" class="btn btn-primary">
+                                                <i class="ki-duotone ki-paper-plane fs-4 me-1">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                                Apply for Job
+                                            </a>
+                                            
+                                            <div class="alert alert-light-info">
+                                                <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                                <strong>Ready to apply?</strong> Submit your proposal with your best bid and timeline to win this project!
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                @if (Model.Status == "InProgress" && ViewBag.IsAssignedFreelancer == true)
+                                {
+                                    <div class="d-flex flex-column gap-3">
+                                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#completeJobModal">
+                                            <i class="ki-duotone ki-check fs-4 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Mark as Complete
+                                        </button>
+                                        
+                                        <div class="alert alert-light-success">
+                                            <i class="ki-duotone ki-gear fs-2 me-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            <strong>You're Working on This:</strong> Mark as complete when you've finished the work!
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.Status == "Completed" && ViewBag.IsAssignedFreelancer == true && ViewBag.CanReview == true)
+                                {
+                                    <div class="d-flex flex-column gap-3">
+                                        <a asp-controller="Reviews" asp-action="Create" asp-route-jobId="@Model.Id" asp-route-type="FreelancerToClient" class="btn btn-warning">
+                                            <i class="ki-duotone ki-star fs-4 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Review Client
+                                        </a>
+                                    </div>
+                                }
+                            }
+                            else if (!User.Identity.IsAuthenticated)
+                            {
+                                <div class="d-flex flex-column gap-3">
+                                    <a asp-controller="Auth" asp-action="Register" class="btn btn-primary">
+                                        <i class="ki-duotone ki-user-tick fs-4 me-1">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        Join as Freelancer
+                                    </a>
+                                    
+                                    <div class="alert alert-light-warning">
+                                        <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        <strong>Want to apply?</strong> Create a freelancer account to submit proposals for this job!
+                                    </div>
+                                </div>
+                            }
+                            else if (User.IsInRole("Client") && ViewBag.IsOwner != true)
+                            {
+                                <div class="alert alert-light-info">
+                                    <i class="ki-duotone ki-information-5 fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <strong>Job Information:</strong> This job belongs to another client. You can view the details but cannot make changes.
+                                </div>
+                            }
                         </div>
                     </div>
 
@@ -190,17 +705,44 @@
                             <div class="d-flex flex-stack mb-3">
                                 <span class="text-gray-700 fw-bold fs-6">Days Remaining:</span>
                                 <span class="fw-bold fs-6 @timeClass">
-                                    @(daysRemaining > 0 ? $"{daysRemaining} days" : "Expired")
+                                    @if (Model.Status == "Completed")
+                                    {
+                                        <span class="text-success">Completed</span>
+                                    }
+                                    else
+                                    {
+                                        @(daysRemaining > 0 ? $"{daysRemaining} days" : "Expired")
+                                    }
                                 </span>
                             </div>
 
-                            <div class="progress h-8px bg-light-primary">
-                                @{
-                                    var totalDays = (Model.Deadline - DateTime.Now.AddDays(-30)).Days; // Assume 30 days total
-                                    var progress = Math.Max(0, Math.Min(100, (double)(totalDays - daysRemaining) / totalDays * 100));
-                                }
-                                <div class="progress-bar bg-primary" style="width: @progress%"></div>
-                            </div>
+                            @if (Model.Status != "Completed" && daysRemaining > 0)
+                            {
+                                <div class="progress h-8px bg-light-primary">
+                                    @{
+                                        var totalDays = (Model.Deadline - DateTime.Now.AddDays(-30)).Days; // Assume 30 days total
+                                        var progress = Math.Max(0, Math.Min(100, (double)(totalDays - daysRemaining) / totalDays * 100));
+                                    }
+                                    <div class="progress-bar bg-@(daysRemaining < 7 ? "danger" : daysRemaining < 14 ? "warning" : "success")" style="width: @progress%"></div>
+                                </div>
+                            }
+                            else if (Model.Status == "Completed")
+                            {
+                                <div class="progress h-8px bg-light-success">
+                                    <div class="progress-bar bg-success" style="width: 100%"></div>
+                                </div>
+                            }
+                            else if (daysRemaining <= 0)
+                            {
+                                <div class="alert alert-light-danger">
+                                    <i class="ki-duotone ki-warning-2 fs-2 me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                        <span class="path3"></span>
+                                    </i>
+                                    <strong>Deadline Passed:</strong> This job's deadline has expired.
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -210,23 +752,73 @@
     <!--end::Content-->
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete the job "<strong>@Model.Title</strong>"?</p>
-                <p class="text-danger">This action cannot be undone and will remove all associated proposals.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Delete Job</button>
+@* Mark as Complete Modal *@
+@if (User.IsInRole("Freelancer") && ViewBag.IsAssignedFreelancer == true && Model.Status == "InProgress")
+{
+    <div class="modal fade" id="completeJobModal" tabindex="-1" aria-labelledby="completeJobModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="completeJobModalLabel">Mark Job as Complete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form asp-controller="Jobs" asp-action="Complete" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="jobId" value="@Model.Id" />
+                        
+                        <div class="mb-5">
+                            <p>Are you sure you want to mark the job "<strong>@Model.Title</strong>" as complete?</p>
+                            <p class="text-muted">This will notify the client and allow both parties to leave reviews.</p>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label class="form-label">Completion Notes (Optional)</label>
+                            <textarea name="completionNotes" class="form-control" rows="4" placeholder="Add any final notes about the completed work..."></textarea>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label class="form-label">Deliverables (Optional)</label>
+                            <input name="deliverableUrls" class="form-control" placeholder="Links to completed work, files, etc. (comma-separated)" />
+                            <div class="form-text">Provide links to any deliverables or completed work</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="ki-duotone ki-check fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Mark as Complete
+                        </button>
+                    </div>
                 </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* Only show delete modal for job owners *@
+@if (User.IsInRole("Client") && ViewBag.IsOwner == true && Model.Status != "Completed")
+{
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the job "<strong>@Model.Title</strong>"?</p>
+                    <p class="text-danger">This action cannot be undone and will remove all associated proposals.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete Job</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

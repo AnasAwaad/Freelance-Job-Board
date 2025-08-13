@@ -1,6 +1,7 @@
 ﻿@using FreelanceJobBoard.Domain.Constants
 @using FreelanceJobBoard.Domain.Identity
 @using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
@@ -18,13 +19,16 @@
 	<link href="~/css/plugins.bundle.css" rel="stylesheet" />
 	<link href="~/css/style.bundle.css" rel="stylesheet" type="text/css" />
 	<!--end::Global Stylesheets Bundle-->
+	<!--begin::Rating System CSS-->
+	<link href="~/css/rating.css" rel="stylesheet" type="text/css" />
+	<!--end::Rating System CSS-->
 
 	@await RenderSectionAsync("Styles", required: false)
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body id="kt_app_body" data-kt-app-layout="dark-sidebar" data-kt-app-header-fixed="true" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true" data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-header="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="app-default">
 	<!--begin::Theme mode setup on page load-->
-	<script>var defaultThemeMode = "light"; var themeMode; if (document.documentElement) { if (document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if (localStorage.getItem("data-bs-theme") !== null) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
+	<script>var defaultThemeMode = "light"; var themeMode; if (document.documentElement) { if (document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if (localStorage.getItem("data-bs-theme") !== null) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
 	<!--end::Theme mode setup on page load-->
 	@if (User.Identity != null && User.Identity.IsAuthenticated)
 	{
@@ -33,159 +37,7 @@
 			<!--begin::Page-->
 			<div class="app-page flex-column flex-column-fluid" id="kt_app_page">
 				<!--begin::Header-->
-				<div id="kt_app_header" class="app-header">
-					<div class="app-container container-fluid d-flex align-items-stretch justify-content-between" id="kt_app_header_container">
-						<!--begin::Sidebar mobile toggle-->
-						<div class="d-flex align-items-center d-lg-none ms-n3 me-1 me-md-2" title="Show sidebar menu">
-							<div class="btn btn-icon btn-active-color-primary w-35px h-35px" id="kt_app_sidebar_mobile_toggle">
-								<i class="ki-duotone ki-abstract-14 fs-2 fs-md-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-							</div>
-						</div>
-						<!--end::Sidebar mobile toggle-->
-						
-						<!--begin::Mobile logo-->
-						<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
-							<a asp-controller="Home" asp-action="Index" class="d-lg-none">
-								<h3 class="text-dark fw-bold">HireUp</h3>
-							</a>
-						</div>
-						<!--end::Mobile logo-->
-						
-						<!--begin::Header wrapper-->
-						<div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1" id="kt_app_header_wrapper">
-							<!--begin::Menu wrapper-->
-							<div class="app-header-menu app-header-mobile-drawer align-items-stretch" data-kt-drawer="true" data-kt-drawer-name="app-header-menu" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="250px" data-kt-drawer-direction="end" data-kt-drawer-toggle="#kt_app_header_menu_toggle" data-kt-swapper="true" data-kt-swapper-mode="{default: 'append', lg: 'prepend'}" data-kt-swapper-parent="{default: '#kt_app_body', lg: '#kt_app_header_wrapper'}">
-								<!--begin::Menu-->
-								<div class="menu menu-rounded menu-column menu-lg-row my-5 my-lg-0 align-items-stretch fw-semibold px-2 px-lg-0" id="kt_app_header_menu" data-kt-menu="true">
-									<!--begin::Welcome message-->
-									<div class="menu-item">
-										<span class="menu-link py-3">
-											Welcome, @(User.Identity?.Name ?? "User")
-										</span>
-									</div>
-									<!--end::Welcome message-->
-								</div>
-								<!--end::Menu-->
-							</div>
-							<!--end::Menu wrapper-->
-							
-							<!--begin::Navbar-->
-							<div class="app-navbar flex-shrink-0">
-								<div class="app-navbar-item ms-1 ms-md-4">
-									<!--begin::User menu-->
-									<div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-										@{
-											var profilePhotoPath = ViewBag.ProfilePhoto as string;
-											var userName = User.Identity?.Name ?? "User";
-											var userInitial = userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "U";
-											var hasProfilePhoto = !string.IsNullOrEmpty(profilePhotoPath);
-										}
-										
-										@if (hasProfilePhoto)
-										{
-											<img src="@profilePhotoPath" alt="Profile Photo" class="w-35px h-35px rounded-circle object-fit-cover" />
-										}
-										else
-										{
-											<div class="symbol-label bg-primary text-white fw-bold">
-												@userInitial
-											</div>
-										}
-									</div>
-									<!--end::User menu-->
-									
-									<!--begin::User account menu-->
-									<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
-										<!--begin::Menu item-->
-										<div class="menu-item px-3">
-											<div class="menu-content d-flex align-items-center px-3">
-												<!--begin::Avatar-->
-												<div class="symbol symbol-50px me-5">
-													@if (hasProfilePhoto)
-													{
-														<img src="@profilePhotoPath" alt="Profile Photo" class="w-50px h-50px rounded-circle object-fit-cover" />
-													}
-													else
-													{
-														<div class="symbol-label bg-primary text-white fw-bold">
-															@userInitial
-														</div>
-													}
-												</div>
-												<!--end::Avatar-->
-												<!--begin::Username-->
-												<div class="d-flex flex-column">
-													<div class="fw-bold d-flex align-items-center fs-5">
-														@userName
-														<span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">
-															@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "User")
-														</span>
-													</div>
-													<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">
-														@(User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")
-													</a>
-												</div>
-												<!--end::Username-->
-											</div>
-										</div>
-										<!--end::Menu item-->
-										
-										<!--begin::Menu separator-->
-										<div class="separator my-2"></div>
-										<!--end::Menu separator-->
-										
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<a asp-controller="Profile" asp-action="Index" class="menu-link px-5">
-												<i class="ki-duotone ki-profile-circle fs-6 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-													<span class="path3"></span>
-												</i>My Profile
-											</a>
-										</div>
-										<!--end::Menu item-->
-										
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<a asp-controller="Profile" asp-action="Security" class="menu-link px-5">
-												<i class="ki-duotone ki-setting-2 fs-6 me-2">
-													<span class="path1"></span>
-													<span class="path2"></span>
-												</i>Settings
-											</a>
-										</div>
-										<!--end::Menu item-->
-										
-										<!--begin::Menu separator-->
-										<div class="separator my-2"></div>
-										<!--end::Menu separator-->
-										
-										<!--begin::Menu item-->
-										<div class="menu-item px-5">
-											<form asp-controller="Auth" asp-action="Logout" method="post" style="display: inline;">
-												<button type="submit" class="menu-link px-5 btn btn-link p-0 text-start w-100" style="border: none; background: none;">
-													<i class="ki-duotone ki-entrance-left fs-6 me-2">
-														<span class="path1"></span>
-														<span class="path2"></span>
-													</i>
-													Sign Out
-												</button>
-											</form>
-										</div>
-										<!--end::Menu item-->
-									</div>
-									<!--end::User account menu-->
-								</div>
-							</div>
-							<!--end::Navbar-->
-						</div>
-						<!--end::Header wrapper-->
-					</div>
-				</div>
+				<partial name="_DashboardHeader" />
 				<!--end::Header-->
 				<!--begin::Wrapper-->
 				<div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
@@ -241,12 +93,65 @@
 	<script src="~/js/plugins.bundle.js"></script>
 	<script src="~/js/scripts.bundle.js"></script>
 	<!--end::Global Javascript Bundle-->
+	<!--begin::Rating System JS-->
+	<script src="~/js/rating.js"></script>
+	<!--end::Rating System JS-->
+	<!--begin::Quick Review Modal JS-->
+	<script src="~/js/quick-review-modal.js" asp-append-version="true"></script>
+	<!--end::Quick Review Modal JS-->
 	<!--begin::Bootbox-->
 	<script src="~/lib/bootbox.js/bootbox.min.js"></script>
 	<!--end::Bootbox-->
+	<script src="~/lib/microsoft-signalr/signalr.min.js"></script>
+
 	@await RenderSectionAsync("Plugins", required: false)
 	<script src="~/js/site.js" asp-append-version="true"></script>
 	@await RenderSectionAsync("Scripts", required: false)
+	<script src="~/js/notification.js"></script>
+	<!-- Logout handling script -->
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			// Ensure all logout forms work correctly
+			document.querySelectorAll('form[action*="Logout"]').forEach(function(form) {
+				form.addEventListener('submit', function(e) {
+					// Prevent multiple submissions
+					const submitBtn = this.querySelector('button[type="submit"]');
+					if (submitBtn) {
+						submitBtn.disabled = true;
+						setTimeout(() => {
+							if (submitBtn) submitBtn.disabled = false;
+						}, 3000); // Re-enable after 3 seconds as fallback
+					}
+				});
+			});
+			
+			// Handle logout links that should be forms
+			document.querySelectorAll('a[href*="Logout"]').forEach(function(link) {
+				link.addEventListener('click', function(e) {
+					e.preventDefault();
+					console.warn('Logout link clicked - should use POST form instead');
+					
+					// Create and submit a temporary form for logout
+					const form = document.createElement('form');
+					form.method = 'POST';
+					form.action = '/Auth/Logout';
+					
+					// Add antiforgery token if available
+					const token = document.querySelector('input[name="__RequestVerificationToken"]');
+					if (token) {
+						const tokenInput = document.createElement('input');
+						tokenInput.type = 'hidden';
+						tokenInput.name = '__RequestVerificationToken';
+						tokenInput.value = token.value;
+						form.appendChild(tokenInput);
+					}
+					
+					document.body.appendChild(form);
+					form.submit();
+				});
+			});
+		});
+	</script>
 	<!--end::Javascript-->
 
 	<style>

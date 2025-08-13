@@ -5,12 +5,22 @@
     {
       "library": "jquery-ajax-unobtrusive@3.2.6",
       "destination": "wwwroot/lib/jquery-ajax-unobtrusive/"
+    },
+    {
+      "library": "bootbox.js@6.0.3",
+      "destination": "wwwroot/lib/bootbox.js/"
+    },
+    {
+      "library": "owl-carousel@1.3.3",
+      "destination": "wwwroot/lib/owl-carousel/"
+    },
+    {
+      "library": "typeahead.js@0.11.1",
+      "destination": "wwwroot/lib/typeahead.js/"
+    },
+    {
+      "library": "microsoft-signalr@9.0.6",
+      "destination": "wwwroot/lib/microsoft-signalr/"
     }
-  ,
-{
-  "provider": "cdnjs",
-  "library": "bootbox.js@6.0.3",
-  "destination": "wwwroot/lib/bootbox.js/"
-}
-]
+  ]
 }

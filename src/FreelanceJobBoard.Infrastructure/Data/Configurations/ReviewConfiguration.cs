@@ -24,8 +24,8 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 			   .IsRequired();
 
 		builder.HasOne(r => r.Job)
-			   .WithOne(j => j.Review)
-			   .HasForeignKey<Review>(r => r.JobId)
+			   .WithMany(j => j.Reviews)
+			   .HasForeignKey(r => r.JobId)
 			   .OnDelete(DeleteBehavior.Restrict);
 
 		builder.HasOne<ApplicationUser>()

@@ -1,0 +1,211 @@
+﻿@using FreelanceJobBoard.Domain.Constants
+@using FreelanceJobBoard.Presentation.Models.DTOs
+@model PagedResultDto<JobViewModel>
+
+@{
+    ViewData["Title"] = "Browse Available Jobs";
+    Layout = "_Layout";
+}
+
+<link rel="stylesheet" href="~/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/alljobs.css" />
+<link rel="stylesheet" href="~/css/nice-select.css" />
+<link rel="stylesheet" href="~/css/jquery-ui.css" />
+<link rel="stylesheet" href="~/css/font-awesome.min.css" />
+
+<div class="job_listing_area plus_padding">
+    <div class="container">
+        <div class="row">
+
+            <!-- FILTER SIDEBAR -->
+            <div class="col-lg-4">
+                <div class="job_filter white-bg">
+                    <div class="form_inner white-bg">
+                        <h3>Filter</h3>
+                        <form method="get" asp-action="AllJobs">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="single_field">
+                                        <input type="text" name="search" value="@ViewBag.Search" placeholder="Search keyword" />
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-12">
+                                    <div class="single_field">
+                                        <select name="category" class="nice-select wide">
+                                            <option value="">Category</option>
+                                            @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Categories ?? Enumerable.Empty<SelectListItem>())
+                                            {
+                                                <option value="@item.Value" selected="@(ViewBag.Category == item.Value)">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-12">
+                                    <div class="single_field">
+                                        <select name="skill" class="nice-select wide">
+                                            <option value="">Skills</option>
+                                            @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.Skills ?? Enumerable.Empty<SelectListItem>())
+                                            {
+                                                <option value="@item.Value" selected="@(ViewBag.Skill == item.Value)">@item.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-12">
+                                    <div class="single_field">
+                                        <select name="sortBy"  class="nice-select wide">
+                                            <option value="">Sort By</option>
+                                            <option value="title" selected="@(ViewBag.SortBy == "title")">Title</option>
+                                            <option value="deadline" selected="@(ViewBag.SortBy == "deadline")">Deadline</option>
+                                            <option value="budget" selected="@(ViewBag.SortBy == "budget")">Budget</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="reset_btn">
+                        <a href="@Url.Action("AllJobs")" class="boxed-btn3 w-100">Reset</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JOB LISTING -->
+            <div class="col-lg-8">
+                <div class="recent_joblist_wrap">
+                    <div class="recent_joblist white-bg">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h4>Job Listing</h4>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="serch_cat d-flex justify-content-end">
+                                    <select name="sortDirection" class="wide nice-select" form="filterForm">
+                                        <option value="@SortDirection.Ascending" selected="@(ViewBag.SortDirection == SortDirection.Ascending)">Ascending</option>
+                                        <option value="@SortDirection.Descending" selected="@(ViewBag.SortDirection == SortDirection.Descending)">Descending</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="job_lists m-0">
+                    <div class="row text-center">
+                        @if (Model == null || !Model.Items.Any())
+                        {
+                            <div class="no_jobs"> <p>No Jobs Availible</p></div>
+                            
+                        }
+                        else
+                        {
+                            @foreach (var job in Model.Items)
+                            {
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="single_jobs white-bg flex-column d-flex">
+
+                                            <div class="top-info d-flex justify-content-between align-items-center mb-3 w-100">
+                                                <div class="category_jobs">
+                                                    @foreach (var category in job.Categories)
+                                                    {
+                                                        @category.Name
+                                                    }
+                                                </div>
+                                                <div class="price_jobs">
+                                                    $@job.BudgetMin - $@job.BudgetMax
+                                                </div>
+                                            </div>
+
+                                            <div class="jobs_left d-flex align-items-center mb-3">
+                                                <div class="thumb mx-auto">
+                                                    <img src="~/images/google.svg" alt="Image" />
+                                                </div>
+                                            </div>
+
+                                            <div class="jobs_conetent mb-3 mx-auto">
+                                                <a href="#"><h4>@job.ClientId</h4></a>
+                                                <div class="position-info">
+                                                    <p>@job.Title</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="jobs_right mx-auto">
+                                                <div class="apply_now">
+                                                    <a href="@Url.Action("JobDetails", "Jobs", new { id = job.Id })" class="boxed-btn3">View Details</a>
+                                                </div>
+                                                <div class="date">
+                                                    <p>Deadline: @job.Deadline.ToString("MMM dd, yyyy")</p>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                
+                            }
+                        }
+                    </div>
+
+                    <div class="row">
+                        <ul class="pagination" id="paginationContainer">
+                            @if (Model.HasPreviousPage)
+                            {
+                                var prevPageUrl = $"/Jobs/AllJobs?pageNumber={Model.PageNumber - 1}&search={ViewBag.Search}&category={ViewBag.Category}&skill={ViewBag.Skill}&sortBy={ViewBag.SortBy}&sortDirection={ViewBag.SortDirection}";
+                                <li>
+                                    <a href="@prevPageUrl">&laquo;</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="disabled">
+                                    <a href="#">&laquo;</a>
+                                </li>
+                            }
+
+                            @* Page Number Links *@
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                var pageUrl = $"/Jobs/AllJobs?pageNumber={i}&search={ViewBag.Search}&category={ViewBag.Category}&skill={ViewBag.Skill}&sortBy={ViewBag.SortBy}&sortDirection={ViewBag.SortDirection}";
+                                <li class="@(i == Model.PageNumber ? "active" : "")">
+                                    <a href="@pageUrl">@i</a>
+                                </li>
+                            }
+
+                            @* Next Page Link *@
+                            @if (Model.HasNextPage)
+                            {
+                                var nextPageUrl = $"/Jobs/AllJobs?pageNumber={Model.PageNumber + 1}&search={ViewBag.Search}&category={ViewBag.Category}&skill={ViewBag.Skill}&sortBy={ViewBag.SortBy}&sortDirection={ViewBag.SortDirection}";
+                                <li>
+                                    <a href="@nextPageUrl">&raquo;</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="disabled">
+                                    <a href="#">&raquo;</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/js/jquery-1.12.4.min.js"></script>
+<script src="~/js/jquery-ui.js"></script>
+<script src="~/js/owl.carousel.min.js"></script>
+<script src="~/js/isotope.pkgd.min.js"></script>
+<script src="~/js/jquery.counterup.min.js"></script>
+<script src="~/js/wow.min.js"></script>
+<script src="~/js/nice-select.min.js"></script>
+<script src="~/js/jquery.magnific-popup.min.js"></script>
+<script src="~/js/range.js"></script>
+<script src="~/js/jquery.ajaxchimp.min.js"></script>
+<script src="~/js/jquery.validate.min.js"></script>
+@* <script src="~/js/alljobs.js"></script> *@

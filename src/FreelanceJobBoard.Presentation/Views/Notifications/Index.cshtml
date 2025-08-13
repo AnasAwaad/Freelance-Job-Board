@@ -1,0 +1,396 @@
+@model IEnumerable<FreelanceJobBoard.Domain.Entities.Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+    var unreadOnly = ViewBag.UnreadOnly ?? false;
+    var unreadCount = ViewBag.UnreadCount ?? 0;
+    var totalCount = ViewBag.TotalCount ?? 0;
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title">
+                <i class="ki-duotone ki-notification-bing fs-2 me-2">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                Notifications
+                @if (unreadCount > 0)
+                {
+                    <span class="badge badge-danger ms-2">@unreadCount unread</span>
+                }
+            </h3>
+            <div class="card-toolbar">
+                <div class="btn-group me-2">
+                    <a href="@Url.Action("Index", new { unreadOnly = false })" 
+                       class="btn btn-sm @(unreadOnly ? "btn-light" : "btn-primary")">
+                        All (@totalCount)
+                    </a>
+                    <a href="@Url.Action("Index", new { unreadOnly = true })" 
+                       class="btn btn-sm @(unreadOnly ? "btn-primary" : "btn-light")">
+                        Unread (@unreadCount)
+                    </a>
+                </div>
+                <div class="btn-group">
+                    @if (unreadCount > 0)
+                    {
+                        <button type="button" class="btn btn-sm btn-success" id="mark-all-read-btn">
+                            <i class="ki-duotone ki-check fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                            </i>
+                            Mark All Read
+                        </button>
+                    }
+                    @if (totalCount > 0)
+                    {
+                        <button type="button" class="btn btn-sm btn-danger" id="delete-all-btn" title="Delete all notifications">
+                            <i class="ki-duotone ki-trash fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                            Delete All
+                        </button>
+                    }
+                    <button type="button" class="btn btn-sm btn-light" id="delete-old-btn" title="Delete notifications older than 30 days">
+                        <i class="ki-duotone ki-trash fs-2">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                            <span class="path3"></span>
+                        </i>
+                        Clean Up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
+                    <thead>
+                        <tr class="fw-bold text-muted">
+                            <th class="min-w-50px">Status</th>
+                            <th class="min-w-200px">Title</th>
+                            <th class="min-w-300px">Message</th>
+                            <th class="min-w-100px">Date</th>
+                            <th class="min-w-100px text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var notification in Model)
+                        {
+                            <tr class="@(!notification.IsRead ? "bg-light-primary" : "")" data-notification-id="@notification.Id">
+                                <td>
+                                    @if (!notification.IsRead)
+                                    {
+                                        <span class="badge badge-light-primary">New</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-light-success">Read</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="symbol symbol-35px me-3">
+                                            <div class="symbol-label bg-light-primary">
+                                                <i class="ki-duotone ki-notification-bing fs-2 text-primary">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                    <span class="path3"></span>
+                                                </i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-dark fw-bold text-hover-primary fs-6">@notification.Title</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-muted fw-semibold text-muted d-block fs-7">
+                                        @if (notification.Message.Length > 100)
+                                        {
+                                            <span>@notification.Message.Substring(0, 100)...</span>
+                                            <a href="#" class="text-primary" onclick="toggleMessage(this)">Show more</a>
+                                            <span class="d-none">@notification.Message</span>
+                                        }
+                                        else
+                                        {
+                                            @notification.Message
+                                        }
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-dark fw-bold d-block fs-7">@notification.CreatedOn.ToString("MMM dd, yyyy")</span>
+                                    <span class="text-muted fw-semibold d-block fs-8">@notification.CreatedOn.ToString("HH:mm")</span>
+                                    @if (notification.ReadAt.HasValue)
+                                    {
+                                        <span class="text-success fw-semibold d-block fs-8">Read: @notification.ReadAt.Value.ToString("MMM dd, HH:mm")</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        @if (!notification.IsRead)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-light-primary mark-read-btn" data-id="@notification.Id" title="Mark as read">
+                                                <i class="ki-duotone ki-check fs-2">
+                                                    <span class="path1"></span>
+                                                    <span class="path2"></span>
+                                                </i>
+                                            </button>
+                                        }
+                                        <button type="button" class="btn btn-sm btn-light-danger delete-btn" data-id="@notification.Id" title="Delete notification">
+                                            <i class="ki-duotone ki-trash fs-2">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-10">
+                <i class="ki-duotone ki-notification-bing fs-3x text-gray-400 mb-3">
+                    <span class="path1"></span>
+                    <span class="path2"></span>
+                    <span class="path3"></span>
+                </i>
+                <h3 class="text-gray-600 fw-semibold mb-2">No notifications found</h3>
+                <p class="text-gray-400">
+                    @if (unreadOnly)
+                    {
+                        <text>You have no unread notifications. <a href="@Url.Action("Index", new { unreadOnly = false })">View all notifications</a></text>
+                    }
+                    else
+                    {
+                        <text>You haven't received any notifications yet.</text>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Mark single notification as read
+            $('.mark-read-btn').on('click', function() {
+                const notificationId = $(this).data('id');
+                markNotificationAsRead(notificationId);
+            });
+
+            // Mark all notifications as read
+            $('#mark-all-read-btn').on('click', function() {
+                markAllNotificationsAsRead();
+            });
+
+            // Delete single notification
+            $('.delete-btn').on('click', function() {
+                const notificationId = $(this).data('id');
+                if (confirm('Are you sure you want to delete this notification?')) {
+                    deleteNotification(notificationId);
+                }
+            });
+
+            // Delete all notifications
+            $('#delete-all-btn').on('click', function() {
+                if (confirm('Are you sure you want to delete ALL notifications? This action cannot be undone.')) {
+                    deleteAllNotifications();
+                }
+            });
+
+            // Delete old notifications
+            $('#delete-old-btn').on('click', function() {
+                if (confirm('Are you sure you want to delete notifications older than 30 days?')) {
+                    deleteOldNotifications();
+                }
+            });
+        });
+
+        function markNotificationAsRead(notificationId) {
+            $.post('@Url.Action("MarkAsRead")', { id: notificationId })
+                .done(function(response) {
+                    if (response.success) {
+                        const row = $(`tr[data-notification-id="${notificationId}"]`);
+                        row.removeClass('bg-light-primary');
+                        row.find('.badge-light-primary').removeClass('badge-light-primary').addClass('badge-light-success').text('Read');
+                        row.find('.mark-read-btn').remove();
+                        
+                        updateUnreadCount(response.unreadCount);
+                        showToast('Notification marked as read', 'success');
+                    } else {
+                        showToast(response.message || 'Failed to mark notification as read', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Failed to mark notification as read', 'error');
+                });
+        }
+
+        function markAllNotificationsAsRead() {
+            $.post('@Url.Action("MarkAllAsRead")')
+                .done(function(response) {
+                    if (response.success) {
+                        $('tr[data-notification-id]').removeClass('bg-light-primary');
+                        $('.badge-light-primary').removeClass('badge-light-primary').addClass('badge-light-success').text('Read');
+                        $('.mark-read-btn').remove();
+                        $('#mark-all-read-btn').remove();
+                        
+                        updateUnreadCount(0);
+                        showToast('All notifications marked as read', 'success');
+                    } else {
+                        showToast(response.message || 'Failed to mark all notifications as read', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Failed to mark all notifications as read', 'error');
+                });
+        }
+
+        function deleteNotification(notificationId) {
+            $.post('@Url.Action("Delete")', { id: notificationId })
+                .done(function(response) {
+                    if (response.success) {
+                        $(`tr[data-notification-id="${notificationId}"]`).fadeOut(300, function() {
+                            $(this).remove();
+                            
+                            // Check if no notifications left
+                            if ($('tr[data-notification-id]').length === 0) {
+                                location.reload();
+                            }
+                        });
+                        
+                        updateUnreadCount(response.unreadCount);
+                        showToast('Notification deleted successfully', 'success');
+                    } else {
+                        showToast(response.message || 'Failed to delete notification', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Failed to delete notification', 'error');
+                });
+        }
+
+        function deleteAllNotifications() {
+            $.post('@Url.Action("DeleteAll")')
+                .done(function(response) {
+                    if (response.success) {
+                        location.reload();
+                        showToast(response.message || 'All notifications deleted successfully', 'success');
+                    } else {
+                        showToast(response.message || 'Failed to delete all notifications', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Failed to delete all notifications', 'error');
+                });
+        }
+
+        function deleteOldNotifications() {
+            $.post('@Url.Action("DeleteOld")', { daysOld: 30 })
+                .done(function(response) {
+                    if (response.success) {
+                        location.reload();
+                        showToast(response.message || 'Old notifications deleted successfully', 'success');
+                    } else {
+                        showToast(response.message || 'Failed to delete old notifications', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Failed to delete old notifications', 'error');
+                });
+        }
+
+        function toggleMessage(element) {
+            const $element = $(element);
+            const shortText = $element.prev();
+            const fullText = $element.next();
+            
+            if (fullText.hasClass('d-none')) {
+                shortText.addClass('d-none');
+                fullText.removeClass('d-none');
+                $element.text('Show less');
+            } else {
+                shortText.removeClass('d-none');
+                fullText.addClass('d-none');
+                $element.text('Show more');
+            }
+        }
+
+        function updateUnreadCount(count) {
+            // Update the notification badge in header
+            if (window.notificationWidget) {
+                window.notificationWidget.updateNotificationCount(count);
+            }
+            
+            // Update local count display
+            const badge = $('.badge-danger');
+            if (count > 0) {
+                badge.text(`${count} unread`);
+            } else {
+                badge.remove();
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            // Create a simple toast notification
+            const toast = document.createElement('div');
+            toast.className = `notification-toast position-fixed top-0 end-0 m-3 p-3 text-white rounded shadow`;
+            toast.style.zIndex = '9999';
+            toast.style.maxWidth = '300px';
+            
+            // Set background color based on type
+            switch(type) {
+                case 'success':
+                    toast.style.backgroundColor = '#28a745';
+                    break;
+                case 'error':
+                case 'danger':
+                    toast.style.backgroundColor = '#dc3545';
+                    break;
+                case 'warning':
+                    toast.style.backgroundColor = '#ffc107';
+                    toast.classList.remove('text-white');
+                    toast.classList.add('text-dark');
+                    break;
+                default:
+                    toast.style.backgroundColor = '#007bff';
+            }
+            
+            toast.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                        <div class="mt-1">${message}</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+
+            document.body.appendChild(toast);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+            
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+    </script>
+}

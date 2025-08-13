@@ -308,4 +308,54 @@ public class UpdateProposalStatusCommandHandlerTests
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("Invalid status. Valid statuses are: *");
     }
+
+    [Fact]
+    public async Task Handle_WhenTryingToAcceptSecondProposal_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var userId = "client-123";
+        var clientId = 1;
+        var proposalId = 2; // Second proposal to accept
+        var jobId = 1;
+
+        var command = new UpdateProposalStatusCommand
+        {
+            ProposalId = proposalId,
+            Status = ProposalStatus.Accepted,
+            ClientFeedback = "This should fail!"
+        };
+
+        var client = new Client { Id = clientId, UserId = userId };
+        var job = new Job { Id = jobId, ClientId = clientId, Status = JobStatus.Open };
+        var proposalToAccept = new Proposal { Id = proposalId, JobId = jobId, Status = ProposalStatus.Submitted };
+        var alreadyAcceptedProposal = new Proposal { Id = 1, JobId = jobId, Status = ProposalStatus.Accepted }; // Already accepted
+
+        var allProposals = new List<Proposal> { alreadyAcceptedProposal, proposalToAccept };
+
+        _currentUserServiceMock.Setup(x => x.IsAuthenticated).Returns(true);
+        _currentUserServiceMock.Setup(x => x.UserId).Returns(userId);
+
+        _unitOfWorkMock.Setup(x => x.Clients.GetByUserIdAsync(userId))
+            .ReturnsAsync(client);
+
+        _unitOfWorkMock.Setup(x => x.Proposals.GetByIdAsync(proposalId))
+            .ReturnsAsync(proposalToAccept);
+
+        _unitOfWorkMock.Setup(x => x.Jobs.GetByIdAsync(jobId))
+            .ReturnsAsync(job);
+
+        _unitOfWorkMock.Setup(x => x.Proposals.GetAllAsync())
+            .ReturnsAsync(allProposals);
+
+        var handler = new UpdateProposalStatusCommandHandler(
+            _unitOfWorkMock.Object,
+            _currentUserServiceMock.Object,
+            _notificationServiceMock.Object,
+            _loggerMock.Object);
+
+        // Act & Assert
+        var act = async () => await handler.Handle(command, CancellationToken.None);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("This job already has an accepted proposal. Only one proposal can be accepted per job.");
+    }
 }

@@ -2,12 +2,12 @@
 using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FreelanceJobBoard.Infrastructure.Repositories;
-
-internal class ClientRepository : GenericRepository<Client>, IClientRepository
+public class ClientRepository : GenericRepository<Client>, IClientRepository
 {
-	public ClientRepository(ApplicationDbContext context) : base(context)
+	public ClientRepository(ApplicationDbContext context, ILogger<GenericRepository<Client>>? logger = null) : base(context, logger)
 	{
 	}
 
@@ -15,21 +15,16 @@ internal class ClientRepository : GenericRepository<Client>, IClientRepository
 	{
 		return await _context.Clients
 			.Include(c => c.User)
+			.Include(c => c.Company)
 			.FirstOrDefaultAsync(c => c.UserId == userId);
 	}
 
-	public async Task<Client?> GetClientWithJobsAsync(int clientId)
-	{
-		return await _context.Clients
-			.Include(c => c.Jobs)
-			.Include(c => c.User)
-			.FirstOrDefaultAsync(c => c.Id == clientId);
-	}
 	public async Task<Client?> GetByUserIdWithDetailsAsync(string userId)
 	{
 		return await _context.Clients
+			.Include(c => c.User)
 			.Include(c => c.Company)
-			.Where(c => c.UserId == userId)
-			.FirstOrDefaultAsync();
+			.Include(c => c.Jobs)
+			.FirstOrDefaultAsync(c => c.UserId == userId);
 	}
 }

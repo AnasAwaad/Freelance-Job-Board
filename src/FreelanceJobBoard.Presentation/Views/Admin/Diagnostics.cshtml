@@ -230,30 +230,40 @@
                                 <li class="list-group-item d-flex align-items-start">
                                     <span class="badge badge-circle badge-light-primary me-3 mt-1">1</span>
                                     <div>
-                                        <strong>Clear Browser Cache:</strong> Clear cookies and browser cache, then try logging in again.
+                                        <strong>Check Database Sync:</strong> 
+                                        <a asp-controller="Admin" asp-action="DatabaseDiagnostics" class="btn btn-sm btn-light-info ms-2">
+                                            ?? Run Database Diagnostics
+                                        </a>
+                                        <br><small class="text-muted">Check if contract tables exist and are properly synchronized</small>
                                     </div>
                                 </li>
                                 <li class="list-group-item d-flex align-items-start">
                                     <span class="badge badge-circle badge-light-primary me-3 mt-1">2</span>
+                                    <div>
+                                        <strong>Clear Browser Cache:</strong> Clear cookies and browser cache, then try logging in again.
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-start">
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">3</span>
                                     <div>
                                         <strong>Check Database:</strong> Ensure the admin user exists in the database with the correct role.
                                         <br><small class="text-muted">Default admin: admin@freelancejobboard.com / Admin@123</small>
                                     </div>
                                 </li>
                                 <li class="list-group-item d-flex align-items-start">
-                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">3</span>
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">4</span>
                                     <div>
                                         <strong>Restart Application:</strong> Restart the web application to reinitialize the database seed.
                                     </div>
                                 </li>
                                 <li class="list-group-item d-flex align-items-start">
-                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">4</span>
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">5</span>
                                     <div>
                                         <strong>Check Connection String:</strong> Verify the database connection string in appsettings.json.
                                     </div>
                                 </li>
                                 <li class="list-group-item d-flex align-items-start">
-                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">5</span>
+                                    <span class="badge badge-circle badge-light-primary me-3 mt-1">6</span>
                                     <div>
                                         <strong>Review Application Logs:</strong> Check the console output for any errors during startup.
                                     </div>
@@ -274,13 +284,32 @@
                         </div>
                         <div class="card-body text-center">
                             <div class="d-flex flex-wrap justify-content-center gap-3">
-                                <a asp-controller="Auth" asp-action="Logout" class="btn btn-light-danger">
-                                    <i class="ki-duotone ki-entrance-left me-2">
+                                <a asp-controller="Admin" asp-action="DatabaseDiagnostics" class="btn btn-light-success">
+                                    <i class="ki-duotone ki-questionnaire-tablet me-2">
                                         <span class="path1"></span>
                                         <span class="path2"></span>
                                     </i>
-                                    Logout & Re-login
+                                    Database Diagnostics
                                 </a>
+                                
+                                <a asp-controller="Admin" asp-action="ViewLogs" class="btn btn-light-info">
+                                    <i class="ki-duotone ki-document me-2">
+                                        <span class="path1"></span>
+                                        <span class="path2"></span>
+                                    </i>
+                                    View Application Logs
+                                </a>
+                                
+                                <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-light-danger">
+                                        <i class="ki-duotone ki-entrance-left me-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Logout & Re-login
+                                    </button>
+                                </form>
                                 
                                 <a asp-controller="Admin" asp-action="Index" class="btn btn-light-primary">
                                     <i class="ki-duotone ki-home me-2">

@@ -1,0 +1,49 @@
+﻿@model IEnumerable<JobListViewModel>
+
+<section class="container">
+    <h2>Recent Jobs</h2>
+    <div class="job-list">
+        @foreach (var job in Model)
+        {
+            <div class="item-click">
+                <article>
+                    <div class="brows-job-list">
+                        <div class="col-md-1 col-sm-2 small-padding">
+                            <div class="job-client-wrapper">
+                                <div class="brows-job-client-img">
+                                    <img src="@job.ClientProfileImage" alt="">
+                                </div>
+                                <p class="text-center mt-2">@job.ClientName</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-sm-5">
+                            <div class="brows-job-position">
+                                <a href="job-apply-detail.html"><h3>@job.Title</h3></a>
+                                <p>@(job.Description.Length > 100 ? $"{job.Description.Substring(100)}...":job.Description)</p>
+                                <p>
+                                    @foreach(var tag in job.Tags)
+                                    {
+                                        <span class="job-type cl-success bg-trans-success">@tag</span>
+									}
+                                    <span class="brows-job-sallery"><i class="fa fa-money"></i>@job.BudgetMin.ToString("C0") - @job.BudgetMax.ToString("C0")</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-3">
+                            <div class="brows-job-location">
+                                <p><i class="far fa-clock"></i>@job.TimeAgo</p>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-2">
+                            <div class="brows-job-link">
+                                <a asp-controller="Jobs" asp-action="PublicJobDetails" asp-route-jobId="@job.Id" class="btn btn-default apply-now-btn">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            
+        }
+    </div>
+</section>
+

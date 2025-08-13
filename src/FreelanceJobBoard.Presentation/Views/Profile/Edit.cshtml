@@ -1,3 +1,5 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.EditProfileViewModel
+
 @{
     ViewData["Title"] = "Edit Profile";
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
@@ -27,6 +29,27 @@
     <div id="kt_app_content" class="app-content flex-column-fluid">
         <div id="kt_app_content_container" class="app-container container-xxl">
             
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul class="mb-0">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
             <div class="card">
                 <div class="card-header border-0 cursor-pointer">
                     <div class="card-title m-0">
@@ -35,22 +58,146 @@
                 </div>
                 
                 <div class="card-body border-top p-9">
-                    <form asp-action="Edit" method="post">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        
+                        <!-- Profile Photo Section -->
                         <div class="row mb-6">
-                            <label class="col-lg-4 col-form-label required fw-semibold fs-6">Full Name</label>
+                            <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.ProfilePhoto)</label>
                             <div class="col-lg-8">
-                                <input type="text" name="fullName" class="form-control form-control-lg form-control-solid" 
-                                       placeholder="Full Name" value="@ViewBag.Name" />
+                                <div class="image-input image-input-outline" data-kt-image-input="true" 
+                                     style="background-image: url('/assets/media/svg/avatars/blank.svg')">
+                                    <div class="image-input-wrapper w-125px h-125px" 
+                                         style="background-image: url('@(Model.CurrentProfileImageUrl ?? "/assets/media/svg/avatars/blank.svg")')"></div>
+                                    <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                           data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
+                                        <i class="bi bi-pencil-fill fs-7"></i>
+                                        <input type="file" name="ProfilePhoto" accept=".png,.jpg,.jpeg" />
+                                        <input type="hidden" name="avatar_remove" />
+                                    </label>
+                                    <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                          data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel avatar">
+                                        <i class="bi bi-x fs-2"></i>
+                                    </span>
+                                    <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                          data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="Remove avatar">
+                                        <i class="bi bi-x fs-2"></i>
+                                    </span>
+                                </div>
+                                <div class="form-text">Allowed file types: png, jpg, jpeg.</div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Information -->
+                        <div class="row mb-6">
+                            <label class="col-lg-4 col-form-label required fw-semibold fs-6">@Html.DisplayNameFor(m => m.FullName)</label>
+                            <div class="col-lg-8">
+                                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control form-control-lg form-control-solid", placeholder = "Full Name" })
+                                @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
                             </div>
                         </div>
                         
                         <div class="row mb-6">
-                            <label class="col-lg-4 col-form-label required fw-semibold fs-6">Email</label>
+                            <label class="col-lg-4 col-form-label required fw-semibold fs-6">@Html.DisplayNameFor(m => m.Email)</label>
                             <div class="col-lg-8">
-                                <input type="email" name="email" class="form-control form-control-lg form-control-solid" 
-                                       placeholder="Email" value="@ViewBag.Email" />
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control form-control-lg form-control-solid", placeholder = "Email", @readonly = "readonly" })
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                                <div class="form-text">Email cannot be changed. Contact support if you need to update your email address.</div>
                             </div>
                         </div>
+
+                        <!-- Freelancer-specific fields -->
+                        @if (Model.Role?.ToLower() == "freelancer")
+                        {
+                            <div class="separator border-gray-200 mb-6"></div>
+                            <div class="row mb-6">
+                                <div class="col-lg-12">
+                                    <h4 class="fw-bold text-dark">Freelancer Information</h4>
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.Bio)</label>
+                                <div class="col-lg-8">
+                                    @Html.TextAreaFor(m => m.Bio, new { @class = "form-control form-control-solid", rows = "3", placeholder = "Professional Bio" })
+                                    @Html.ValidationMessageFor(m => m.Bio, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.Description)</label>
+                                <div class="col-lg-8">
+                                    @Html.TextAreaFor(m => m.Description, new { @class = "form-control form-control-solid", rows = "4", placeholder = "Detailed Description" })
+                                    @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.HourlyRate)</label>
+                                <div class="col-lg-8">
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        @Html.TextBoxFor(m => m.HourlyRate, new { @class = "form-control form-control-solid", placeholder = "0.00", type = "number", step = "0.01", min = "1" })
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.HourlyRate, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.AvailabilityStatus)</label>
+                                <div class="col-lg-8">
+                                    @Html.DropDownListFor(m => m.AvailabilityStatus, new List<SelectListItem>
+                                    {
+                                        new SelectListItem { Text = "Available", Value = "Available" },
+                                        new SelectListItem { Text = "Busy", Value = "Busy" },
+                                        new SelectListItem { Text = "Not Available", Value = "Not Available" }
+                                    }, "Select Availability", new { @class = "form-select form-select-solid" })
+                                    @Html.ValidationMessageFor(m => m.AvailabilityStatus, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Client-specific fields -->
+                        @if (Model.Role?.ToLower() == "client")
+                        {
+                            <div class="separator border-gray-200 mb-6"></div>
+                            <div class="row mb-6">
+                                <div class="col-lg-12">
+                                    <h4 class="fw-bold text-dark">Company Information</h4>
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.CompanyName)</label>
+                                <div class="col-lg-8">
+                                    @Html.TextBoxFor(m => m.CompanyName, new { @class = "form-control form-control-solid", placeholder = "Company Name" })
+                                    @Html.ValidationMessageFor(m => m.CompanyName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.CompanyDescription)</label>
+                                <div class="col-lg-8">
+                                    @Html.TextAreaFor(m => m.CompanyDescription, new { @class = "form-control form-control-solid", rows = "4", placeholder = "Company Description" })
+                                    @Html.ValidationMessageFor(m => m.CompanyDescription, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.CompanyWebsiteUrl)</label>
+                                <div class="col-lg-8">
+                                    @Html.TextBoxFor(m => m.CompanyWebsiteUrl, new { @class = "form-control form-control-solid", placeholder = "https://company.com" })
+                                    @Html.ValidationMessageFor(m => m.CompanyWebsiteUrl, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+
+                            <div class="row mb-6">
+                                <label class="col-lg-4 col-form-label fw-semibold fs-6">@Html.DisplayNameFor(m => m.CompanyIndustry)</label>
+                                <div class="col-lg-8">
+                                    @Html.TextBoxFor(m => m.CompanyIndustry, new { @class = "form-control form-control-solid", placeholder = "Industry" })
+                                    @Html.ValidationMessageFor(m => m.CompanyIndustry, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        }
                         
                         <div class="card-footer d-flex justify-content-end py-6 px-9">
                             <a asp-action="Index" class="btn btn-light btn-active-light-primary me-2">Cancel</a>

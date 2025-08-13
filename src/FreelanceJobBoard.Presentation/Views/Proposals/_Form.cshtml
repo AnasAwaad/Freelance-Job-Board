@@ -1,0 +1,94 @@
+﻿@model CreateProposalViewModel
+@{
+    Layout = "_Layout";
+}
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">
+                    Create Proposal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="ModalForm"
+                  asp-action="Create"
+                  method="post"
+                  class="form"
+                  data-ajax-method="post"
+                  data-ajax="true"
+                  data-ajax-success="onModalFormSuccess"
+                  data-ajax-failure="onModalFormFailure">
+                <div class="modal-body">
+                    
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="BidAmount" class="form-label required">Bid Amount</label>
+                        <input asp-for="BidAmount" class="form-control form-control-solid" placeholder="Enter category name" required />
+                        <span asp-validation-for="BidAmount" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="EstimatedTimelineDays" class="form-label required">Estimated Time line Days</label>
+                        <input asp-for="EstimatedTimelineDays" class="form-control form-control-solid" placeholder="Enter category name" required />
+                        <span asp-validation-for="EstimatedTimelineDays" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CoverLetter" class="form-label">Description</label>
+                        <textarea asp-for="CoverLetter" class="form-control" rows="3" placeholder="Enter category description (optional)"></textarea>
+                        <span asp-validation-for="CoverLetter" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="PortfolioFiles" class="form-label">Portfolio Files</label>
+                        <input asp-for="PortfolioFiles" class="form-control" type="file" multiple />
+                        <span asp-validation-for="PortfolioFiles" class="text-danger"></span>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        Create Proposal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Show modal
+        $('#categoryModal').modal('show');
+
+        // Handle form submission
+        $('#categoryModal form').on('submit', function(e) {
+            e.preventDefault();
+
+            const form = $(this);
+            const formData = form.serialize();
+            const url = form.attr('action');
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.includes('_CategoryRow')) {
+                        // If it's a partial view of the row, refresh the page
+                        location.reload();
+                    } else {
+                        // If there are validation errors, update the modal content
+                        $('#categoryModal .modal-content').html($(response).html());
+                    }
+                },
+                error: function(xhr) {
+                    alert('An error occurred. Please try again.');
+                    console.error('Form submission error:', xhr);
+                }
+            });
+        });
+    });
+</script>

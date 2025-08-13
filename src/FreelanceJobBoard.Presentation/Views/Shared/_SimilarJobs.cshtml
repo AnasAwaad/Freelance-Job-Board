@@ -1,0 +1,47 @@
+﻿@model IEnumerable<JobListViewModel>
+<div class="container-detail-box">
+
+	<div class="row">
+		<div class="col-md-12">
+			<h4>Similar Jobs</h4>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="grid-slide-2">
+
+			@foreach (var job in Model)
+			{
+				<div class="freelance-box">
+					<div class="popular-jobs-container">
+						<div class="popular-jobs-box">
+							<span class="popular-jobs-status bg-primary">@job.Status</span>
+							<h4 class="flc-rate">@job.BudgetMin.ToString("C0") - @job.BudgetMax.ToString("C0")</h4>
+							<div class="popular-jobs-box">
+								<div class="popular-jobs-box-detail">
+									<h4>@job.Title</h4>
+									<span class="desination">@job.ClientName</span>
+								</div>
+							</div>
+							<div class="popular-jobs-box-extra">
+								<ul>
+									@foreach (var skill in job.Skills)
+									{
+										<li>@skill.Name</li>
+									}
+									@* <li class="more-skill bg-primary">+3</li> *@
+								</ul>
+								<p>@job.Description</p>
+							</div>
+						</div>
+						<a asp-controller="Jobs" asp-action="PublicJobDetails" asp-route-jobId="@job.Id" class="btn btn-popular-jobs  bt-1">View Detail</a>
+					</div>
+				</div>
+			}
+			
+
+
+		</div>
+	</div>
+
+</div>

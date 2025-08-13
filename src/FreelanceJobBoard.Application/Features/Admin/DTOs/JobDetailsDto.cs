@@ -10,7 +10,8 @@ public class JobDetailsDto
 	public decimal BudgetMax { get; set; }
 	public string Status { get; set; }
 	public DateTime Deadline { get; set; }
+	public DateTime CreatedOn { get; set; }
 	public ClientDto Client { get; set; }
 	public List<ProposalDto> Proposals { get; set; }
-	public ReviewDto? Review { get; set; }
+	public List<ReviewDto> Reviews { get; set; } = new();
 }

@@ -1,0 +1,209 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.SubmitProposalViewModel
+@{
+    ViewData["Title"] = "Submit Proposal";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">Submit Proposal</h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Jobs" asp-action="Index" class="text-muted text-hover-primary">Jobs</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Submit Proposal</li>
+                </ul>
+            </div>
+            <div class="d-flex align-items-center gap-2 gap-lg-3">
+                <a asp-controller="Jobs" asp-action="Details" asp-route-id="@Model.JobId" class="btn btn-sm fw-bold btn-secondary">
+                    <i class="ki-duotone ki-arrow-left fs-4"></i>
+                    Back to Job
+                </a>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            <div class="row">
+                <!-- Job Information -->
+                <div class="col-xl-4">
+                    <div class="card mb-5 mb-xl-8">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Job Details</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-5">
+                                <h4 class="fs-6 fw-bold text-gray-900 mb-2">@Model.JobTitle</h4>
+                                <p class="text-gray-600 fs-7 mb-0">@Model.JobDescription</p>
+                            </div>
+
+                            <div class="separator my-5"></div>
+
+                            <div class="d-flex flex-stack mb-3">
+                                <span class="text-gray-700 fw-semibold fs-6">Budget:</span>
+                                <span class="text-dark fw-bold fs-6">$@Model.BudgetMin.ToString("N0") - $@Model.BudgetMax.ToString("N0")</span>
+                            </div>
+
+                            <div class="d-flex flex-stack mb-3">
+                                <span class="text-gray-700 fw-semibold fs-6">Deadline:</span>
+                                <span class="text-dark fw-bold fs-6">@Model.Deadline.ToString("MMM dd, yyyy")</span>
+                            </div>
+
+                            @{
+                                var daysRemaining = (Model.Deadline - DateTime.Now).Days;
+                                var timeClass = daysRemaining < 7 ? "text-danger" : daysRemaining < 14 ? "text-warning" : "text-success";
+                            }
+
+                            <div class="d-flex flex-stack">
+                                <span class="text-gray-700 fw-semibold fs-6">Days Remaining:</span>
+                                <span class="fw-bold fs-6 @timeClass">
+                                    @(daysRemaining > 0 ? $"{daysRemaining} days" : "Expired")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proposal Form -->
+                <div class="col-xl-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <h3 class="fw-bold text-dark">Your Proposal</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="Submit" method="post" enctype="multipart/form-data">
+                                <input type="hidden" asp-for="JobId" />
+                                <input type="hidden" asp-for="JobTitle" />
+                                <input type="hidden" asp-for="JobDescription" />
+                                <input type="hidden" asp-for="BudgetMin" />
+                                <input type="hidden" asp-for="BudgetMax" />
+                                <input type="hidden" asp-for="Deadline" />
+
+                                <!-- Cover Letter -->
+                                <div class="mb-8">
+                                    <label asp-for="CoverLetter" class="form-label fw-bold fs-6">Cover Letter *</label>
+                                    <textarea asp-for="CoverLetter" class="form-control form-control-solid" rows="6" 
+                                              placeholder="Explain why you're the perfect fit for this job. Include relevant experience and how you plan to approach the project..."></textarea>
+                                    <span asp-validation-for="CoverLetter" class="text-danger"></span>
+                                    <div class="form-text">Tell the client why you're the right person for this job.</div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- Bid Amount -->
+                                    <div class="col-md-6">
+                                        <div class="mb-8">
+                                            <label asp-for="BidAmount" class="form-label fw-bold fs-6">Your Bid Amount ($) *</label>
+                                            <input asp-for="BidAmount" type="number" step="0.01" min="1" class="form-control form-control-solid" 
+                                                   placeholder="Enter your bid amount" />
+                                            <span asp-validation-for="BidAmount" class="text-danger"></span>
+                                            <div class="form-text">Client's budget: $@Model.BudgetMin.ToString("N0") - $@Model.BudgetMax.ToString("N0")</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Timeline -->
+                                    <div class="col-md-6">
+                                        <div class="mb-8">
+                                            <label asp-for="EstimatedTimelineDays" class="form-label fw-bold fs-6">Timeline (Days) *</label>
+                                            <input asp-for="EstimatedTimelineDays" type="number" min="1" max="365" class="form-control form-control-solid" 
+                                                   placeholder="Enter estimated days" />
+                                            <span asp-validation-for="EstimatedTimelineDays" class="text-danger"></span>
+                                            <div class="form-text">How many days will you need to complete this project?</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Portfolio Files -->
+                                <div class="mb-8">
+                                    <label asp-for="PortfolioFiles" class="form-label fw-bold fs-6">Portfolio Files (Optional)</label>
+                                    <input asp-for="PortfolioFiles" type="file" class="form-control form-control-solid" multiple 
+                                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" />
+                                    <span asp-validation-for="PortfolioFiles" class="text-danger"></span>
+                                    <div class="form-text">Upload relevant portfolio items (PDF, DOC, JPG, PNG - Max 5MB each)</div>
+                                </div>
+
+                                <!-- Proposal Tips -->
+                                <div class="alert alert-info">
+                                    <h4 class="alert-heading">
+                                        <i class="ki-duotone ki-information-5 fs-2">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                            <span class="path3"></span>
+                                        </i>
+                                        Tips for a winning proposal:
+                                    </h4>
+                                    <ul class="mb-0">
+                                        <li>Address the client's specific requirements</li>
+                                        <li>Highlight relevant experience and skills</li>
+                                        <li>Provide a realistic timeline and budget</li>
+                                        <li>Include examples of similar work</li>
+                                        <li>Ask clarifying questions if needed</li>
+                                    </ul>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a asp-controller="Jobs" asp-action="Details" asp-route-id="@Model.JobId" class="btn btn-light">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="ki-duotone ki-paper-plane fs-4 me-1">
+                                            <span class="path1"></span>
+                                            <span class="path2"></span>
+                                        </i>
+                                        Submit Proposal
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Content-->
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Auto-resize textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.querySelector('textarea[name="CoverLetter"]');
+            if (textarea) {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            }
+
+            // File upload validation
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    const files = this.files;
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    
+                    for (let file of files) {
+                        if (file.size > maxSize) {
+                            alert(`File "${file.name}" is too large. Maximum size is 5MB.`);
+                            this.value = '';
+                            break;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

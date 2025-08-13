@@ -1,0 +1,266 @@
+@model FreelanceJobBoard.Presentation.Models.ViewModels.UserReviewsViewModel
+@{
+    ViewData["Title"] = $"{Model.UserName}'s Reviews";
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+}
+
+<div class="d-flex flex-column flex-column-fluid">
+    <!--begin::Toolbar-->
+    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+        <div id="kt_app_toolbar_container" class="app-container container-xxl d-flex flex-stack">
+            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">
+                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">
+                    @(Model.IsCurrentUser ? "My Reviews" : $"{Model.UserName}'s Reviews")
+                </h1>
+                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
+                    <li class="breadcrumb-item text-muted">
+                        <a asp-controller="Home" asp-action="Index" class="text-muted text-hover-primary">Home</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                    </li>
+                    <li class="breadcrumb-item text-muted">Reviews</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--end::Toolbar-->
+
+    <!--begin::Content-->
+    <div id="kt_app_content" class="app-content flex-column-fluid">
+        <div id="kt_app_content_container" class="app-container container-xxl">
+            
+            <!-- Reviews Summary -->
+            <div class="row mb-8">
+                <div class="col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column justify-content-center text-center">
+                            <div class="mb-5">
+                                <div class="display-4 fw-bold text-primary mb-2">@Model.AverageRating.ToString("F1")</div>
+                                <div class="rating mb-3">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <div class="rating-label">
+                                            <i class="ki-duotone ki-star fs-1 @(i <= Math.Round(Model.AverageRating) ? "text-warning" : "text-gray-300")">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="text-gray-600 fs-6">Average Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column justify-content-center text-center">
+                            <div class="mb-5">
+                                <div class="display-4 fw-bold text-success mb-2">@Model.TotalReviews</div>
+                                <div class="text-gray-600 fs-6">Total Reviews</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column justify-content-center text-center">
+                            <div class="mb-5">
+                                <div class="symbol symbol-100px mx-auto mb-3">
+                                    <span class="symbol-label bg-light-primary text-primary fs-1 fw-bold">
+                                        @Model.UserName.Substring(0, Math.Min(2, Model.UserName.Length)).ToUpper()
+                                    </span>
+                                </div>
+                                <div class="text-gray-800 fw-bold fs-5">@Model.UserName</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Reviews.Any())
+            {
+                <!-- Reviews List -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h3 class="fw-bold text-dark">
+                                <i class="ki-duotone ki-star fs-2 text-warning me-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Recent Reviews
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var review in Model.Reviews)
+                        {
+                            <div class="d-flex align-items-start mb-8 @(review != Model.Reviews.Last() ? "border-bottom pb-8" : "")">
+                                <!-- Reviewer Info -->
+                                <div class="symbol symbol-50px me-5">
+                                    <span class="symbol-label bg-light-info text-info fs-6 fw-bold">
+                                        @review.ReviewerName.Substring(0, Math.Min(2, review.ReviewerName.Length)).ToUpper()
+                                    </span>
+                                </div>
+                                
+                                <!-- Review Content -->
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <div class="text-gray-800 fw-bold fs-6 mb-1">@review.ReviewerName</div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="rating me-3">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        <div class="rating-label">
+                                                            <i class="ki-duotone ki-star fs-5 @(i <= review.Rating ? "text-warning" : "text-gray-300")">
+                                                                <span class="path1"></span>
+                                                                <span class="path2"></span>
+                                                            </i>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <span class="text-gray-600 fs-7">@review.Rating/5 stars</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            @if (review.ReviewType == "ClientToFreelancer")
+                                            {
+                                                <span class="badge badge-light-info mb-2">Client Review</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-light-success mb-2">Freelancer Review</span>
+                                            }
+                                            <div class="text-gray-500 fs-7">
+                                                @review.CreatedAt.ToString("MMM dd, yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-gray-700 fs-6 mb-3">
+                                        "@review.Comment"
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="text-gray-500 fs-7">
+                                            <i class="ki-duotone ki-briefcase fs-6 me-1">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                            </i>
+                                            Job #@review.JobId
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            @if (review.IsVisible)
+                                            {
+                                                <span class="badge badge-light-success me-2">
+                                                    <i class="ki-duotone ki-eye fs-7 me-1">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                        <span class="path3"></span>
+                                                    </i>
+                                                    Public
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-light-warning me-2">
+                                                    <i class="ki-duotone ki-eye-slash fs-7 me-1">
+                                                        <span class="path1"></span>
+                                                        <span class="path2"></span>
+                                                        <span class="path3"></span>
+                                                        <span class="path4"></span>
+                                                    </i>
+                                                    Private
+                                                </span>
+                                            }
+                                            @if (Model.IsCurrentUser)
+                                            {
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-light btn-icon" data-bs-toggle="dropdown">
+                                                        <i class="ki-duotone ki-dots-vertical fs-5">
+                                                            <span class="path1"></span>
+                                                            <span class="path2"></span>
+                                                            <span class="path3"></span>
+                                                        </i>
+                                                    </button>
+                                                    <div class="dropdown-menu">
+                                                        <form asp-action="ToggleVisibility" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="reviewId" value="@review.Id" />
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="ki-duotone ki-@(review.IsVisible ? "eye-slash" : "eye") fs-6 me-2">
+                                                                    <span class="path1"></span>
+                                                                    <span class="path2"></span>
+                                                                    @if (review.IsVisible)
+                                                                    {
+                                                                        <span class="path3"></span>
+                                                                        <span class="path4"></span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="path3"></span>
+                                                                    }
+                                                                </i>
+                                                                @(review.IsVisible ? "Make Private" : "Make Public")
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- No Reviews State -->
+                <div class="card">
+                    <div class="card-body text-center py-15">
+                        <i class="ki-duotone ki-star fs-6x text-gray-400 mb-7">
+                            <span class="path1"></span>
+                            <span class="path2"></span>
+                        </i>
+                        <h2 class="fs-2 fw-bold text-gray-800 mb-4">No Reviews Yet</h2>
+                        <p class="fs-4 fw-semibold text-gray-600 mb-7">
+                            @if (Model.IsCurrentUser)
+                            {
+                                <span>You haven't received any reviews yet. Complete some jobs to start building your reputation!</span>
+                            }
+                            else
+                            {
+                                <span>@Model.UserName hasn't received any reviews yet.</span>
+                            }
+                        </p>
+                        @if (Model.IsCurrentUser)
+                        {
+                            <a asp-controller="Jobs" asp-action="Index" class="btn btn-primary">
+                                <i class="ki-duotone ki-briefcase fs-2">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                                Browse Jobs
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-label i.text-warning {
+        color: #ffc107 !important;
+    }
+    
+    .rating-label i.text-gray-300 {
+        color: #e4e6ef !important;
+    }
+</style>

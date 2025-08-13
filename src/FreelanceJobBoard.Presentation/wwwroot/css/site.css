@@ -20,3 +20,57 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Additional custom styles for better UX */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Ensure proper spacing for rating components */
+.rating-input {
+  min-height: 60px;
+}
+
+.rating-input-modal {
+  min-height: 70px;
+}
+
+/* Quick rating container styling */
+.rating-quick {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.rating-quick:hover {
+  background-color: #e9ecef;
+}
+
+/* Loading states */
+.rating-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Success highlight animation */
+@keyframes successHighlight {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(40, 167, 69, 0.1); }
+  100% { background-color: transparent; }
+}
+
+.rating-success {
+  animation: successHighlight 1s ease;
+}
+
+/* Error highlight animation */
+@keyframes errorHighlight {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(220, 53, 69, 0.1); }
+  100% { background-color: transparent; }
+}
+
+.rating-error {
+  animation: errorHighlight 1s ease;
+}
