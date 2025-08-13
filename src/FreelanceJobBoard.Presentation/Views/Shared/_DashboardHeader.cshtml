@@ -126,7 +126,7 @@
 										}
 										<span class="badge @badgeClass fw-bold fs-8 px-2 py-1 ms-2">@(userRole ?? "User")</span>
 									</div>
-									<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">@(User.FindFirst(ClaimTypes.Email)?.Value ?? "user@example.com")</a>
+									<a href="#" class="fw-semibold text-muted text-hover-primary fs-7">@(User.FindFirst(ClaimTypes.Email)?.Value ?? "")</a>
 								</div>
 								<!--end::Username-->
 							</div>

@@ -16,10 +16,10 @@
                     </a>
                     <span><i class="fa fa-map-marker"></i>@Model.Client.Company.Industry</span>
                 </div>
-
                 <div class="apply-job-detail">
                     <p>@Model.Description</p>
                 </div>
+                
 
                 <div class="apply-job-detail">
                     <h5>Skills</h5>
@@ -35,6 +35,7 @@
                     <h5>Project Card</h5>
                     <ul class="job-requirements">
                         <li><span>Project status</span> @Model.Status</li>
+                        <li><span>Posted</span> @Model.TimeAgo</li>
                         <li><span>Last Updated on</span> @Model.LastUpdatedOn</li>
                         <li><span>Delivery time</span> @Model.Deadline.ToString("dd MMM yyyy")</li>
                     </ul>
@@ -54,7 +55,7 @@
 				<div class="sidebar-box">
 					<span class="sidebar-status bg-primary">@Model.Status</span>
 
-					<h4 class="flc-rate">@Model.BudgetMin.ToString("C0") - @Model.BudgetMax.ToString("C0")</h4>
+                    <h4 class="fa-solid fa-dollar-sign">@Model.BudgetMin - @Model.BudgetMax</h4>
 					<div class="sidebar-inner-box">
 						<div class="sidebar-box-thumb">
 							<img src="@Model.Client.ProfileImageUrl" class="img-responsive" alt="" />
@@ -66,8 +67,6 @@
 					<div class="sidebar-box-extra">
 						<ul class="status-detail">
 							<li class="br-1"><strong>@Model.Client.Company.Name</strong>Company</li>
-							<li class="br-1"><strong>748</strong>View</li>
-							<li><strong>03</strong>Post</li>
 						</ul>
 					</div>
 				</div>

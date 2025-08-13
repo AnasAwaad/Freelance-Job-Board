@@ -196,6 +196,7 @@ public class JobsController : Controller
 			AvailableCategories = await _categoryService.GetAllCategoriesAsync() ?? new List<CategoryViewModel>(),
 			AvailableSkills = await _skillService.GetAllSkillsAsync(isActive: true) ?? new List<SkillViewModel>(),
 			Deadline = DateTime.Now.AddDays(30) // Default to 30 days from now
+
 		};
 
 		return View(viewModel);

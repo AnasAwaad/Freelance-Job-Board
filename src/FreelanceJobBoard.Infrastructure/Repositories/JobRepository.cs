@@ -294,6 +294,7 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 			.Include(j => j.Client)
 				.ThenInclude(c => c.User)
 			.Where(j => j.IsActive && j.Status == JobStatus.Open && (j.Title.Contains(query) || j.Description.Contains(query)))
+			.OrderByDescending(j => j.CreatedOn)
 			.Select(j => new JobSearchDto
 			{
 				ClientName = j.Client.User.FullName,
@@ -302,7 +303,8 @@ internal class JobRepository : GenericRepository<Job>, IJobRepository
 				Id = j.Id,
 				Title = j.Title,
 				Description = j.Description,
-				Deadline = j.Deadline.ToString("yyyy-MM-dd")
+				Deadline = j.Deadline.ToString("yyyy-MM-dd"),
+				CreatedOn = j.CreatedOn
 			})
 			.Take(limit)
 			.ToListAsync();

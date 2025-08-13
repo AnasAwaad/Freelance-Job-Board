@@ -16,6 +16,7 @@ public class JobDto
 	public int ViewsCount { get; set; }
 	public bool IsApproved { get; set; }
 	public int? ApprovedBy { get; set; }
+	public DateTime CreatedOn { get; set; }
 	public ICollection<CategoryDto> Categories { get; set; } = new List<CategoryDto>();
 	public ICollection<SkillDto> Skills { get; set; } = new List<SkillDto>();
 }

@@ -33,7 +33,7 @@ public static class DefaultUsers
 
 		var freelancer = new Freelancer
 		{
-			Bio = "test",
+			Bio = "Experienced freelancer ready to take on projects",
 			User = new ApplicationUser
 			{
 				FullName = "Freelancer",

@@ -17,6 +17,7 @@ public class JobsProfile : Profile
 		//CreateMap<Skill, SkillDto>();
 
 		CreateMap<Job, JobDto>()
+			.ForMember(dest => dest.CreatedOn, opt => opt.MapFrom(src => src.CreatedOn))
 			.ForMember(dest => dest.Categories, opt =>
 			opt.MapFrom(src => src.Categories.Select(c => new CategoryDto
 			{
@@ -33,6 +34,7 @@ public class JobsProfile : Profile
 
 
 		CreateMap<Job, JobDetailsDto>()
+			.ForMember(dest => dest.CreatedOn, opt => opt.MapFrom(src => src.CreatedOn))
 			.ForPath(dest => dest.Client.FullName,
 			opt => opt.MapFrom(src => src.Client.User.FullName));
 
@@ -41,12 +43,14 @@ public class JobsProfile : Profile
 		CreateMap<Review, ReviewDto>();
 
 		CreateMap<Job, RecentJobDto>()
+			.ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedOn))
 			.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Split(new[] { ',' }).ToList()))
 			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.User.FullName))
 			.ForMember(dest => dest.ClientProfileImage, opt => opt.MapFrom(src => src.Client.User.ProfileImageUrl));
 
 
 		CreateMap<Job, PublicJobDetailsDto>()
+			.ForMember(dest => dest.CreatedOn, opt => opt.MapFrom(src => src.CreatedOn))
 			.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Split(new[] { ',' }).ToList()))
 			.ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.Skills.Select(s => new SkillDto
 			{
@@ -55,6 +59,7 @@ public class JobsProfile : Profile
 			})));
 
 		CreateMap<Job, PublicJobListDto>()
+			.ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedOn))
 			.ForMember(dest => dest.ClientName, opt => opt.MapFrom(src => src.Client.User.FullName))
 			.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Split(new[] { ',' }).ToList()))
 			.ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.Skills.Select(s => new SkillDto

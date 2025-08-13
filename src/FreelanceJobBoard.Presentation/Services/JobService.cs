@@ -567,6 +567,7 @@ public class JobService
 			ViewsCount = dto.ViewsCount,
 			IsApproved = dto.IsApproved,
 			ApprovedBy = dto.ApprovedBy,
+			CreatedOn = dto.CreatedOn,
 			Categories = dto.Categories?.Select(c => new CategoryViewModel
 			{
 				Id = c.Id,
@@ -579,7 +580,7 @@ public class JobService
 				Id = s.Id,
 				Name = s.Name,
 				IsActive = true,
-				CreatedOn = DateTime.Now
+				CreatedOn = dto.CreatedOn
 			}).ToList() ?? new List<SkillViewModel>()
 		};
 	}
@@ -664,6 +665,7 @@ public class ApiJobDto
 	public int ViewsCount { get; set; }
 	public bool IsApproved { get; set; }
 	public int? ApprovedBy { get; set; }
+	public DateTime CreatedOn { get; set; }
 	public ICollection<ApiCategoryDto>? Categories { get; set; }
 	public ICollection<ApiSkillDto>? Skills { get; set; }
 }

@@ -12,7 +12,7 @@ public class PublicJobDetailsDto
 	public string Status { get; set; }
 	public string? Tags { get; set; }
 	public PublicClientDto Client { get; set; }
+	public DateTime CreatedOn { get; set; }
 	public DateTime? LastUpdatedOn { get; set; }
 	public IEnumerable<SkillDto> Skills { get; set; }
-
 }

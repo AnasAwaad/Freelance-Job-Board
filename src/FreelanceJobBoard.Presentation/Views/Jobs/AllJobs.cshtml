@@ -138,6 +138,7 @@
                                                     <a href="@Url.Action("JobDetails", "Jobs", new { id = job.Id })" class="boxed-btn3">View Details</a>
                                                 </div>
                                                 <div class="date">
+                                                    <p>Posted @job.TimeAgo</p>
                                                     <p>Deadline: @job.Deadline.ToString("MMM dd, yyyy")</p>
                                                 </div>
                                             </div>

@@ -18,14 +18,14 @@
                         </div>
                         <div class="col-md-6 col-sm-5">
                             <div class="brows-job-position">
-                                <a href="job-apply-detail.html"><h3>@job.Title</h3></a>
+                                <a asp-controller="Jobs" asp-action="PublicJobDetails" asp-route-jobId="@job.Id"><h3>@job.Title</h3></a>
                                 <p>@(job.Description.Length > 100 ? $"{job.Description.Substring(100)}...":job.Description)</p>
                                 <p>
                                     @foreach(var tag in job.Tags)
                                     {
                                         <span class="job-type cl-success bg-trans-success">@tag</span>
 									}
-                                    <span class="brows-job-sallery"><i class="fa fa-money"></i>@job.BudgetMin.ToString("C0") - @job.BudgetMax.ToString("C0")</span>
+                                    <span class="brows-job-sallery"><i class="fa-solid fa-dollar-sign"></i>@job.BudgetMin - @job.BudgetMax</span>
                                 </p>
                             </div>
                         </div>
