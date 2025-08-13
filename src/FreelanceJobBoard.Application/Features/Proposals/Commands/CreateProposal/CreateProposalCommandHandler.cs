@@ -51,7 +51,17 @@ public class CreateProposalCommandHandler(IUnitOfWork unitOfWork, IMapper mapper
 			throw new InvalidOperationException("This job is no longer accepting proposals");
 		}
 
+		// Check if job already has an accepted proposal
 		var jobProposals = await unitOfWork.Proposals.GetProposalsByJobIdAsync(request.JobId);
+		var hasAcceptedProposal = jobProposals.Any(p => p.Status == ProposalStatus.Accepted);
+		
+		if (hasAcceptedProposal)
+		{
+			logger.LogWarning("❌ Job already has accepted proposal | JobId={JobId}, FreelancerId={FreelancerId}", 
+				request.JobId, freelancer.Id);
+			throw new InvalidOperationException("This job has already been assigned to another freelancer");
+		}
+
 		var hasExistingProposal = jobProposals.Any(p => p.FreelancerId == freelancer.Id);
 		
 		if (hasExistingProposal)

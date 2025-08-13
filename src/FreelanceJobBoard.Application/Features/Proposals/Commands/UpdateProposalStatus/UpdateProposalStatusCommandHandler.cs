@@ -118,10 +118,18 @@ public class UpdateProposalStatusCommandHandler(IUnitOfWork unitOfWork, ICurrent
             unitOfWork.Jobs.Update(job);
         }
 
-        // Save all changes
-        await unitOfWork.SaveChangesAsync();
-        
-        logger.LogInformation("Successfully saved all proposal status changes for job {JobId}", proposal.JobId);
+        // Save all changes in a transaction
+        try
+        {
+            logger.LogDebug("?? Starting database save operation for proposal {ProposalId}", proposal.Id);
+            await unitOfWork.SaveChangesAsync();
+            logger.LogInformation("? Successfully saved all proposal status changes for job {JobId}", proposal.JobId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "? Failed to save proposal status changes for job {JobId}", proposal.JobId);
+            throw new InvalidOperationException("Failed to save proposal status changes. Please try again.", ex);
+        }
 
         // Send notifications
         try

@@ -16,19 +16,22 @@ public class JobsController : Controller
 	private readonly SkillService _skillService;
 	private readonly ProposalService _proposalService;
 	private readonly IUnitOfWork _unitOfWork;
+	private readonly ILogger<JobsController> _logger; // Add logger
 
 	public JobsController(
 		JobService jobService,
 		CategoryService categoryService,
 		SkillService skillService,
 		ProposalService proposalService,
-		IUnitOfWork unitOfWork)
+		IUnitOfWork unitOfWork,
+		ILogger<JobsController> logger) // Inject logger
 	{
 		_jobService = jobService;
 		_categoryService = categoryService;
 		_skillService = skillService;
 		_proposalService = proposalService;
 		_unitOfWork = unitOfWork;
+		_logger = logger;
 	}
 
 
@@ -96,96 +99,111 @@ public class JobsController : Controller
 			return RedirectToAction(nameof(Index));
 		}
 
-		var job = await _jobService.GetJobByIdAsync(id);
-
-		if (job == null)
-		{
-			TempData["Error"] = "The requested job could not be found. It may have been removed or you may not have permission to view it.";
-			return RedirectToAction(nameof(Index));
-		}
-
-		// Set ownership information for role-based rendering
-		ViewBag.IsOwner = false;
-		ViewBag.HasFreelancerApplied = false;
-		ViewBag.HasAcceptedProposal = false;
-		ViewBag.IsAssignedFreelancer = false;
-		ViewBag.CanReview = false;
-		ViewBag.HasReviewed = false;
-		ViewBag.ReviewType = string.Empty;
-
-		var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-		if (User.IsInRole(AppRoles.Client))
-		{
-			// Check if current user owns this job by comparing user ID with job's client ID
-			try
-			{
-				var myJobs = await _jobService.GetMyJobsAsync();
-				ViewBag.IsOwner = myJobs?.Any(j => j.Id == id) ?? false;
-
-				// Check review capability for client
-				if (ViewBag.IsOwner && job.Status == "Completed" && !string.IsNullOrEmpty(currentUserId))
-				{
-					var canReview = await _unitOfWork.Reviews.CanUserReviewJobAsync(id, currentUserId);
-					var hasReviewed = await _unitOfWork.Reviews.HasUserReviewedJobAsync(id, currentUserId);
-
-					ViewBag.CanReview = canReview && !hasReviewed;
-					ViewBag.HasReviewed = hasReviewed;
-					ViewBag.ReviewType = ReviewType.ClientToFreelancer;
-				}
-			}
-			catch
-			{
-				ViewBag.IsOwner = false;
-			}
-		}
-		else if (User.IsInRole(AppRoles.Freelancer))
-		{
-			// Check if freelancer has already applied to this job
-			try
-			{
-				ViewBag.HasFreelancerApplied = await _proposalService.HasFreelancerAppliedAsync(id);
-
-				// Check if freelancer is assigned to this job
-				if (!string.IsNullOrEmpty(currentUserId))
-				{
-					var freelancer = await _unitOfWork.Freelancers.GetByUserIdAsync(currentUserId);
-					if (freelancer != null)
-					{
-						var jobWithDetails = await _unitOfWork.Jobs.GetJobWithDetailsAsync(id);
-						ViewBag.IsAssignedFreelancer = jobWithDetails?.Proposals?.Any(p =>
-							p.FreelancerId == freelancer.Id && p.Status == FreelanceJobBoard.Domain.Constants.ProposalStatus.Accepted) ?? false;
-					}
-				}
-
-				// Check review capability for freelancer
-				if (job.Status == "Completed" && !string.IsNullOrEmpty(currentUserId))
-				{
-					var canReview = await _unitOfWork.Reviews.CanUserReviewJobAsync(id, currentUserId);
-					var hasReviewed = await _unitOfWork.Reviews.HasUserReviewedJobAsync(id, currentUserId);
-
-					ViewBag.CanReview = canReview && !hasReviewed;
-					ViewBag.HasReviewed = hasReviewed;
-					ViewBag.ReviewType = ReviewType.FreelancerToClient;
-				}
-			}
-			catch
-			{
-				ViewBag.HasFreelancerApplied = false;
-			}
-		}
-
-		// Check if job has an accepted proposal (for all users)
 		try
 		{
-			ViewBag.HasAcceptedProposal = await _proposalService.HasJobAcceptedProposalAsync(id);
-		}
-		catch
-		{
-			ViewBag.HasAcceptedProposal = false;
-		}
+			var job = await _jobService.GetJobByIdAsync(id);
 
-		return View(job);
+			if (job == null)
+			{
+				_logger.LogWarning("Job not found in service layer | JobId={JobId}", id);
+				TempData["Error"] = "The requested job could not be found. It may have been removed or you may not have permission to view it.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			// Set ownership information for role-based rendering
+			ViewBag.IsOwner = false;
+			ViewBag.HasFreelancerApplied = false;
+			ViewBag.HasAcceptedProposal = false;
+			ViewBag.IsAssignedFreelancer = false;
+			ViewBag.CanReview = false;
+			ViewBag.HasReviewed = false;
+			ViewBag.ReviewType = string.Empty;
+
+			var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+			if (User.IsInRole(AppRoles.Client))
+			{
+				// Check if current user owns this job by comparing user ID with job's client ID
+				try
+				{
+					var myJobs = await _jobService.GetMyJobsAsync();
+					ViewBag.IsOwner = myJobs?.Any(j => j.Id == id) ?? false;
+
+					// Check review capability for client
+					if (ViewBag.IsOwner && job.Status == "Completed" && !string.IsNullOrEmpty(currentUserId))
+					{
+						var canReview = await _unitOfWork.Reviews.CanUserReviewJobAsync(id, currentUserId);
+						var hasReviewed = await _unitOfWork.Reviews.HasUserReviewedJobAsync(id, currentUserId);
+
+						ViewBag.CanReview = canReview && !hasReviewed;
+						ViewBag.HasReviewed = hasReviewed;
+						ViewBag.ReviewType = ReviewType.ClientToFreelancer;
+					}
+				}
+				catch (Exception ex)
+				{
+					_logger.LogWarning(ex, "Error checking job ownership for client | JobId={JobId}, UserId={UserId}", id, currentUserId);
+					ViewBag.IsOwner = false;
+				}
+			}
+			else if (User.IsInRole(AppRoles.Freelancer))
+			{
+				// Check if freelancer has already applied to this job
+				try
+				{
+					ViewBag.HasFreelancerApplied = await _proposalService.HasFreelancerAppliedAsync(id);
+
+					// Check if freelancer is assigned to this job
+					if (!string.IsNullOrEmpty(currentUserId))
+					{
+						var freelancer = await _unitOfWork.Freelancers.GetByUserIdAsync(currentUserId);
+						if (freelancer != null)
+						{
+							var jobWithDetails = await _unitOfWork.Jobs.GetJobWithDetailsAsync(id);
+							ViewBag.IsAssignedFreelancer = jobWithDetails?.Proposals?.Any(p =>
+								p.FreelancerId == freelancer.Id && p.Status == FreelanceJobBoard.Domain.Constants.ProposalStatus.Accepted) ?? false;
+						}
+					}
+
+					// Check review capability for freelancer
+					if (job.Status == "Completed" && !string.IsNullOrEmpty(currentUserId))
+					{
+						var canReview = await _unitOfWork.Reviews.CanUserReviewJobAsync(id, currentUserId);
+						var hasReviewed = await _unitOfWork.Reviews.HasUserReviewedJobAsync(id, currentUserId);
+
+						ViewBag.CanReview = canReview && !hasReviewed;
+						ViewBag.HasReviewed = hasReviewed;
+						ViewBag.ReviewType = ReviewType.FreelancerToClient;
+					}
+				}
+				catch (Exception ex)
+				{
+					_logger.LogWarning(ex, "Error checking freelancer job status | JobId={JobId}, UserId={UserId}", id, currentUserId);
+					ViewBag.HasFreelancerApplied = false;
+				}
+			}
+
+			// Check if job has an accepted proposal (for all users)
+			try
+			{
+				ViewBag.HasAcceptedProposal = await _proposalService.HasJobAcceptedProposalAsync(id);
+				_logger.LogDebug("Job acceptance status | JobId={JobId}, HasAcceptedProposal={HasAcceptedProposal}, JobStatus={JobStatus}", 
+					id, (bool)ViewBag.HasAcceptedProposal, job.Status);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Error checking job acceptance status | JobId={JobId}", id);
+				ViewBag.HasAcceptedProposal = false;
+			}
+
+			return View(job);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Unexpected error loading job details | JobId={JobId}", id);
+			TempData["Error"] = "An error occurred while loading the job details. Please try again.";
+			return RedirectToAction(nameof(Index));
+		}
 	}
 
 	[Authorize(Roles = AppRoles.Client)] // Only clients can create jobs

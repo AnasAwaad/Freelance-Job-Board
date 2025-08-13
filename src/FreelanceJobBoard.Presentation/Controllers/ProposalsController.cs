@@ -216,7 +216,10 @@ public class ProposalsController : Controller
 						}
 					}
 
-					await Task.Delay(500); // Small delay to ensure all changes are processed
+					// Increased delay to ensure all changes are processed and database is consistent
+					await Task.Delay(1000); // Increased from 500ms to 1000ms
+					
+					_logger.LogInformation("? Proposal {ProposalId} accepted successfully, job status should now be InProgress", proposalId);
 				}
 			}
 			else
