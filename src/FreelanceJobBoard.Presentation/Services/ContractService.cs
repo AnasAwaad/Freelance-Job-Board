@@ -559,7 +559,43 @@ public class ContractService
 			SetAuthorizationHeader();
 			LogRequestHeaders("PROPOSE_CONTRACT_CHANGES");
 
-			var response = await _httpClient.PostAsJsonAsync($"Contracts/{contractId}/changes", model);
+			// Create form data for the request
+			using var content = new MultipartFormDataContent();
+			
+			// Add basic contract data
+			content.Add(new StringContent(model.Title), "Title");
+			content.Add(new StringContent(model.Description), "Description");
+			content.Add(new StringContent(model.PaymentAmount.ToString()), "PaymentAmount");
+			content.Add(new StringContent(model.PaymentType), "PaymentType");
+			content.Add(new StringContent(model.ChangeReason), "ChangeReason");
+			
+			if (model.ProjectDeadline.HasValue)
+				content.Add(new StringContent(model.ProjectDeadline.Value.ToString("yyyy-MM-ddTHH:mm:ss")), "ProjectDeadline");
+			
+			if (!string.IsNullOrEmpty(model.Deliverables))
+				content.Add(new StringContent(model.Deliverables), "Deliverables");
+			
+			if (!string.IsNullOrEmpty(model.TermsAndConditions))
+				content.Add(new StringContent(model.TermsAndConditions), "TermsAndConditions");
+			
+			if (!string.IsNullOrEmpty(model.AdditionalNotes))
+				content.Add(new StringContent(model.AdditionalNotes), "AdditionalNotes");
+
+			// Add attachment files if any
+			if (model.AttachmentFiles?.Any() == true)
+			{
+				foreach (var file in model.AttachmentFiles)
+				{
+					if (file.Length > 0)
+					{
+						var fileContent = new StreamContent(file.OpenReadStream());
+						fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+						content.Add(fileContent, "AttachmentFiles", file.FileName);
+					}
+				}
+			}
+
+			var response = await _httpClient.PostAsync($"Contracts/{contractId}/propose-changes", content);
 
 			if (response.IsSuccessStatusCode)
 			{
@@ -592,7 +628,7 @@ public class ContractService
 		}
 	}
 
-	public async Task<object?> GetPendingChangeRequestsAsync()
+	public async Task<Application.Features.Contracts.Queries.GetPendingChangeRequests.GetPendingChangeRequestsResult?> GetPendingChangeRequestsAsync()
 	{
 		var stopwatch = Stopwatch.StartNew();
 		var userId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
@@ -608,7 +644,7 @@ public class ContractService
 
 			if (response.IsSuccessStatusCode)
 			{
-				var result = await response.Content.ReadFromJsonAsync<object>();
+				var result = await response.Content.ReadFromJsonAsync<Application.Features.Contracts.Queries.GetPendingChangeRequests.GetPendingChangeRequestsResult>();
 				stopwatch.Stop();
 				_logger.LogInformation("? Pending change requests fetched successfully! User={UserId}, Duration={ElapsedMs}ms",
 					userId, stopwatch.ElapsedMilliseconds);
