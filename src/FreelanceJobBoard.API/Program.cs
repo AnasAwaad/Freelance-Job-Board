@@ -1,4 +1,3 @@
-using FreelanceJobBoard.API.Hubs;
 using FreelanceJobBoard.API.Middlewares;
 using FreelanceJobBoard.Application.Extensions;
 using FreelanceJobBoard.Application.Interfaces;
@@ -179,7 +178,6 @@ namespace FreelanceJobBoard.API
 				app.MapControllers();
 				app.UseCors("Default");
 
-				app.MapHub<NotificationHub>("/notifyHub");
 
 				Log.Information("FreelanceJobBoard API started successfully");
 				app.Run();

@@ -1,5 +1,6 @@
 ﻿using FreelanceJobBoard.Application.Interfaces;
 using FreelanceJobBoard.Application.Interfaces.Repositories;
+using FreelanceJobBoard.Domain.Entities;
 using FreelanceJobBoard.Infrastructure.Data;
 using Microsoft.Extensions.Logging;
 
@@ -23,24 +24,24 @@ internal class UnitOfWork : IUnitOfWork
 	public IContractChangeRequestRepository ContractChangeRequests { get; }
 	public IAttachmentRepository Attachments { get; }
 
-    public UnitOfWork(ApplicationDbContext context, ILoggerFactory? loggerFactory = null)
+	public UnitOfWork(ApplicationDbContext context, ILoggerFactory? loggerFactory = null)
 	{
 		_context = context;
-		Categories = new CategoryRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Category>>());
-		Skills = new SkillRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Skill>>());
-		Jobs = new JobRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Job>>());
-		JobCategories = new JobCategoryRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.JobCategory>>());
-		JobSkills = new JobSkillRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.JobSkill>>());
-		Proposals = new ProposalRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Proposal>>());
-		Clients = new ClientRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Client>>());
-		Freelancers = new FreelancerRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Freelancer>>());
-		FreelancerSkills = new FreelancerSkillRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.FreelancerSkill>>());
-		Notifications = new NotificationRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Notification>>());
-		Reviews = new ReviewRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Review>>());
-		Contracts = new ContractRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Contract>>());
-		ContractVersions = new ContractVersionRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.ContractVersion>>());
-		ContractChangeRequests = new ContractChangeRequestRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.ContractChangeRequest>>());
-		Attachments = new AttachmentRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelanceJobBoard.Domain.Entities.Attachment>>());
+		Categories = new CategoryRepository(context, loggerFactory?.CreateLogger<GenericRepository<Category>>());
+		Skills = new SkillRepository(context, loggerFactory?.CreateLogger<GenericRepository<Skill>>());
+		Jobs = new JobRepository(context, loggerFactory?.CreateLogger<GenericRepository<Job>>());
+		JobCategories = new JobCategoryRepository(context, loggerFactory?.CreateLogger<GenericRepository<JobCategory>>());
+		JobSkills = new JobSkillRepository(context, loggerFactory?.CreateLogger<GenericRepository<JobSkill>>());
+		Proposals = new ProposalRepository(context, loggerFactory?.CreateLogger<GenericRepository<Proposal>>());
+		Clients = new ClientRepository(context, loggerFactory?.CreateLogger<GenericRepository<Client>>());
+		Freelancers = new FreelancerRepository(context, loggerFactory?.CreateLogger<GenericRepository<Freelancer>>());
+		FreelancerSkills = new FreelancerSkillRepository(context, loggerFactory?.CreateLogger<GenericRepository<FreelancerSkill>>());
+		Notifications = new NotificationRepository(context, loggerFactory?.CreateLogger<GenericRepository<Notification>>());
+		Reviews = new ReviewRepository(context, loggerFactory?.CreateLogger<GenericRepository<Review>>());
+		Contracts = new ContractRepository(context, loggerFactory?.CreateLogger<GenericRepository<Contract>>());
+		ContractVersions = new ContractVersionRepository(context, loggerFactory?.CreateLogger<GenericRepository<ContractVersion>>());
+		ContractChangeRequests = new ContractChangeRequestRepository(context, loggerFactory?.CreateLogger<GenericRepository<ContractChangeRequest>>());
+		Attachments = new AttachmentRepository(context, loggerFactory?.CreateLogger<GenericRepository<Attachment>>());
 	}
 
 	public void Dispose()
