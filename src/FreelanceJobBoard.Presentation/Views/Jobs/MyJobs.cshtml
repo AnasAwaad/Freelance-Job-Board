@@ -106,10 +106,7 @@
                                     <th class="min-w-125px">Budget</th>
                                     <th class="min-w-125px">Status</th>
                                     <th class="min-w-125px">Deadline</th>
-                                    @if (isClient)
-                                    {
-                                        <th class="min-w-125px">Views</th>
-                                    }
+                             
                                     <th class="text-end min-w-100px">Actions</th>
                                 </tr>
                             </thead>
@@ -140,12 +137,7 @@
                                         <td>
                                             <span class="text-dark fw-bold">@job.Deadline.ToString("MMM dd, yyyy")</span>
                                         </td>
-                                        @if (isClient)
-                                        {
-                                            <td>
-                                                <span class="text-muted">@job.ViewsCount</span>
-                                            </td>
-                                        }
+                                     
                                         <td class="text-end">
                                             <a href="#" class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                                 Actions

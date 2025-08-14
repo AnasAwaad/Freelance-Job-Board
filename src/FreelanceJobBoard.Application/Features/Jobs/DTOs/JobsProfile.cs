@@ -55,8 +55,11 @@ public class JobsProfile : Profile
 
 		CreateMap<Job, JobDetailsDto>()
 			.ForMember(dest => dest.CreatedOn, opt => opt.MapFrom(src => src.CreatedOn))
-			.ForPath(dest => dest.Client.FullName,
-			opt => opt.MapFrom(src => src.Client.User.FullName));
+			.ForPath(dest => dest.Client.Id, opt => opt.MapFrom(src => src.Client.Id))
+			.ForPath(dest => dest.Client.FullName, opt => opt.MapFrom(src => src.Client.User.FullName))
+			.ForPath(dest => dest.Client.AverageRating, opt => opt.MapFrom(src => src.Client.AverageRating))
+			.ForPath(dest => dest.Client.TotalReviews, opt => opt.MapFrom(src => src.Client.TotalReviews))
+			.ForPath(dest => dest.Client.ProfileImageUrl, opt => opt.MapFrom(src => src.Client.User.ProfileImageUrl));
 
 
 
