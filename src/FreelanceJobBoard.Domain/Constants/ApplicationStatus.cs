@@ -13,10 +13,53 @@ public static class JobStatus
 public static class ProposalStatus
 {
 	public const string Submitted = "Submitted";
-	public const string UnderReview = "Under Review";
+	public const string UnderReview = "UnderReview";
 	public const string Accepted = "Accepted";
 	public const string Rejected = "Rejected";
 	public const string Pending = "Pending";
+	public const string Withdrawn = "Withdrawn";
+	public const string Expired = "Expired";
+
+	public static readonly string[] AllStatuses = 
+	{
+		Submitted,
+		Pending,
+		UnderReview,
+		Accepted,
+		Rejected,
+		Withdrawn,
+		Expired
+	};
+
+	public static readonly string[] ActiveStatuses = 
+	{
+		Submitted,
+		Pending,
+		UnderReview
+	};
+
+	public static readonly string[] CompletedStatuses = 
+	{
+		Accepted,
+		Rejected,
+		Withdrawn,
+		Expired
+	};
+
+	public static bool IsValidStatus(string status)
+	{
+		return AllStatuses.Contains(status);
+	}
+
+	public static bool IsActiveStatus(string status)
+	{
+		return ActiveStatuses.Contains(status);
+	}
+
+	public static bool IsCompletedStatus(string status)
+	{
+		return CompletedStatuses.Contains(status);
+	}
 }
 
 public static class ContractStatus

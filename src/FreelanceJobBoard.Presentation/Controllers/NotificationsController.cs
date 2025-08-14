@@ -12,13 +12,16 @@ namespace FreelanceJobBoard.Presentation.Controllers;
 public class NotificationsController : Controller
 {
     private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
     private readonly ILogger<NotificationsController> _logger;
 
     public NotificationsController(
         INotificationService notificationService,
+        IEmailService emailService,
         ILogger<NotificationsController> logger)
     {
         _notificationService = notificationService;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -47,6 +50,69 @@ public class NotificationsController : Controller
             _logger.LogError(ex, "Error loading notifications page");
             TempData["Error"] = "Failed to load notifications. Please try again.";
             return RedirectToAction("Index", "Home");
+        }
+    }
+
+    // Test email functionality
+    [HttpPost]
+    public async Task<IActionResult> TestEmail()
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userEmail))
+            {
+                TempData["Error"] = "User information not found";
+                return RedirectToAction("Index");
+            }
+
+            _logger.LogWarning("?? [EMAIL-TEST] Starting email test for user {UserId} - {Email}", userId, userEmail);
+
+            // Test 1: Direct email service
+            try
+            {
+                await _emailService.SendEmailAsync(
+                    userEmail, 
+                    "Email Test - Direct Service", 
+                    "<h2>Direct Email Test</h2><p>This is a test email sent directly via EmailService.</p>", 
+                    true
+                );
+                _logger.LogWarning("?? [EMAIL-TEST] Direct email service test completed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "?? [EMAIL-TEST-ERROR] Direct email service test failed");
+            }
+
+            // Test 2: Via notification service
+            try
+            {
+                await _notificationService.CreateInteractionNotificationAsync(
+                    userId, 
+                    null, 
+                    "welcome", 
+                    "Email Test - Via Notification Service", 
+                    "This is a test notification that should trigger an email.",
+                    null, null, null, null, 
+                    new { testType = "email_test", timestamp = DateTime.UtcNow }
+                );
+                _logger.LogWarning("?? [EMAIL-TEST] Notification service test completed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "?? [EMAIL-TEST-ERROR] Notification service test failed");
+            }
+
+            TempData["Success"] = "Email tests initiated! Check your email and the logs for results.";
+            return RedirectToAction("Index");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "?? [EMAIL-TEST-ERROR] Email test failed");
+            TempData["Error"] = "Email test failed. Check the logs for details.";
+            return RedirectToAction("Index");
         }
     }
 

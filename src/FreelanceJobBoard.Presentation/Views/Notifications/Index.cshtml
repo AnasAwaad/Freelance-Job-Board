@@ -33,6 +33,20 @@
                         Unread (@unreadCount)
                     </a>
                 </div>
+                <div class="btn-group me-2">
+                    <!-- Email Test Button -->
+                    <form asp-action="TestEmail" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-warning" title="Test email functionality">
+                            <i class="ki-duotone ki-message-text fs-2">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                            Test Email
+                        </button>
+                    </form>
+                </div>
                 <div class="btn-group">
                     @if (unreadCount > 0)
                     {
@@ -68,6 +82,31 @@
         </div>
     </div>
 
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+            <i class="ki-duotone ki-check-circle fs-2 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+            <i class="ki-duotone ki-cross-circle fs-2 me-2">
+                <span class="path1"></span>
+                <span class="path2"></span>
+            </i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="card-body p-0">
         @if (Model.Any())
         {
@@ -95,6 +134,18 @@
                                     {
                                         <span class="badge badge-light-success">Read</span>
                                     }
+                                    
+                                    @* Show email status *@
+                                    @if (notification.IsEmailSent)
+                                    {
+                                        <span class="badge badge-light-info ms-1" title="Email sent">
+                                            <i class="ki-duotone ki-message-text fs-6">
+                                                <span class="path1"></span>
+                                                <span class="path2"></span>
+                                                <span class="path3"></span>
+                                            </i>
+                                        </span>
+                                    }
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -109,6 +160,7 @@
                                         </div>
                                         <div>
                                             <span class="text-dark fw-bold text-hover-primary fs-6">@notification.Title</span>
+                                            <div class="text-muted fs-7">Type: @notification.Type</div>
                                         </div>
                                     </div>
                                 </td>
