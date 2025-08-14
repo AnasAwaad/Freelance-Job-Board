@@ -561,23 +561,23 @@ public class ContractService
 
 			// Create form data for the request
 			using var content = new MultipartFormDataContent();
-			
+
 			// Add basic contract data
 			content.Add(new StringContent(model.Title), "Title");
 			content.Add(new StringContent(model.Description), "Description");
 			content.Add(new StringContent(model.PaymentAmount.ToString()), "PaymentAmount");
 			content.Add(new StringContent(model.PaymentType), "PaymentType");
 			content.Add(new StringContent(model.ChangeReason), "ChangeReason");
-			
+
 			if (model.ProjectDeadline.HasValue)
 				content.Add(new StringContent(model.ProjectDeadline.Value.ToString("yyyy-MM-ddTHH:mm:ss")), "ProjectDeadline");
-			
+
 			if (!string.IsNullOrEmpty(model.Deliverables))
 				content.Add(new StringContent(model.Deliverables), "Deliverables");
-			
+
 			if (!string.IsNullOrEmpty(model.TermsAndConditions))
 				content.Add(new StringContent(model.TermsAndConditions), "TermsAndConditions");
-			
+
 			if (!string.IsNullOrEmpty(model.AdditionalNotes))
 				content.Add(new StringContent(model.AdditionalNotes), "AdditionalNotes");
 

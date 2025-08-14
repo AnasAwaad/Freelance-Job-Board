@@ -2,6 +2,7 @@
 public class ProposalWithDetailsDto
 {
 	public int Id { get; set; }
+	public int JobId { get; set; }
 	public string? JobTitle { get; set; }
 	public string? JobDescription { get; set; }
 	public DateTime JobDeadline { get; set; }

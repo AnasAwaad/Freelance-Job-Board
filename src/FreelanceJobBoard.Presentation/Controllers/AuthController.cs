@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using System.Text.Json;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace FreelanceJobBoard.Presentation.Controllers;
 
@@ -29,9 +28,7 @@ public class AuthController : Controller
 	{
 		// If user is already authenticated, redirect to dashboard
 		if (User.Identity?.IsAuthenticated == true)
-		{
-			return RedirectToDashboard();
-		}
+			return RedirectToDashboard(User.FindFirst(ClaimTypes.Role)?.Value);
 		return View();
 	}
 
@@ -51,7 +48,7 @@ public class AuthController : Controller
 				if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
 					return Redirect(returnUrl);
 
-				return RedirectToDashboard();
+				return RedirectToDashboard(result.Role);
 			}
 		}
 
@@ -64,7 +61,7 @@ public class AuthController : Controller
 		// If user is already authenticated, redirect to dashboard
 		if (User.Identity?.IsAuthenticated == true)
 		{
-			return RedirectToDashboard();
+			return RedirectToDashboard(User.FindFirst(ClaimTypes.Role)?.Value);
 		}
 		return View();
 	}
@@ -90,7 +87,7 @@ public class AuthController : Controller
 	public IActionResult ForgotPassword()
 	{
 		if (User.Identity?.IsAuthenticated == true)
-			return RedirectToDashboard();
+			return RedirectToDashboard(User.FindFirst(ClaimTypes.Role)?.Value);
 		return View();
 	}
 
@@ -275,14 +272,13 @@ public class AuthController : Controller
 		}
 	}
 
-	private IActionResult RedirectToDashboard()
+	private IActionResult RedirectToDashboard(string role)
 	{
-		var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-		return userRole switch
+		return role switch
 		{
 			AppRoles.Admin => RedirectToAction("Index", "Admin"),
-			AppRoles.Client => RedirectToAction("Index", "Home"),
-			AppRoles.Freelancer => RedirectToAction("Index", "Home"),
+			AppRoles.Client => RedirectToAction("MyJobs", "Jobs"),
+			AppRoles.Freelancer => RedirectToAction("MyJobs", "Jobs"),
 			_ => RedirectToAction("Index", "Home")
 		};
 	}
