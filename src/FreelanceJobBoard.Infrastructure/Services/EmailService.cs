@@ -31,14 +31,26 @@ public class EmailService : IEmailService
 		{
 			if (_emailSettings.LogEmailsWhenDisabled)
 			{
-				_logger.LogInformation("Email sending disabled. Would send email - To: {Recipients}, Subject: {Subject}",
+				_logger.LogWarning("?? [EMAIL-DISABLED] Email sending disabled. Would send email - To: {Recipients}, Subject: {Subject}",
 					string.Join(", ", toEmails), subject);
 			}
 			return;
 		}
 
+		_logger.LogWarning("?? [EMAIL-SEND] Starting email send - To: {Recipients}, Subject: {Subject}", 
+			string.Join(", ", toEmails), subject);
+
 		// Validate email settings
-		ValidateEmailSettings();
+		try
+		{
+			ValidateEmailSettings();
+			_logger.LogWarning("?? [EMAIL-SEND] Email settings validation passed");
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "?? [EMAIL-SEND] Email settings validation failed");
+			throw;
+		}
 
 		var retryCount = 0;
 		var maxRetries = Math.Max(1, _emailSettings.MaxRetryAttempts);
@@ -47,22 +59,23 @@ public class EmailService : IEmailService
 		{
 			try
 			{
+				_logger.LogWarning("?? [EMAIL-SEND] Attempt {Attempt} of {MaxRetries}", retryCount + 1, maxRetries);
 				await SendEmailInternalAsync(toEmails, subject, body, isHtml);
-				_logger.LogInformation("Email sent successfully to {Recipients} on attempt {Attempt}", 
+				_logger.LogWarning("?? [EMAIL-SUCCESS] Email sent successfully to {Recipients} on attempt {Attempt}", 
 					string.Join(", ", toEmails), retryCount + 1);
 				return;
 			}
 			catch (Exception ex) when (retryCount < maxRetries - 1)
 			{
 				retryCount++;
-				_logger.LogWarning(ex, "Failed to send email to {Recipients} on attempt {Attempt}. Retrying in {Delay}ms...",
+				_logger.LogWarning(ex, "?? [EMAIL-RETRY] Failed to send email to {Recipients} on attempt {Attempt}. Retrying in {Delay}ms...",
 					string.Join(", ", toEmails), retryCount, _emailSettings.RetryDelayMilliseconds);
 				
 				await Task.Delay(_emailSettings.RetryDelayMilliseconds);
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Failed to send email to {Recipients} after {MaxRetries} attempts. Subject: {Subject}",
+				_logger.LogError(ex, "?? [EMAIL-ERROR] Failed to send email to {Recipients} after {MaxRetries} attempts. Subject: {Subject}",
 					string.Join(", ", toEmails), maxRetries, subject);
 				throw;
 			}
@@ -71,16 +84,23 @@ public class EmailService : IEmailService
 
 	private async Task SendEmailInternalAsync(IEnumerable<string> toEmails, string subject, string body, bool isHtml)
 	{
+		_logger.LogWarning("?? [EMAIL-INTERNAL] Creating SMTP client and message");
+		
 		using var client = CreateSmtpClient();
 		using var message = CreateMailMessage(toEmails, subject, body, isHtml);
 
 		if (message.To.Count == 0)
 		{
-			_logger.LogWarning("No valid email addresses provided");
+			_logger.LogWarning("?? [EMAIL-INTERNAL] No valid email addresses provided");
 			return;
 		}
 
+		_logger.LogWarning("?? [EMAIL-INTERNAL] About to send email via SMTP - Recipients: {Count}, SMTP: {Server}:{Port}", 
+			message.To.Count, _emailSettings.SmtpServer, _emailSettings.SmtpPort);
+
 		await client.SendMailAsync(message);
+		
+		_logger.LogWarning("?? [EMAIL-INTERNAL] SMTP SendMailAsync completed successfully");
 	}
 
 	private MailMessage CreateMailMessage(IEnumerable<string> toEmails, string subject, string body, bool isHtml)
@@ -149,14 +169,21 @@ public class EmailService : IEmailService
 	{
 		try
 		{
+			_logger.LogWarning("?? [PROPOSAL-NOTIFICATION] Starting SendNewProposalNotificationAsync - Email: {Email}, Job: {Job}, Freelancer: {Freelancer}, Amount: {Amount}", 
+				clientEmail, jobTitle, freelancerName, bidAmount);
+			
 			var subject = $"New proposal received for: {jobTitle}";
 			var body = GenerateNewProposalEmail(jobTitle, freelancerName, bidAmount);
 
+			_logger.LogWarning("?? [PROPOSAL-NOTIFICATION] Generated email content - Subject: {Subject}", subject);
+
 			await SendEmailAsync(clientEmail, subject, body, true);
+			
+			_logger.LogWarning("?? [PROPOSAL-NOTIFICATION] SendEmailAsync completed successfully");
 		}
 		catch (Exception ex)
 		{
-			_logger.LogError(ex, "Failed to send new proposal notification to {Email}", clientEmail);
+			_logger.LogError(ex, "?? [PROPOSAL-NOTIFICATION-ERROR] Failed to send new proposal notification to {Email}", clientEmail);
 			throw;
 		}
 	}
