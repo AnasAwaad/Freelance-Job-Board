@@ -73,6 +73,9 @@ Here are some screenshots of the application:
 ![Client Notifications](screen%20shots/client-notifications.png)
 ![Freelancer Notifications](screen%20shots/freelancer-notification.png)
 
+
+See more in [📂 Screenshots](./screen%20shots)
+
 ## 🚀 Getting Started  
 
 ### Prerequisites  
