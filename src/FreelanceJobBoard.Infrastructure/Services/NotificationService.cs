@@ -47,7 +47,7 @@ public class NotificationService : INotificationService
         try
         {
             // Debug logging
-            _logger.LogWarning("?? [DEBUG] Creating notification - RecipientId: {RecipientId}, SenderUserId: {SenderId}, Type: {Type}, Title: {Title}", 
+            _logger.LogWarning("🔔 [DEBUG] Creating notification - RecipientId: {RecipientId}, SenderUserId: {SenderId}, Type: {Type}, Title: {Title}", 
                 recipientUserId, senderUserId ?? "System", type, title);
 
             var notification = new Notification
@@ -67,15 +67,16 @@ public class NotificationService : INotificationService
                 IsRead = false,
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow,
-                Data = additionalData != null ? JsonSerializer.Serialize(additionalData) : null
+                Data = additionalData != null ? JsonSerializer.Serialize(additionalData) : null,
+                IsEmailSent = false // Initialize as not sent
             };
 
-            _logger.LogWarning("?? [DEBUG] About to save notification to database...");
+            _logger.LogWarning("🔔 [DEBUG] About to save notification to database...");
             
             await _unitOfWork.Notifications.CreateAsync(notification);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogWarning("?? [DEBUG] Notification saved! NotificationId: {NotificationId}", notification.Id);
+            _logger.LogWarning("🔔 [DEBUG] Notification saved! NotificationId: {NotificationId}", notification.Id);
 
             // Send real-time notification
             await SendRealTimeNotificationAsync(recipientUserId, title, message, new { 
@@ -90,12 +91,17 @@ public class NotificationService : INotificationService
                 data = additionalData
             });
 
+            // Send email notification automatically for all notification types
+            _logger.LogWarning("📧 [EMAIL-DEBUG] About to call SendEmailNotificationAsync - Type: {Type}, RecipientId: {RecipientId}", type, recipientUserId);
+            await SendEmailNotificationAsync(notification, recipientUserId, type, title, message, 
+                jobId, proposalId, contractId, reviewId, additionalData);
+
             _logger.LogInformation("Interaction notification created: {Type} from {SenderId} to {RecipientId}", 
                 type, senderUserId ?? "System", recipientUserId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "? [CRITICAL] Failed to create interaction notification for user {UserId} - Type: {Type}, Title: {Title}", 
+            _logger.LogError(ex, "🔥 [CRITICAL] Failed to create interaction notification for user {UserId} - Type: {Type}, Title: {Title}", 
                 recipientUserId, type, title);
             
             // Rethrow to ensure the calling code knows about the failure
@@ -103,7 +109,559 @@ public class NotificationService : INotificationService
         }
     }
 
-    // Enhanced method to create notifications with templates
+    /// <summary>
+    /// Sends email notification based on notification type and context
+    /// </summary>
+    private async Task SendEmailNotificationAsync(Notification notification, string recipientUserId, string type, 
+        string title, string message, int? jobId = null, int? proposalId = null, int? contractId = null, 
+        int? reviewId = null, object? additionalData = null)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [EMAIL-DEBUG] SendEmailNotificationAsync started - Type: {Type}, RecipientId: {RecipientId}", type, recipientUserId);
+
+            // Get recipient user details
+            var recipientUser = await _userManager.FindByIdAsync(recipientUserId);
+            if (recipientUser?.Email == null)
+            {
+                _logger.LogWarning("📧 [EMAIL-DEBUG] Cannot send email notification - recipient user {UserId} not found or has no email", recipientUserId);
+                return;
+            }
+
+            _logger.LogWarning("📧 [EMAIL-DEBUG] Recipient user found - Email: {Email}, Name: {Name}", recipientUser.Email, recipientUser.FullName);
+
+            // Don't send emails for certain low-priority notification types
+            var skipEmailTypes = new[] { "profile_updated", "system_update", "general_reminder" };
+            if (skipEmailTypes.Contains(type))
+            {
+                _logger.LogInformation("📧 [EMAIL-DEBUG] Skipping email for notification type: {Type}", type);
+                return;
+            }
+
+            _logger.LogWarning("📧 [EMAIL-DEBUG] Notification type {Type} eligible for email - proceeding with email handler", type);
+
+            // Generate email content based on notification type
+            switch (type)
+            {
+                case "proposal_received":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling proposal_received email");
+                    await HandleProposalReceivedEmail(recipientUser.Email, jobId, proposalId, additionalData);
+                    break;
+
+                case "proposal_accepted":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling proposal_accepted email");
+                    await HandleProposalStatusEmail(recipientUser.Email, jobId, "accepted", null);
+                    break;
+
+                case "proposal_rejected":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling proposal_rejected email");
+                    var feedback = ExtractFeedbackFromData(additionalData);
+                    await HandleProposalStatusEmail(recipientUser.Email, jobId, "rejected", feedback);
+                    break;
+
+                case "job_approved":
+                case "job_approved_by_admin":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling job_approved email");
+                    await HandleJobApprovalEmail(recipientUser.Email, jobId, true, null);
+                    break;
+
+                case "job_rejected":
+                case "job_rejected_by_admin":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling job_rejected email");
+                    var adminMessage = ExtractAdminMessageFromData(additionalData);
+                    await HandleJobApprovalEmail(recipientUser.Email, jobId, false, adminMessage);
+                    break;
+
+                case "job_pending_admin_approval":
+                case "job_submitted_for_approval":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling job submission email");
+                    await HandleJobSubmissionEmail(recipientUser.Email, jobId);
+                    break;
+
+                case "contract_created":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling contract_created email");
+                    await HandleContractCreatedEmail(recipientUser.Email, contractId, title, message);
+                    break;
+
+                case "contract_status_change":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling contract_status_change email");
+                    await HandleContractStatusEmail(recipientUser.Email, contractId, additionalData);
+                    break;
+
+                case "review_received":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling review_received email");
+                    await HandleReviewReceivedEmail(recipientUser.Email, reviewId, additionalData);
+                    break;
+
+                case "payment_received":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling payment_received email");
+                    await HandlePaymentNotificationEmail(recipientUser.Email, additionalData, "received");
+                    break;
+
+                case "payment_requested":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling payment_requested email");
+                    await HandlePaymentNotificationEmail(recipientUser.Email, additionalData, "requested");
+                    break;
+
+                case "deadline_approaching":
+                case "deadline_passed":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling deadline reminder email");
+                    await HandleDeadlineReminderEmail(recipientUser.Email, type, additionalData);
+                    break;
+
+                case "welcome":
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling welcome email");
+                    await HandleWelcomeEmail(recipientUser.Email, recipientUser.FullName ?? "User");
+                    break;
+
+                default:
+                    // For other notification types, send a generic email
+                    _logger.LogWarning("📧 [EMAIL-DEBUG] Handling default/generic email for type: {Type}", type);
+                    await HandleGenericNotificationEmail(recipientUser.Email, title, message, type);
+                    break;
+            }
+
+            // Mark email as sent
+            await MarkEmailAsSent(notification.Id);
+            
+            _logger.LogWarning("📧 [EMAIL-SUCCESS] Email notification sent successfully for type: {Type} to {Email}", type, recipientUser.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [EMAIL-ERROR] Failed to send email notification for type: {Type} to user: {UserId}", type, recipientUserId);
+            // Don't rethrow here to avoid breaking the notification creation process
+        }
+    }
+
+    #region Email Handler Methods
+
+    private async Task HandleProposalReceivedEmail(string clientEmail, int? jobId, int? proposalId, object? additionalData)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [PROPOSAL-EMAIL] Starting HandleProposalReceivedEmail - JobId: {JobId}, ProposalId: {ProposalId}", jobId, proposalId);
+            
+            if (jobId.HasValue && proposalId.HasValue)
+            {
+                var job = await _unitOfWork.Jobs.GetJobWithDetailsAsync(jobId.Value);
+                var proposal = await _unitOfWork.Proposals.GetProposalWithDetailsAsync(proposalId.Value);
+                
+                _logger.LogWarning("📧 [PROPOSAL-EMAIL] Retrieved data - Job: {JobExists}, Proposal: {ProposalExists}", 
+                    job != null, proposal != null);
+                
+                if (job != null && proposal != null)
+                {
+                    var freelancerName = proposal.Freelancer?.User?.FullName ?? "A freelancer";
+                    _logger.LogWarning("📧 [PROPOSAL-EMAIL] About to send email to {Email} - Job: {JobTitle}, Freelancer: {Freelancer}, Amount: {Amount}", 
+                        clientEmail, job.Title, freelancerName, proposal.BidAmount);
+                    
+                    await _emailService.SendNewProposalNotificationAsync(
+                        clientEmail, 
+                        job.Title ?? "Your Job", 
+                        freelancerName, 
+                        proposal.BidAmount
+                    );
+                    
+                    _logger.LogWarning("📧 [PROPOSAL-EMAIL] Email sent successfully!");
+                }
+                else
+                {
+                    _logger.LogWarning("📧 [PROPOSAL-EMAIL] Missing data - Job: {JobExists}, Proposal: {ProposalExists}", 
+                        job != null, proposal != null);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("📧 [PROPOSAL-EMAIL] Missing IDs - JobId: {JobId}, ProposalId: {ProposalId}", jobId, proposalId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [PROPOSAL-EMAIL-ERROR] Failed to send proposal received email to {Email}", clientEmail);
+            throw; // Let it bubble up to see the exact error
+        }
+    }
+
+    private async Task HandleProposalStatusEmail(string freelancerEmail, int? jobId, string status, string? feedback)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [STATUS-EMAIL] HandleProposalStatusEmail - JobId: {JobId}, Status: {Status}", jobId, status);
+            
+            if (jobId.HasValue)
+            {
+                var job = await _unitOfWork.Jobs.GetJobWithDetailsAsync(jobId.Value);
+                if (job != null)
+                {
+                    _logger.LogWarning("📧 [STATUS-EMAIL] Sending status email to {Email} - Job: {JobTitle}, Status: {Status}", 
+                        freelancerEmail, job.Title, status);
+                    
+                    await _emailService.SendJobUpdateNotificationAsync(
+                        freelancerEmail, 
+                        job.Title ?? "Job", 
+                        $"Proposal {status}", 
+                        feedback
+                    );
+                    
+                    _logger.LogWarning("📧 [STATUS-EMAIL] Status email sent successfully!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [STATUS-EMAIL-ERROR] Failed to send proposal status email to {Email}", freelancerEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleJobApprovalEmail(string clientEmail, int? jobId, bool isApproved, string? adminMessage)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [APPROVAL-EMAIL] HandleJobApprovalEmail - JobId: {JobId}, Approved: {IsApproved}", jobId, isApproved);
+            
+            if (jobId.HasValue)
+            {
+                var job = await _unitOfWork.Jobs.GetJobWithDetailsAsync(jobId.Value);
+                if (job != null)
+                {
+                    _logger.LogWarning("📧 [APPROVAL-EMAIL] Sending approval email to {Email} - Job: {JobTitle}, Approved: {IsApproved}", 
+                        clientEmail, job.Title, isApproved);
+                    
+                    await _emailService.SendJobApprovalNotificationAsync(
+                        clientEmail, 
+                        job.Title ?? "Your Job", 
+                        isApproved, 
+                        adminMessage
+                    );
+                    
+                    _logger.LogWarning("📧 [APPROVAL-EMAIL] Approval email sent successfully!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [APPROVAL-EMAIL-ERROR] Failed to send job approval email to {Email}", clientEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleJobSubmissionEmail(string adminEmail, int? jobId)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [SUBMISSION-EMAIL] HandleJobSubmissionEmail - JobId: {JobId}", jobId);
+            
+            if (jobId.HasValue)
+            {
+                var job = await _unitOfWork.Jobs.GetJobWithDetailsAsync(jobId.Value);
+                if (job != null)
+                {
+                    var clientName = job.Client?.User?.FullName ?? "Unknown Client";
+                    _logger.LogWarning("📧 [SUBMISSION-EMAIL] Sending submission email to {Email} - Job: {JobTitle}, Client: {Client}", 
+                        adminEmail, job.Title, clientName);
+                    
+                    await _emailService.SendJobSubmissionNotificationAsync(
+                        adminEmail, 
+                        job.Title ?? "New Job", 
+                        clientName, 
+                        job.BudgetMin, 
+                        job.BudgetMax
+                    );
+                    
+                    _logger.LogWarning("📧 [SUBMISSION-EMAIL] Submission email sent successfully!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [SUBMISSION-EMAIL-ERROR] Failed to send job submission email to {Email}", adminEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleContractCreatedEmail(string userEmail, int? contractId, string title, string message)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [CONTRACT-EMAIL] HandleContractCreatedEmail - ContractId: {ContractId}", contractId);
+            
+            if (contractId.HasValue)
+            {
+                var contract = await _unitOfWork.Contracts.GetContractWithDetailsAsync(contractId.Value);
+                if (contract != null)
+                {
+                    var jobTitle = contract.Proposal?.Job?.Title ?? "Project";
+                    var clientName = contract.Client?.User?.FullName ?? "Client";
+                    var freelancerName = contract.Freelancer?.User?.FullName ?? "Freelancer";
+                    
+                    // Determine counterparty name based on recipient
+                    var counterpartyName = userEmail == contract.Client?.User?.Email ? freelancerName : clientName;
+                    
+                    _logger.LogWarning("📧 [CONTRACT-EMAIL] Sending contract email to {Email} - Job: {JobTitle}, Counterparty: {Counterparty}", 
+                        userEmail, jobTitle, counterpartyName);
+                    
+                    await _emailService.SendContractStatusNotificationAsync(
+                        userEmail, 
+                        jobTitle, 
+                        "Created", 
+                        counterpartyName
+                    );
+                    
+                    _logger.LogWarning("📧 [CONTRACT-EMAIL] Contract email sent successfully!");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [CONTRACT-EMAIL-ERROR] Failed to send contract created email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleContractStatusEmail(string userEmail, int? contractId, object? additionalData)
+    {
+        try
+        {
+            if (contractId.HasValue)
+            {
+                var contract = await _unitOfWork.Contracts.GetContractWithDetailsAsync(contractId.Value);
+                if (contract != null)
+                {
+                    var jobTitle = contract.Proposal?.Job?.Title ?? "Project";
+                    var newStatus = ExtractStringFromData(additionalData, "newStatus") ?? "Updated";
+                    var counterpartyName = "Other Party"; // Could be enhanced with better logic
+                    
+                    await _emailService.SendContractStatusNotificationAsync(
+                        userEmail, 
+                        jobTitle, 
+                        newStatus, 
+                        counterpartyName
+                    );
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send contract status email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleReviewReceivedEmail(string userEmail, int? reviewId, object? additionalData)
+    {
+        try
+        {
+            if (reviewId.HasValue)
+            {
+                var review = await _unitOfWork.Reviews.GetByIdAsync(reviewId.Value);
+                var reviewerName = ExtractStringFromData(additionalData, "reviewerName") ?? "Someone";
+                var jobTitle = ExtractStringFromData(additionalData, "jobTitle") ?? "Project";
+                var rating = ExtractIntFromData(additionalData, "rating") ?? 5;
+                
+                await _emailService.SendReviewNotificationAsync(
+                    userEmail, 
+                    review?.RevieweeId ?? "", 
+                    reviewerName, 
+                    jobTitle, 
+                    rating
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send review received email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    private async Task HandlePaymentNotificationEmail(string userEmail, object? additionalData, string transactionType)
+    {
+        try
+        {
+            var amount = ExtractDecimalFromData(additionalData, "amount") ?? 0;
+            var jobTitle = ExtractStringFromData(additionalData, "jobTitle") ?? "Project";
+            
+            await _emailService.SendPaymentNotificationAsync(userEmail, amount, jobTitle, transactionType);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send payment notification email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleDeadlineReminderEmail(string userEmail, string type, object? additionalData)
+    {
+        try
+        {
+            var itemName = ExtractStringFromData(additionalData, "itemName") ?? "Item";
+            var itemType = ExtractStringFromData(additionalData, "itemType") ?? "Task";
+            var deadline = ExtractDateTimeFromData(additionalData, "deadline") ?? DateTime.UtcNow.AddDays(1);
+            var daysRemaining = ExtractIntFromData(additionalData, "daysRemaining") ?? 1;
+            
+            await _emailService.SendDeadlineReminderAsync(userEmail, itemName, itemType, deadline, daysRemaining);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send deadline reminder email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleWelcomeEmail(string userEmail, string userName)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [WELCOME-EMAIL] HandleWelcomeEmail - Email: {Email}, Name: {Name}", userEmail, userName);
+            
+            // Determine user role
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = roles.FirstOrDefault() ?? "User";
+            
+            _logger.LogWarning("📧 [WELCOME-EMAIL] Sending welcome email - Role: {Role}", userRole);
+            
+            await _emailService.SendWelcomeEmailAsync(userEmail, userName, userRole);
+            
+            _logger.LogWarning("📧 [WELCOME-EMAIL] Welcome email sent successfully!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [WELCOME-EMAIL-ERROR] Failed to send welcome email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    private async Task HandleGenericNotificationEmail(string userEmail, string title, string message, string type)
+    {
+        try
+        {
+            _logger.LogWarning("📧 [GENERIC-EMAIL] HandleGenericNotificationEmail - Type: {Type}, Title: {Title}", type, title);
+            
+            // For generic notifications, create a simple email
+            var emailSubject = $"FreelanceJobBoard: {title}";
+            var emailBody = GenerateGenericEmailBody(title, message, type);
+            
+            _logger.LogWarning("📧 [GENERIC-EMAIL] Sending generic email to {Email}", userEmail);
+            
+            await _emailService.SendEmailAsync(userEmail, emailSubject, emailBody, true);
+            
+            _logger.LogWarning("📧 [GENERIC-EMAIL] Generic email sent successfully!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "📧 [GENERIC-EMAIL-ERROR] Failed to send generic notification email to {Email}", userEmail);
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region Data Extraction Helper Methods
+
+    private string? ExtractFeedbackFromData(object? additionalData)
+    {
+        return ExtractStringFromData(additionalData, "feedback") ?? 
+               ExtractStringFromData(additionalData, "clientMessage");
+    }
+
+    private string? ExtractAdminMessageFromData(object? additionalData)
+    {
+        return ExtractStringFromData(additionalData, "adminMessage") ?? 
+               ExtractStringFromData(additionalData, "responseNotes");
+    }
+
+    private string? ExtractStringFromData(object? additionalData, string key)
+    {
+        if (additionalData == null) return null;
+        
+        try
+        {
+            if (additionalData is JsonElement jsonElement && jsonElement.TryGetProperty(key, out var property))
+            {
+                return property.GetString();
+            }
+            
+            // Handle cases where additionalData is a dictionary or anonymous object
+            var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(JsonSerializer.Serialize(additionalData));
+            if (dict?.TryGetValue(key, out var value) == true)
+            {
+                return value?.ToString();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract string '{Key}' from additionalData", key);
+        }
+        
+        return null;
+    }
+
+    private int? ExtractIntFromData(object? additionalData, string key)
+    {
+        var stringValue = ExtractStringFromData(additionalData, key);
+        return int.TryParse(stringValue, out var result) ? result : null;
+    }
+
+    private decimal? ExtractDecimalFromData(object? additionalData, string key)
+    {
+        var stringValue = ExtractStringFromData(additionalData, key);
+        return decimal.TryParse(stringValue, out var result) ? result : null;
+    }
+
+    private DateTime? ExtractDateTimeFromData(object? additionalData, string key)
+    {
+        var stringValue = ExtractStringFromData(additionalData, key);
+        return DateTime.TryParse(stringValue, out var result) ? result : null;
+    }
+
+    private async Task MarkEmailAsSent(int notificationId)
+    {
+        try
+        {
+            var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+            if (notification != null)
+            {
+                notification.IsEmailSent = true;
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogWarning("📧 [EMAIL-STATUS] Marked notification {NotificationId} as email sent", notificationId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to mark email as sent for notification {NotificationId}", notificationId);
+        }
+    }
+
+    private string GenerateGenericEmailBody(string title, string message, string type)
+    {
+        return $@"
+<html>
+<body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+        <h2 style='color: #007bff;'>{title}</h2>
+        <p>Hello,</p>
+        <p>You have a new notification from FreelanceJobBoard:</p>
+        <div style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #007bff;'>
+            <p><strong>Notification:</strong> {message}</p>
+            <p><em>Type: {type}</em></p>
+        </div>
+        <p>Please log in to your dashboard to view more details and take any necessary actions.</p>
+        <p>Best regards,<br><strong>FreelanceJobBoard Team</strong></p>
+        
+        <hr style='margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;'>
+        <p style='font-size: 12px; color: #6b7280;'>
+            This email was sent from FreelanceJobBoard notification system. If you don't want to receive these emails, please update your notification preferences in your account settings.
+        </p>
+    </div>
+</body>
+</html>";
+    }
+
+    #endregion
+
+    // Template-based notification methods
     public async Task CreateNotificationWithTemplateAsync(string userId, NotificationTemplateDto template, object? additionalData = null)
     {
         try
@@ -123,7 +681,8 @@ public class NotificationService : INotificationService
                 IsRead = false,
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow,
-                Data = additionalData != null ? JsonSerializer.Serialize(additionalData) : null
+                Data = additionalData != null ? JsonSerializer.Serialize(additionalData) : null,
+                IsEmailSent = false
             };
 
             await _unitOfWork.Notifications.CreateAsync(notification);
@@ -150,6 +709,10 @@ public class NotificationService : INotificationService
             var unreadCount = await GetUnreadCountAsync(userId);
             await _hubContext.Clients.Group($"User_{userId}")
                 .SendAsync("UpdateUnreadCount", unreadCount);
+
+            // Send email notification for template-based notifications
+            await SendEmailNotificationAsync(notification, userId, template.Type, template.Title, 
+                template.Message, null, null, null, null, additionalData);
 
             _logger.LogInformation("Template notification created for user {UserId}: {Title} (Type: {Type})", 
                 userId, template.Title, template.Type);
@@ -181,7 +744,8 @@ public class NotificationService : INotificationService
                 IsRead = false,
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow,
-                Data = additionalData != null ? JsonSerializer.Serialize(additionalData) : null
+                Data = additionalData != null ? JsonSerializer.Serialize(additionalData) : null,
+                IsEmailSent = false
             };
 
             await _unitOfWork.Notifications.CreateAsync(notification);
@@ -209,6 +773,10 @@ public class NotificationService : INotificationService
             var unreadCount = await GetUnreadCountAsync(recipientUserId);
             await _hubContext.Clients.Group($"User_{recipientUserId}")
                 .SendAsync("UpdateUnreadCount", unreadCount);
+
+            // Send email notification for template-based notifications
+            await SendEmailNotificationAsync(notification, recipientUserId, template.Type, template.Title, 
+                template.Message, null, null, null, null, additionalData);
 
             _logger.LogInformation("Template notification created from {SenderId} to {RecipientId}: {Title} (Type: {Type})", 
                 senderUserId ?? "System", recipientUserId, template.Title, template.Type);
@@ -277,7 +845,7 @@ public class NotificationService : INotificationService
     {
         try
         {
-            _logger.LogWarning("?? [DEBUG] Sending real-time notification to user {UserId}: {Title}", userId, title);
+            _logger.LogWarning("🔥 [DEBUG] Sending real-time notification to user {UserId}: {Title}", userId, title);
 
             var notificationData = new
             {
@@ -290,7 +858,7 @@ public class NotificationService : INotificationService
             await _hubContext.Clients.Group($"User_{userId}")
                 .SendAsync("ReceiveNotification", notificationData);
 
-            _logger.LogWarning("?? [DEBUG] Real-time notification sent to User_{UserId} group", userId);
+            _logger.LogWarning("🔥 [DEBUG] Real-time notification sent to User_{UserId} group", userId);
 
             // Also update the unread count
             var unreadCount = await GetUnreadCountAsync(userId);
@@ -302,7 +870,7 @@ public class NotificationService : INotificationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "? [CRITICAL] Failed to send real-time notification to user {UserId}: {Title}", userId, title);
+            _logger.LogError(ex, "🔥 [CRITICAL] Failed to send real-time notification to user {UserId}: {Title}", userId, title);
         }
     }
 
@@ -1067,7 +1635,7 @@ public class NotificationService : INotificationService
     }
 
     // Review-related notifications
-    public async Task NotifyReviewReceivedAsync(int reviewId, string revieweeId, string reviewerName, string jobTitle, int rating)
+    public async Task NotifyReviewReceivedAsync(int reviewId, string revieweeId, String reviewerName, string jobTitle, int rating)
     {
         try
         {
